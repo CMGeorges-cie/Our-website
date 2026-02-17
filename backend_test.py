@@ -293,7 +293,8 @@ class CMGeorgesAPITester:
         if self.failed_tests:
             print("\n❌ Failed Tests:")
             for failure in self.failed_tests:
-                print(f"   - {failure['test']}: {failure.get('error', f\"Expected {failure.get('expected')}, got {failure.get('actual')}\")}")
+                error_msg = failure.get('error', f"Expected {failure.get('expected')}, got {failure.get('actual')}")
+                print(f"   - {failure['test']}: {error_msg}")
         else:
             print("\n✅ All tests passed!")
         
