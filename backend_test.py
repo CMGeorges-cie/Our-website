@@ -305,8 +305,20 @@ class CMGeorgesAPITester:
             self.test_create_quote()
             self.test_get_quotes()
             self.test_get_specific_quote()
+            
+            # Test CRM functionality
+            print("\n📌 Phase 7: CRM Features")
+            self.test_get_clients()
+            self.test_get_invoices()
+            self.test_get_projects()
+            self.test_ceo_dashboard()
         else:
             print("⚠️  Skipping admin tests due to login failure")
+            
+        # Test additional public endpoints
+        print("\n📌 Phase 8: Additional Public Features")
+        self.test_contact_form()
+        self.test_pricing_endpoint()
         
         # Print final results
         self.print_results()
