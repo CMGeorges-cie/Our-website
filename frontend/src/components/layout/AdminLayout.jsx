@@ -13,6 +13,10 @@ import { Button } from '@/components/ui/button';
 const sidebarLinks = [
   { href: '/admin/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { href: '/admin/leads', label: 'Leads', icon: Users },
+  { href: '/admin/clients', label: 'Clients', icon: Users },
+  { href: '/admin/projects', label: 'Projets', icon: FileText },
+  { href: '/admin/invoices', label: 'Factures', icon: FileText },
+  { href: '/admin/revenue', label: 'Revenus', icon: Settings },
 ];
 
 export default function AdminLayout() {

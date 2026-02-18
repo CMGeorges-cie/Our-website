@@ -54,14 +54,36 @@ export const adminApi = {
   getLeads: (params = {}) => api.get('/admin/leads', { params }),
   getLead: (id) => api.get(`/admin/leads/${id}`),
   updateLead: (id, data) => api.patch(`/admin/leads/${id}`, data),
+  convertLeadToClient: (id) => api.post(`/admin/leads/${id}/convert-to-client`),
   
   // Quotes
   getQuotes: (params = {}) => api.get('/admin/quotes', { params }),
   getQuote: (id) => api.get(`/admin/quotes/${id}`),
   createQuote: (data) => api.post('/admin/quotes', data),
   
-  // Stats
+  // Clients
+  getClients: (params = {}) => api.get('/admin/clients', { params }),
+  getClient: (id) => api.get(`/admin/clients/${id}`),
+  createClient: (data) => api.post('/admin/clients', data),
+  updateClient: (id, data) => api.patch(`/admin/clients/${id}`, data),
+  
+  // Invoices
+  getInvoices: (params = {}) => api.get('/admin/invoices', { params }),
+  getInvoice: (id) => api.get(`/admin/invoices/${id}`),
+  createInvoice: (data) => api.post('/admin/invoices', data),
+  updateInvoice: (id, data) => api.patch(`/admin/invoices/${id}`, data),
+  addPayment: (id, data) => api.post(`/admin/invoices/${id}/payments`, data),
+  
+  // Projects
+  getProjects: (params = {}) => api.get('/admin/projects', { params }),
+  getProject: (id) => api.get(`/admin/projects/${id}`),
+  createProject: (data) => api.post('/admin/projects', data),
+  updateProject: (id, data) => api.patch(`/admin/projects/${id}`, data),
+  
+  // Stats & Dashboard
   getStats: () => api.get('/admin/stats'),
+  getCeoDashboard: () => api.get('/admin/ceo-dashboard'),
+  getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
 };
 
 // Seed API (dev)
