@@ -47,9 +47,9 @@ const services = [
   { name: 'Sites web', icon: '💻', desc: 'Vitrine, e-commerce' }
 ];
 
-export default function SEOCityPage() {
-  const { city } = useParams();
-  const cityKey = city || 'montreal';
+export default function SEOCityPage({ city: propCity }) {
+  const { city: paramCity } = useParams();
+  const cityKey = propCity || paramCity || 'montreal';
   const data = cityData[cityKey] || cityData['montreal'];
   
   const pageTitle = data ? "Services CMGeorges à " + data.name + " | Peinture, Mobilier, Tech" : "CMGeorges";
