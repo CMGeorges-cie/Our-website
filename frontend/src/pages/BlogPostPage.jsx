@@ -52,11 +52,14 @@ export default function BlogPostPage() {
     );
   }
 
+  const pageTitle = `${post.meta_title || post.title || 'Article'} | CMGeorges`;
+  const pageDescription = post.meta_description || post.excerpt || '';
+
   return (
     <div className="min-h-screen bg-[#F8FAFC]" data-testid="blog-post-page">
       <Helmet>
-        <title>{post.meta_title || post.title} | CMGeorges</title>
-        <meta name="description" content={post.meta_description || post.excerpt} />
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
       </Helmet>
 
       {/* Header */}
