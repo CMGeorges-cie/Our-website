@@ -82,10 +82,8 @@ export default function SEOCityPage() {
   return (
     <div className="min-h-screen" data-testid={`seo-page-${cityKey}`}>
       <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <meta name="keywords" content={`peinture ${data.name}, assemblage IKEA ${data.name}, rénovation ${data.name}, développement web ${data.name}`} />
-        <link rel="canonical" href={`https://cmgeorges.com/services/${cityKey}`} />
+        <title>{"Services CMGeorges à " + data.name + " | Peinture, Mobilier, Tech"}</title>
+        <meta name="description" content={pageDescription || "Services professionnels CMGeorges"} />
       </Helmet>
 
       {/* Hero */}
