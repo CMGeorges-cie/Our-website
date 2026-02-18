@@ -1754,7 +1754,694 @@ async def seed_database():
     ]
     await db.portfolio_media.insert_many(portfolio_data)
     
+    # Create sample blog posts
+    blog_posts = [
+        {
+            "id": str(uuid.uuid4()),
+            "title": "5 conseils pour réussir votre projet de peinture",
+            "slug": "conseils-projet-peinture",
+            "excerpt": "Découvrez nos meilleurs conseils pour un résultat professionnel lors de votre prochain projet de peinture.",
+            "content": """
+            <h2>1. Préparation des surfaces</h2>
+            <p>La clé d'une peinture réussie réside dans la préparation. Nettoyez, réparez et poncez toutes les surfaces avant de commencer.</p>
+            
+            <h2>2. Choisir la bonne peinture</h2>
+            <p>Optez pour une peinture de qualité adaptée à votre projet. Pour les pièces humides, privilégiez une peinture anti-moisissure.</p>
+            
+            <h2>3. Protection adéquate</h2>
+            <p>Protégez vos meubles et sols avec des bâches. Le ruban de masquage est essentiel pour des lignes nettes.</p>
+            
+            <h2>4. Technique d'application</h2>
+            <p>Appliquez la peinture en couches fines et régulières. Laissez sécher entre chaque couche.</p>
+            
+            <h2>5. Finition professionnelle</h2>
+            <p>Retirez le ruban avant que la peinture soit complètement sèche pour éviter les arrachements.</p>
+            """,
+            "featured_image": "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800",
+            "category": "conseils",
+            "tags": ["peinture", "conseils", "DIY"],
+            "status": "published",
+            "author_name": "CMGeorges",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "published_at": datetime.now(timezone.utc).isoformat(),
+            "view_count": 0
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "title": "Guide complet: Assemblage de meubles IKEA",
+            "slug": "guide-assemblage-ikea",
+            "excerpt": "Tout ce que vous devez savoir pour assembler vos meubles IKEA comme un pro.",
+            "content": """
+            <h2>Avant de commencer</h2>
+            <p>Vérifiez que toutes les pièces sont présentes et lisez les instructions complètement.</p>
+            
+            <h2>Outils nécessaires</h2>
+            <p>Un tournevis, un marteau et un niveau sont généralement suffisants. IKEA fournit souvent une clé Allen.</p>
+            
+            <h2>Conseils de pro</h2>
+            <p>Ne serrez pas complètement les vis avant d'avoir assemblé toutes les pièces.</p>
+            
+            <h2>Ancrage mural</h2>
+            <p>Pour la sécurité des enfants, ancrez toujours les meubles hauts au mur.</p>
+            """,
+            "featured_image": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+            "category": "guides",
+            "tags": ["IKEA", "assemblage", "mobilier"],
+            "status": "published",
+            "author_name": "CMGeorges",
+            "created_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
+            "updated_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
+            "published_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
+            "view_count": 0
+        }
+    ]
+    await db.blog_posts.insert_many(blog_posts)
+    
     return {"message": "Database seeded successfully", "admin_email": "admin@cmgeorges.com", "admin_password": "admin123"}
+
+# ==================== BLOG PUBLIC ENDPOINTS ====================
+@v1_router.get("/blog", response_model=List[BlogPost])
+async def get_published_blog_posts(category: Optional[str] = None, tag: Optional[str] = None, limit: int = 10):
+    """Get published blog posts for public view"""
+    query = {"status": "published"}
+    if category:
+        query["category"] = category
+    if tag:
+        query["tags"] = tag
+    
+    posts = await db.blog_posts.find(query, {"_id": 0}).sort("published_at", -1).limit(limit).to_list(limit)
+    
+    for post in posts:
+        if isinstance(post.get('created_at'), str):
+            post['created_at'] = datetime.fromisoformat(post['created_at'])
+        if isinstance(post.get('updated_at'), str):
+            post['updated_at'] = datetime.fromisoformat(post['updated_at'])
+        if isinstance(post.get('published_at'), str):
+            post['published_at'] = datetime.fromisoformat(post['published_at'])
+    
+    return posts
+
+@v1_router.get("/blog/{slug}")
+async def get_blog_post_by_slug(slug: str):
+    """Get a single blog post by slug and increment view count"""
+    post = await db.blog_posts.find_one({"slug": slug, "status": "published"}, {"_id": 0})
+    if not post:
+        raise HTTPException(status_code=404, detail="Article non trouvé")
+    
+    # Increment view count
+    await db.blog_posts.update_one({"slug": slug}, {"$inc": {"view_count": 1}})
+    
+    if isinstance(post.get('created_at'), str):
+        post['created_at'] = datetime.fromisoformat(post['created_at'])
+    if isinstance(post.get('updated_at'), str):
+        post['updated_at'] = datetime.fromisoformat(post['updated_at'])
+    if isinstance(post.get('published_at'), str):
+        post['published_at'] = datetime.fromisoformat(post['published_at'])
+    
+    return post
+
+@v1_router.get("/blog-categories")
+async def get_blog_categories():
+    """Get all blog categories with post counts"""
+    pipeline = [
+        {"$match": {"status": "published"}},
+        {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    categories = await db.blog_posts.aggregate(pipeline).to_list(100)
+    return [{"category": c["_id"], "count": c["count"]} for c in categories]
+
+# ==================== ADMIN BLOG ENDPOINTS ====================
+@admin_router.get("/blog", response_model=List[BlogPost])
+async def admin_get_blog_posts(status: Optional[BlogPostStatus] = None, user: dict = Depends(get_current_user)):
+    """Get all blog posts for admin"""
+    query = {}
+    if status:
+        query["status"] = status
+    
+    posts = await db.blog_posts.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    
+    for post in posts:
+        if isinstance(post.get('created_at'), str):
+            post['created_at'] = datetime.fromisoformat(post['created_at'])
+        if isinstance(post.get('updated_at'), str):
+            post['updated_at'] = datetime.fromisoformat(post['updated_at'])
+        if isinstance(post.get('published_at'), str):
+            post['published_at'] = datetime.fromisoformat(post['published_at'])
+    
+    return posts
+
+@admin_router.post("/blog", response_model=BlogPost)
+async def create_blog_post(post_data: BlogPostCreate, request: Request, user: dict = Depends(get_current_user)):
+    """Create a new blog post"""
+    # Check for duplicate slug
+    existing = await db.blog_posts.find_one({"slug": post_data.slug})
+    if existing:
+        raise HTTPException(status_code=400, detail="Un article avec ce slug existe déjà")
+    
+    post = BlogPost(
+        **post_data.model_dump(),
+        author_id=user["id"],
+        author_name=user.get("full_name", user["email"])
+    )
+    
+    doc = post.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    if doc.get('published_at'):
+        doc['published_at'] = doc['published_at'].isoformat()
+    
+    await db.blog_posts.insert_one(doc)
+    await create_audit_log("blog_post_created", "blog_post", post.id, user=user, request=request)
+    
+    return post
+
+@admin_router.patch("/blog/{post_id}", response_model=BlogPost)
+async def update_blog_post(post_id: str, update: BlogPostUpdate, request: Request, user: dict = Depends(get_current_user)):
+    """Update a blog post"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # If publishing, set published_at
+    if update_data.get("status") == "published":
+        existing = await db.blog_posts.find_one({"id": post_id}, {"_id": 0, "published_at": 1})
+        if not existing or not existing.get("published_at"):
+            update_data["published_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.blog_posts.update_one({"id": post_id}, {"$set": update_data})
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Article non trouvé")
+    
+    await create_audit_log("blog_post_updated", "blog_post", post_id, user=user, details=update_data, request=request)
+    
+    post = await db.blog_posts.find_one({"id": post_id}, {"_id": 0})
+    if isinstance(post.get('created_at'), str):
+        post['created_at'] = datetime.fromisoformat(post['created_at'])
+    if isinstance(post.get('updated_at'), str):
+        post['updated_at'] = datetime.fromisoformat(post['updated_at'])
+    if isinstance(post.get('published_at'), str):
+        post['published_at'] = datetime.fromisoformat(post['published_at'])
+    
+    return post
+
+@admin_router.delete("/blog/{post_id}")
+async def delete_blog_post(post_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete a blog post"""
+    result = await db.blog_posts.delete_one({"id": post_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Article non trouvé")
+    
+    await create_audit_log("blog_post_deleted", "blog_post", post_id, user=user, request=request)
+    return {"message": "Article supprimé"}
+
+# ==================== PDF GENERATION ====================
+def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
+    """Generate PDF for a quote"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+    
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='CMGHeader', fontSize=24, textColor=colors.HexColor('#1a365d'), spaceAfter=20, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='CMGSubHeader', fontSize=12, textColor=colors.HexColor('#666666'), spaceAfter=10))
+    styles.add(ParagraphStyle(name='CMGTitle', fontSize=16, textColor=colors.HexColor('#1a365d'), spaceAfter=15, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='CMGRight', fontSize=10, alignment=TA_RIGHT))
+    
+    elements = []
+    
+    # Header
+    elements.append(Paragraph("🦁 CMGeorges", styles['CMGHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@cmgeorges.com", styles['CMGSubHeader']))
+    elements.append(Spacer(1, 20))
+    
+    # Quote Info
+    elements.append(Paragraph("SOUMISSION", styles['CMGTitle']))
+    
+    quote_info = [
+        ["Date:", quote.get('created_at', '')[:10] if isinstance(quote.get('created_at'), str) else str(quote.get('created_at', ''))[:10]],
+        ["Valide jusqu'au:", quote.get('valid_until', '')[:10] if isinstance(quote.get('valid_until'), str) else str(quote.get('valid_until', ''))[:10]],
+        ["Référence:", quote.get('id', '')[:8]],
+    ]
+    
+    t = Table(quote_info, colWidths=[100, 200])
+    t.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#666666')),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 20))
+    
+    # Client Info
+    elements.append(Paragraph("CLIENT", styles['CMGTitle']))
+    client_name = client.get('full_name') if client else lead.get('full_name', 'N/A')
+    client_email = client.get('email') if client else lead.get('email', 'N/A')
+    client_phone = client.get('phone') if client else lead.get('phone', 'N/A')
+    client_address = client.get('address', lead.get('address', '')) if client else lead.get('address', '')
+    
+    elements.append(Paragraph(f"<b>{client_name}</b><br/>{client_email}<br/>{client_phone}<br/>{client_address}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    # Line Items
+    elements.append(Paragraph("DÉTAILS", styles['CMGTitle']))
+    
+    table_data = [["Description", "Qté", "Prix unit.", "Total"]]
+    for line in quote.get('lines', []):
+        table_data.append([
+            line.get('description', ''),
+            str(line.get('quantity', 1)),
+            f"{line.get('unit_price', 0):.2f} $",
+            f"{line.get('line_total', 0):.2f} $"
+        ])
+    
+    t = Table(table_data, colWidths=[280, 50, 80, 80])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a365d')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 20))
+    
+    # Totals
+    totals_data = [
+        ["Sous-total:", f"{quote.get('subtotal_before_contingency', 0):.2f} $"],
+        [f"Contingence ({quote.get('contingency_percent', 15)}%):", f"{quote.get('contingency_amount', 0):.2f} $"],
+        ["TPS (5%):", f"{quote.get('tps_amount', 0):.2f} $"],
+        ["TVQ (9.975%):", f"{quote.get('tvq_amount', 0):.2f} $"],
+        ["TOTAL:", f"{quote.get('total_with_tax', 0):.2f} $"],
+    ]
+    
+    t = Table(totals_data, colWidths=[380, 100])
+    t.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor('#1a365d')),
+        ('FONTSIZE', (0, -1), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LINEABOVE', (0, -1), (-1, -1), 1, colors.HexColor('#1a365d')),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 20))
+    
+    # Payment Terms
+    elements.append(Paragraph("MODALITÉS DE PAIEMENT", styles['CMGTitle']))
+    payment_text = f"""
+    • Dépôt à la signature: {quote.get('deposit_amount', 0):.2f} $ (30%)<br/>
+    • À mi-projet: {quote.get('milestone_amount', 0):.2f} $ (30%)<br/>
+    • À la fin des travaux: {quote.get('final_amount', 0):.2f} $ (40%)
+    """
+    elements.append(Paragraph(payment_text, styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    # Notes
+    if quote.get('notes'):
+        elements.append(Paragraph("NOTES", styles['CMGTitle']))
+        elements.append(Paragraph(quote['notes'], styles['Normal']))
+        elements.append(Spacer(1, 20))
+    
+    # Footer
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph("Merci de votre confiance!", styles['CMGSubHeader']))
+    elements.append(Paragraph("CMGeorges - Votre partenaire pour tous vos projets", styles['CMGSubHeader']))
+    
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
+    """Generate PDF for an invoice"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+    
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name='CMGHeader', fontSize=24, textColor=colors.HexColor('#1a365d'), spaceAfter=20, fontName='Helvetica-Bold'))
+    styles.add(ParagraphStyle(name='CMGSubHeader', fontSize=12, textColor=colors.HexColor('#666666'), spaceAfter=10))
+    styles.add(ParagraphStyle(name='CMGTitle', fontSize=16, textColor=colors.HexColor('#1a365d'), spaceAfter=15, fontName='Helvetica-Bold'))
+    
+    elements = []
+    
+    # Header
+    elements.append(Paragraph("🦁 CMGeorges", styles['CMGHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@cmgeorges.com", styles['CMGSubHeader']))
+    elements.append(Spacer(1, 20))
+    
+    # Invoice Info
+    elements.append(Paragraph("FACTURE", styles['CMGTitle']))
+    
+    invoice_info = [
+        ["Numéro:", invoice.get('invoice_number', '')],
+        ["Date:", invoice.get('created_at', '')[:10] if isinstance(invoice.get('created_at'), str) else str(invoice.get('created_at', ''))[:10]],
+        ["Échéance:", invoice.get('due_date', '')[:10] if isinstance(invoice.get('due_date'), str) else str(invoice.get('due_date', ''))[:10] if invoice.get('due_date') else 'N/A'],
+        ["Statut:", invoice.get('status', 'draft').upper()],
+    ]
+    
+    t = Table(invoice_info, colWidths=[100, 200])
+    t.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#666666')),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 20))
+    
+    # Client Info
+    elements.append(Paragraph("FACTURER À", styles['CMGTitle']))
+    elements.append(Paragraph(f"<b>{client.get('full_name', 'N/A')}</b><br/>{client.get('email', '')}<br/>{client.get('phone', '')}<br/>{client.get('address', '')}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    # Line Items
+    elements.append(Paragraph("DÉTAILS", styles['CMGTitle']))
+    
+    table_data = [["Description", "Qté", "Prix unit.", "Total"]]
+    for line in invoice.get('lines', []):
+        table_data.append([
+            line.get('description', ''),
+            str(line.get('quantity', 1)),
+            f"{line.get('unit_price', 0):.2f} $",
+            f"{line.get('line_total', 0):.2f} $"
+        ])
+    
+    t = Table(table_data, colWidths=[280, 50, 80, 80])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a365d')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cccccc')),
+        ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 20))
+    
+    # Totals
+    totals_data = [
+        ["Sous-total:", f"{invoice.get('subtotal', 0):.2f} $"],
+        ["TPS (5%):", f"{invoice.get('tps_amount', 0):.2f} $"],
+        ["TVQ (9.975%):", f"{invoice.get('tvq_amount', 0):.2f} $"],
+        ["TOTAL:", f"{invoice.get('total', 0):.2f} $"],
+    ]
+    
+    if invoice.get('amount_paid', 0) > 0:
+        totals_data.append(["Montant payé:", f"-{invoice.get('amount_paid', 0):.2f} $"])
+        totals_data.append(["SOLDE DÛ:", f"{invoice.get('balance_due', 0):.2f} $"])
+    
+    t = Table(totals_data, colWidths=[380, 100])
+    t.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (0, -1), (-1, -1), colors.HexColor('#1a365d')),
+        ('FONTSIZE', (0, -1), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LINEABOVE', (0, -1), (-1, -1), 1, colors.HexColor('#1a365d')),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 20))
+    
+    # Payment Info
+    elements.append(Paragraph("MÉTHODES DE PAIEMENT", styles['CMGTitle']))
+    elements.append(Paragraph("""
+    • Virement Interac: cmgeorges.cie@gmail.com<br/>
+    • Comptant<br/>
+    • Chèque à l'ordre de CMGeorges
+    """, styles['Normal']))
+    
+    # Footer
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph("Merci de votre confiance!", styles['CMGSubHeader']))
+    
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+@admin_router.get("/quotes/{quote_id}/pdf")
+async def get_quote_pdf(quote_id: str, user: dict = Depends(get_current_user)):
+    """Generate and return PDF for a quote"""
+    quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Soumission non trouvée")
+    
+    lead = await db.leads.find_one({"id": quote.get("lead_id")}, {"_id": 0})
+    client = None
+    if quote.get("client_id"):
+        client = await db.clients.find_one({"id": quote["client_id"]}, {"_id": 0})
+    
+    pdf_buffer = generate_quote_pdf(quote, lead or {}, client)
+    
+    filename = f"soumission-cmgeorges-{quote_id[:8]}.pdf"
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@admin_router.get("/invoices/{invoice_id}/pdf")
+async def get_invoice_pdf(invoice_id: str, user: dict = Depends(get_current_user)):
+    """Generate and return PDF for an invoice"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+    
+    client = await db.clients.find_one({"id": invoice.get("client_id")}, {"_id": 0})
+    if not client:
+        client = {"full_name": "Client inconnu", "email": "", "phone": "", "address": ""}
+    
+    pdf_buffer = generate_invoice_pdf(invoice, client)
+    
+    filename = f"facture-{invoice.get('invoice_number', invoice_id[:8])}.pdf"
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+# ==================== CLIENT PORTAL ====================
+def generate_portal_token() -> str:
+    """Generate a secure portal access token"""
+    return secrets.token_urlsafe(32)
+
+@admin_router.post("/clients/{client_id}/portal-access")
+async def create_client_portal_access(client_id: str, background_tasks: BackgroundTasks, request: Request, user: dict = Depends(get_current_user)):
+    """Create or refresh portal access for a client and send email"""
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    # Generate new access token
+    access_token = generate_portal_token()
+    
+    # Deactivate existing access
+    await db.client_portal_access.update_many(
+        {"client_id": client_id},
+        {"$set": {"is_active": False}}
+    )
+    
+    # Create new access
+    portal_access = ClientPortalAccess(
+        client_id=client_id,
+        email=client["email"],
+        access_token=access_token
+    )
+    
+    doc = portal_access.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['expires_at'] = doc['expires_at'].isoformat()
+    
+    await db.client_portal_access.insert_one(doc)
+    
+    # Build portal URL
+    portal_url = f"https://cmgeorges-staging.preview.emergentagent.com/portail-client?token={access_token}"
+    
+    # Send email to client
+    email_html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .header {{ background: #1a365d; color: white; padding: 20px; text-align: center; }}
+            .header h1 {{ color: #d4af37; margin: 0; }}
+            .content {{ padding: 30px; }}
+            .button {{ display: inline-block; background: #d4af37; color: #1a365d; padding: 15px 30px; text-decoration: none; font-weight: bold; border-radius: 5px; }}
+            .footer {{ background: #f8fafc; padding: 20px; text-align: center; font-size: 12px; }}
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🦁 CMGeorges</h1>
+        </div>
+        <div class="content">
+            <h2>Bonjour {client.get('full_name', '').split()[0]}!</h2>
+            <p>Vous pouvez maintenant accéder à votre portail client pour consulter vos soumissions, factures et projets.</p>
+            <p style="text-align: center; margin: 30px 0;">
+                <a href="{portal_url}" class="button">Accéder à mon portail</a>
+            </p>
+            <p>Ce lien est valide pendant 30 jours.</p>
+            <p>Si vous n'avez pas demandé cet accès, veuillez ignorer ce courriel.</p>
+        </div>
+        <div class="footer">
+            <p>CMGeorges - Montréal & Rive-Sud | 514-386-1743</p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    background_tasks.add_task(send_email, client["email"], "CMGeorges - Accès à votre portail client", email_html)
+    
+    await create_audit_log("portal_access_created", "client_portal", portal_access.id, user=user, details={"client_id": client_id}, request=request)
+    
+    return {"message": "Accès portail créé et envoyé par courriel", "portal_url": portal_url}
+
+@v1_router.post("/portal/login")
+async def client_portal_login(login_data: ClientPortalLogin):
+    """Authenticate client for portal access"""
+    access = await db.client_portal_access.find_one({
+        "email": login_data.email,
+        "access_token": login_data.token,
+        "is_active": True
+    }, {"_id": 0})
+    
+    if not access:
+        raise HTTPException(status_code=401, detail="Accès invalide ou expiré")
+    
+    # Check expiration
+    expires_at = datetime.fromisoformat(access["expires_at"]) if isinstance(access["expires_at"], str) else access["expires_at"]
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Accès expiré")
+    
+    return {"client_id": access["client_id"], "email": access["email"]}
+
+@v1_router.get("/portal/access")
+async def get_portal_access_by_token(token: str):
+    """Get portal access info by token"""
+    access = await db.client_portal_access.find_one({
+        "access_token": token,
+        "is_active": True
+    }, {"_id": 0})
+    
+    if not access:
+        raise HTTPException(status_code=401, detail="Accès invalide")
+    
+    # Check expiration
+    expires_at = datetime.fromisoformat(access["expires_at"]) if isinstance(access["expires_at"], str) else access["expires_at"]
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Accès expiré")
+    
+    return {"client_id": access["client_id"], "email": access["email"]}
+
+@v1_router.get("/portal/data/{client_id}")
+async def get_client_portal_data(client_id: str, token: str):
+    """Get all data for client portal"""
+    # Verify access token
+    access = await db.client_portal_access.find_one({
+        "client_id": client_id,
+        "access_token": token,
+        "is_active": True
+    }, {"_id": 0})
+    
+    if not access:
+        raise HTTPException(status_code=401, detail="Accès non autorisé")
+    
+    # Check expiration
+    expires_at = datetime.fromisoformat(access["expires_at"]) if isinstance(access["expires_at"], str) else access["expires_at"]
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Accès expiré")
+    
+    # Get client data
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    # Get quotes
+    quotes = await db.quotes.find({"client_id": client_id}, {"_id": 0}).to_list(100)
+    
+    # Get invoices
+    invoices = await db.invoices.find({"client_id": client_id}, {"_id": 0}).to_list(100)
+    
+    # Get projects
+    projects = await db.projects.find({"client_id": client_id}, {"_id": 0}).to_list(100)
+    
+    return {
+        "client": client,
+        "quotes": quotes,
+        "invoices": invoices,
+        "projects": projects
+    }
+
+@v1_router.get("/portal/quote/{quote_id}/pdf")
+async def get_portal_quote_pdf(quote_id: str, token: str):
+    """Get quote PDF for client portal"""
+    quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Soumission non trouvée")
+    
+    # Verify access
+    access = await db.client_portal_access.find_one({
+        "client_id": quote.get("client_id"),
+        "access_token": token,
+        "is_active": True
+    }, {"_id": 0})
+    
+    if not access:
+        raise HTTPException(status_code=401, detail="Accès non autorisé")
+    
+    lead = await db.leads.find_one({"id": quote.get("lead_id")}, {"_id": 0})
+    client = await db.clients.find_one({"id": quote.get("client_id")}, {"_id": 0})
+    
+    pdf_buffer = generate_quote_pdf(quote, lead or {}, client)
+    
+    filename = f"soumission-cmgeorges-{quote_id[:8]}.pdf"
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@v1_router.get("/portal/invoice/{invoice_id}/pdf")
+async def get_portal_invoice_pdf(invoice_id: str, token: str):
+    """Get invoice PDF for client portal"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+    
+    # Verify access
+    access = await db.client_portal_access.find_one({
+        "client_id": invoice.get("client_id"),
+        "access_token": token,
+        "is_active": True
+    }, {"_id": 0})
+    
+    if not access:
+        raise HTTPException(status_code=401, detail="Accès non autorisé")
+    
+    client = await db.clients.find_one({"id": invoice.get("client_id")}, {"_id": 0})
+    if not client:
+        client = {"full_name": "Client", "email": "", "phone": "", "address": ""}
+    
+    pdf_buffer = generate_invoice_pdf(invoice, client)
+    
+    filename = f"facture-{invoice.get('invoice_number', invoice_id[:8])}.pdf"
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 # Include routers
 v1_router.include_router(admin_router)
