@@ -59,6 +59,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/faq" className="text-white/70 hover:text-white transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/garantie" className="text-white/70 hover:text-white transition-colors">
+                  Garantie
+                </Link>
+              </li>
+              <li>
                 <Link to="/contact" className="text-white/70 hover:text-white transition-colors">
                   Nous contacter
                 </Link>
@@ -98,11 +108,21 @@ export default function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/50 text-sm">
-            © {new Date().getFullYear()} CMGeorges. Tous droits réservés.
-          </p>
-          <div className="flex gap-6 text-sm text-white/50">
+        <div className="border-t border-white/10 mt-12 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+            <p className="text-white/50 text-sm">
+              © {new Date().getFullYear()} CMGeorges. Tous droits réservés.
+            </p>
+            <div className="flex gap-6 text-sm text-white/50">
+              <Link to="/confidentialite" className="hover:text-white transition-colors">
+                Confidentialité
+              </Link>
+              <Link to="/conditions" className="hover:text-white transition-colors">
+                Conditions
+              </Link>
+            </div>
+          </div>
+          <div className="flex justify-center gap-6 text-xs text-white/40">
             <span>TPS: 123456789 RT0001</span>
             <span>TVQ: 1234567890 TQ0001</span>
           </div>
