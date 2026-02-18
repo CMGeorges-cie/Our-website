@@ -56,8 +56,17 @@ export default function SEOCityPage() {
     return <div>Page non trouvée</div>;
   }
 
-  const pageTitle = `Services CMGeorges à ${data.name} | Peinture, Mobilier, Tech`;
+  const pageTitle = "Services CMGeorges à " + data.name + " | Peinture, Mobilier, Tech";
   const pageDescription = data.description || '';
+
+  // Set document title
+  useEffect(() => {
+    document.title = pageTitle;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute('content', pageDescription);
+    }
+  }, [pageTitle, pageDescription]);
 
   const schemaData = {
     "@context": "https://schema.org",
