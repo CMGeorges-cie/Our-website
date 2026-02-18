@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://cmgeorges.com/sitemap.xml
+
+# Block admin pages
+Disallow: /admin/
+Disallow: /admin/*
+
+# Allow important pages
+Allow: /
+Allow: /services
+Allow: /mobilier
+Allow: /portfolio
+Allow: /soumission
+Allow: /contact
+Allow: /faq
+Allow: /garantie
+Allow: /confidentialite
+Allow: /conditions
+
+# SEO city pages
+Allow: /services/montreal
+Allow: /services/longueuil
+Allow: /services/brossard
+Allow: /services/laval
+Allow: /services/ville-saint-laurent
