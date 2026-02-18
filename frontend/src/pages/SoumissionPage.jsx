@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,8 @@ import {
 } from 'lucide-react';
 import { publicApi } from '@/lib/api';
 import { toast } from 'sonner';
+
+const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY;
 
 const serviceTypes = [
   { value: 'manual', label: 'Déco Touché (Peinture/Rénovation)', icon: Paintbrush },
