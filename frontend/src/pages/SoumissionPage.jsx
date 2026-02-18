@@ -65,7 +65,9 @@ const emptyItem = {
 
 export default function SoumissionPage() {
   const navigate = useNavigate();
+  const recaptchaRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
@@ -109,12 +111,25 @@ export default function SoumissionPage() {
     }));
   };
 
+  const handleRecaptchaChange = (token) => {
+    setRecaptchaToken(token);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!recaptchaToken && RECAPTCHA_SITE_KEY) {
+      toast.error('Veuillez compléter le reCAPTCHA');
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      const data = { ...formData };
+      const data = { 
+        ...formData,
+        recaptcha_token: recaptchaToken
+      };
       if (!isFurniture) {
         data.items = [];
       }
@@ -129,6 +144,11 @@ export default function SoumissionPage() {
       toast.error('Erreur lors de l\'envoi', {
         description: error.response?.data?.detail || 'Veuillez réessayer.'
       });
+      // Reset reCAPTCHA on error
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+        setRecaptchaToken(null);
+      }
     } finally {
       setLoading(false);
     }
