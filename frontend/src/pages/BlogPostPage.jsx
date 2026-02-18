@@ -28,9 +28,24 @@ export default function BlogPostPage() {
     fetchPost();
   }, [slug]);
 
+  // Helper to get safe title for Helmet
+  const getPageTitle = () => {
+    if (!post) return 'Article | CMGeorges';
+    const title = post.meta_title || post.title || 'Article';
+    return String(title) + ' | CMGeorges';
+  };
+
+  const getPageDescription = () => {
+    if (!post) return '';
+    return String(post.meta_description || post.excerpt || '');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <Helmet>
+          <title>Chargement... | CMGeorges</title>
+        </Helmet>
         <p className="text-gray-500">Chargement...</p>
       </div>
     );
@@ -39,6 +54,9 @@ export default function BlogPostPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+        <Helmet>
+          <title>Article non trouvé | CMGeorges</title>
+        </Helmet>
         <div className="text-center">
           <p className="text-gray-500 mb-4">{error || 'Article non trouvé'}</p>
           <Link to="/blog">
@@ -52,14 +70,11 @@ export default function BlogPostPage() {
     );
   }
 
-  const pageTitle = `${post.meta_title || post.title || 'Article'} | CMGeorges`;
-  const pageDescription = post.meta_description || post.excerpt || '';
-
   return (
     <div className="min-h-screen bg-[#F8FAFC]" data-testid="blog-post-page">
       <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
+        <title>{getPageTitle()}</title>
+        <meta name="description" content={getPageDescription()} />
       </Helmet>
 
       {/* Header */}
