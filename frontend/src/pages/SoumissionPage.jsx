@@ -442,12 +442,23 @@ export default function SoumissionPage() {
                   </Select>
                 </div>
 
+                {/* reCAPTCHA */}
+                {RECAPTCHA_SITE_KEY && (
+                  <div className="flex justify-center" data-testid="recaptcha-container">
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={RECAPTCHA_SITE_KEY}
+                      onChange={handleRecaptchaChange}
+                    />
+                  </div>
+                )}
+
                 {/* Submit */}
                 <Button 
                   type="submit" 
                   className="btn-accent w-full"
                   size="lg"
-                  disabled={loading || !formData.service_type || !formData.full_name || !formData.email || !formData.phone}
+                  disabled={loading || !formData.service_type || !formData.full_name || !formData.email || !formData.phone || (RECAPTCHA_SITE_KEY && !recaptchaToken)}
                   data-testid="submit-soumission-btn"
                 >
                   {loading ? (
