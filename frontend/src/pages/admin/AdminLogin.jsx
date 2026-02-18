@@ -76,11 +76,12 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-[#1a365d] flex items-center justify-center p-4" data-testid="admin-login-page">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img 
-            src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
-            alt="CMGeorges"
-            className="h-16 w-auto mx-auto mb-4 brightness-0 invert"
-          />
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-[#d4af37] rounded-lg flex items-center justify-center">
+              <span className="text-[#1a365d] text-2xl font-bold">🦁</span>
+            </div>
+            <span className="text-3xl font-bold text-white font-['Outfit']">CMGeorges</span>
+          </div>
           <h1 className="text-2xl font-bold text-white font-['Outfit']">Administration</h1>
           <p className="text-white/60 text-sm">Connectez-vous pour accéder au tableau de bord</p>
         </div>
