@@ -51,15 +51,11 @@ export default function SEOCityPage() {
   const { city } = useParams();
   const cityKey = city || 'montreal';
   const data = cityData[cityKey] || cityData['montreal'];
+  
+  const pageTitle = data ? "Services CMGeorges à " + data.name + " | Peinture, Mobilier, Tech" : "CMGeorges";
+  const pageDescription = data?.description || '';
 
-  if (!data) {
-    return <div>Page non trouvée</div>;
-  }
-
-  const pageTitle = "Services CMGeorges à " + data.name + " | Peinture, Mobilier, Tech";
-  const pageDescription = data.description || '';
-
-  // Set document title
+  // Set document title - must be before any conditional return
   useEffect(() => {
     document.title = pageTitle;
     const metaDesc = document.querySelector('meta[name="description"]');
@@ -67,6 +63,10 @@ export default function SEOCityPage() {
       metaDesc.setAttribute('content', pageDescription);
     }
   }, [pageTitle, pageDescription]);
+
+  if (!data) {
+    return <div>Page non trouvée</div>;
+  }
 
   const schemaData = {
     "@context": "https://schema.org",
