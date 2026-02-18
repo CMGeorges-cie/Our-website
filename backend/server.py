@@ -509,6 +509,70 @@ class CEODashboard(BaseModel):
     projects_in_progress: int
     conversion_rate: float
 
+# ==================== BLOG MODELS ====================
+class BlogPostStatus(str, Enum):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    ARCHIVED = "archived"
+
+class BlogPostBase(BaseModel):
+    title: str
+    slug: str
+    excerpt: str = ""
+    content: str
+    featured_image: Optional[str] = None
+    category: str = "general"
+    tags: List[str] = []
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+
+class BlogPostCreate(BlogPostBase):
+    pass
+
+class BlogPost(BlogPostBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    status: BlogPostStatus = BlogPostStatus.DRAFT
+    author_id: Optional[str] = None
+    author_name: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    published_at: Optional[datetime] = None
+    view_count: int = 0
+
+class BlogPostUpdate(BaseModel):
+    title: Optional[str] = None
+    slug: Optional[str] = None
+    excerpt: Optional[str] = None
+    content: Optional[str] = None
+    featured_image: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[List[str]] = None
+    status: Optional[BlogPostStatus] = None
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+
+# ==================== CLIENT PORTAL MODELS ====================
+class ClientPortalAccess(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_id: str
+    email: EmailStr
+    access_token: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc) + timedelta(days=30))
+    is_active: bool = True
+
+class ClientPortalLogin(BaseModel):
+    email: EmailStr
+    token: str
+
+class ClientPortalData(BaseModel):
+    client: dict
+    quotes: List[dict]
+    invoices: List[dict]
+    projects: List[dict]
+
 # ==================== AUTH HELPERS ====================
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
