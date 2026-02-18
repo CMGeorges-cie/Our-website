@@ -85,8 +85,7 @@ export default function SEOCityPage() {
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <meta name="keywords" content={`peinture ${data.name}, assemblage IKEA ${data.name}, rénovation ${data.name}, développement web ${data.name}`} />
-        <link rel="canonical" href={`https://cmgeorges.com/services/${city}`} />
-        <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
+        <link rel="canonical" href={`https://cmgeorges.com/services/${cityKey}`} />
       </Helmet>
 
       {/* Hero */}
