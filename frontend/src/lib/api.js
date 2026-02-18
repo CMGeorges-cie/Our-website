@@ -60,12 +60,14 @@ export const adminApi = {
   getQuotes: (params = {}) => api.get('/admin/quotes', { params }),
   getQuote: (id) => api.get(`/admin/quotes/${id}`),
   createQuote: (data) => api.post('/admin/quotes', data),
+  getQuotePdf: (id) => api.get(`/admin/quotes/${id}/pdf`, { responseType: 'blob' }),
   
   // Clients
   getClients: (params = {}) => api.get('/admin/clients', { params }),
   getClient: (id) => api.get(`/admin/clients/${id}`),
   createClient: (data) => api.post('/admin/clients', data),
   updateClient: (id, data) => api.patch(`/admin/clients/${id}`, data),
+  createPortalAccess: (id) => api.post(`/admin/clients/${id}/portal-access`),
   
   // Invoices
   getInvoices: (params = {}) => api.get('/admin/invoices', { params }),
@@ -73,6 +75,7 @@ export const adminApi = {
   createInvoice: (data) => api.post('/admin/invoices', data),
   updateInvoice: (id, data) => api.patch(`/admin/invoices/${id}`, data),
   addPayment: (id, data) => api.post(`/admin/invoices/${id}/payments`, data),
+  getInvoicePdf: (id) => api.get(`/admin/invoices/${id}/pdf`, { responseType: 'blob' }),
   
   // Projects
   getProjects: (params = {}) => api.get('/admin/projects', { params }),
@@ -80,10 +83,29 @@ export const adminApi = {
   createProject: (data) => api.post('/admin/projects', data),
   updateProject: (id, data) => api.patch(`/admin/projects/${id}`, data),
   
+  // Blog
+  getBlogPosts: (params = {}) => api.get('/admin/blog', { params }),
+  createBlogPost: (data) => api.post('/admin/blog', data),
+  updateBlogPost: (id, data) => api.patch(`/admin/blog/${id}`, data),
+  deleteBlogPost: (id) => api.delete(`/admin/blog/${id}`),
+  
   // Stats & Dashboard
   getStats: () => api.get('/admin/stats'),
   getCeoDashboard: () => api.get('/admin/ceo-dashboard'),
   getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
+};
+
+// Blog Public API
+export const blogApi = {
+  getPosts: (params = {}) => api.get('/blog', { params }),
+  getPost: (slug) => api.get(`/blog/${slug}`),
+  getCategories: () => api.get('/blog-categories'),
+};
+
+// Client Portal API
+export const portalApi = {
+  getAccessByToken: (token) => api.get(`/portal/access?token=${token}`),
+  getData: (clientId, token) => api.get(`/portal/data/${clientId}?token=${token}`),
 };
 
 // Seed API (dev)
