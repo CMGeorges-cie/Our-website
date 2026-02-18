@@ -238,6 +238,38 @@ class CMGeorgesAPITester:
             200
         )
 
+    def test_contact_form(self):
+        """Test contact form submission"""
+        contact_data = {
+            "name": f"Test Contact {datetime.now().strftime('%H%M%S')}",
+            "email": f"contact{datetime.now().strftime('%H%M%S')}@test.com",
+            "phone": "514-555-CONT",
+            "subject": "Test Contact Message",
+            "message": "This is a test contact form submission from the API tester."
+        }
+        
+        return self.run_test("Submit Contact Form", "POST", "/api/v1/contact", 200, data=contact_data)
+
+    def test_ceo_dashboard(self):
+        """Test CEO dashboard endpoint (requires admin auth)"""
+        return self.run_test("Get CEO Dashboard", "GET", "/api/v1/admin/ceo-dashboard", 200)
+
+    def test_get_clients(self):
+        """Test get all clients"""
+        return self.run_test("Get Admin Clients", "GET", "/api/v1/admin/clients", 200)
+
+    def test_get_invoices(self):
+        """Test get all invoices"""
+        return self.run_test("Get Admin Invoices", "GET", "/api/v1/admin/invoices", 200)
+
+    def test_get_projects(self):
+        """Test get all projects"""
+        return self.run_test("Get Admin Projects", "GET", "/api/v1/admin/projects", 200)
+
+    def test_pricing_endpoint(self):
+        """Test pricing information endpoint"""
+        return self.run_test("Get Pricing Info", "GET", "/api/v1/pricing", 200)
+
     def run_all_tests(self):
         """Run all API tests in sequence"""
         print("=" * 60)
