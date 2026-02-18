@@ -196,31 +196,6 @@ export default function SEOCityPage() {
           </Link>
         </div>
       </section>
-
-      {/* Schema.org LocalBusiness - moved to Helmet */}
-      <Helmet>
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "name": "CMGeorges",
-            "description": data.description,
-            "telephone": "+1-514-386-1743",
-            "email": "info@cmgeorges.com",
-            "address": {
-              "@type": "PostalAddress",
-              "addressLocality": data.name,
-              "addressRegion": "QC",
-              "addressCountry": "CA"
-            },
-            "areaServed": {
-              "@type": "City",
-              "name": data.name
-            },
-            "priceRange": "$$"
-          })}
-        </script>
-      </Helmet>
     </div>
   );
 }
