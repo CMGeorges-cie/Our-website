@@ -1,5 +1,5 @@
-import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, ArrowRight, MapPin, Phone } from 'lucide-react';
