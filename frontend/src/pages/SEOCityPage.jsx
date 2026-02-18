@@ -176,11 +176,10 @@ export default function SEOCityPage() {
         </div>
       </section>
 
-      {/* Schema.org LocalBusiness */}
-      <script 
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+      {/* Schema.org LocalBusiness - moved to Helmet */}
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "LocalBusiness",
             "name": "CMGeorges",
@@ -198,9 +197,9 @@ export default function SEOCityPage() {
               "name": data.name
             },
             "priceRange": "$$"
-          })
-        }}
-      />
+          })}
+        </script>
+      </Helmet>
     </div>
   );
 }
