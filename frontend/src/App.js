@@ -16,6 +16,9 @@ import PrivacyPage from "@/pages/PrivacyPage";
 import TermsPage from "@/pages/TermsPage";
 import GarantiePage from "@/pages/GarantiePage";
 import SEOCityPage from "@/pages/SEOCityPage";
+import BlogPage from "@/pages/BlogPage";
+import BlogPostPage from "@/pages/BlogPostPage";
+import ClientPortalPage from "@/pages/ClientPortalPage";
 
 // Admin Pages
 import AdminLogin from "@/pages/admin/AdminLogin";
