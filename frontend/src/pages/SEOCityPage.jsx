@@ -177,27 +177,30 @@ export default function SEOCityPage() {
       </section>
 
       {/* Schema.org LocalBusiness */}
-      <script type="application/ld+json">
-        {JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "LocalBusiness",
-          "name": "CMGeorges",
-          "description": data.description,
-          "telephone": "+1-514-386-1743",
-          "email": "info@cmgeorges.com",
-          "address": {
-            "@type": "PostalAddress",
-            "addressLocality": data.name,
-            "addressRegion": "QC",
-            "addressCountry": "CA"
-          },
-          "areaServed": {
-            "@type": "City",
-            "name": data.name
-          },
-          "priceRange": "$$"
-        })}
-      </script>
+      <script 
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": "CMGeorges",
+            "description": data.description,
+            "telephone": "+1-514-386-1743",
+            "email": "info@cmgeorges.com",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": data.name,
+              "addressRegion": "QC",
+              "addressCountry": "CA"
+            },
+            "areaServed": {
+              "@type": "City",
+              "name": data.name
+            },
+            "priceRange": "$$"
+          })
+        }}
+      />
     </div>
   );
 }
