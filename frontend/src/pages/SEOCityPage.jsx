@@ -90,11 +90,6 @@ export default function SEOCityPage() {
 
   return (
     <div className="min-h-screen" data-testid={`seo-page-${cityKey}`}>
-      <Helmet>
-        <title>{"Services CMGeorges à " + data.name + " | Peinture, Mobilier, Tech"}</title>
-        <meta name="description" content={pageDescription || "Services professionnels CMGeorges"} />
-      </Helmet>
-
       {/* Hero */}
       <section className="bg-[#1a365d] py-20">
         <div className="container-main">
