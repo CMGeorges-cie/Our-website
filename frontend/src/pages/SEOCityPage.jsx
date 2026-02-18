@@ -54,6 +54,26 @@ export default function SEOCityPage() {
   const pageTitle = `Services CMGeorges à ${data.name} | Peinture, Mobilier, Tech`;
   const pageDescription = data.description;
 
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "CMGeorges",
+    "description": data.description,
+    "telephone": "+1-514-386-1743",
+    "email": "info@cmgeorges.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": data.name,
+      "addressRegion": "QC",
+      "addressCountry": "CA"
+    },
+    "areaServed": {
+      "@type": "City",
+      "name": data.name
+    },
+    "priceRange": "$$"
+  };
+
   return (
     <div className="min-h-screen" data-testid={`seo-page-${city}`}>
       <Helmet>
@@ -61,6 +81,7 @@ export default function SEOCityPage() {
         <meta name="description" content={pageDescription} />
         <meta name="keywords" content={`peinture ${data.name}, assemblage IKEA ${data.name}, rénovation ${data.name}, développement web ${data.name}`} />
         <link rel="canonical" href={`https://cmgeorges.com/services/${city}`} />
+        <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
 
       {/* Hero */}
