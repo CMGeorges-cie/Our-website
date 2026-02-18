@@ -1,6 +1,8 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/sonner";
+import { useEffect } from "react";
 
 // Pages
 import HomePage from "@/pages/HomePage";
@@ -9,6 +11,11 @@ import MobilierPage from "@/pages/MobilierPage";
 import PortfolioPage from "@/pages/PortfolioPage";
 import SoumissionPage from "@/pages/SoumissionPage";
 import ContactPage from "@/pages/ContactPage";
+import FAQPage from "@/pages/FAQPage";
+import PrivacyPage from "@/pages/PrivacyPage";
+import TermsPage from "@/pages/TermsPage";
+import GarantiePage from "@/pages/GarantiePage";
+import SEOCityPage from "@/pages/SEOCityPage";
 
 // Admin Pages
 import AdminLogin from "@/pages/admin/AdminLogin";
@@ -16,39 +23,129 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminLeads from "@/pages/admin/AdminLeads";
 import AdminLeadDetail from "@/pages/admin/AdminLeadDetail";
 import AdminQuoteView from "@/pages/admin/AdminQuoteView";
+import AdminClients from "@/pages/admin/AdminClients";
+import AdminInvoices from "@/pages/admin/AdminInvoices";
+import AdminProjects from "@/pages/admin/AdminProjects";
+import AdminRevenue from "@/pages/admin/AdminRevenue";
 
 // Layout
 import PublicLayout from "@/components/layout/PublicLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
 
+// Analytics initialization
+const initAnalytics = () => {
+  const GA4_ID = process.env.REACT_APP_GA4_ID;
+  const META_PIXEL_ID = process.env.REACT_APP_META_PIXEL_ID;
+
+  // Google Analytics 4
+  if (GA4_ID) {
+    const script1 = document.createElement('script');
+    script1.async = true;
+    script1.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`;
+    document.head.appendChild(script1);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { window.dataLayer.push(arguments); }
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', GA4_ID, {
+      page_title: document.title,
+      page_location: window.location.href
+    });
+  }
+
+  // Meta Pixel
+  if (META_PIXEL_ID) {
+    !function(f,b,e,v,n,t,s) {
+      if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)
+    }(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    
+    window.fbq('init', META_PIXEL_ID);
+    window.fbq('track', 'PageView');
+  }
+};
+
+// Track page views
+export const trackPageView = (path, title) => {
+  if (window.gtag) {
+    window.gtag('event', 'page_view', {
+      page_path: path,
+      page_title: title
+    });
+  }
+  if (window.fbq) {
+    window.fbq('track', 'PageView');
+  }
+};
+
+// Track events
+export const trackEvent = (eventName, params = {}) => {
+  if (window.gtag) {
+    window.gtag('event', eventName, params);
+  }
+  if (window.fbq) {
+    window.fbq('track', eventName, params);
+  }
+};
+
+// Track lead submission
+export const trackLeadSubmission = (serviceType) => {
+  trackEvent('generate_lead', { service_type: serviceType });
+  if (window.fbq) {
+    window.fbq('track', 'Lead', { content_category: serviceType });
+  }
+};
+
 function App() {
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/services" element={<ServicesPage />} />
-            <Route path="/mobilier" element={<MobilierPage />} />
-            <Route path="/portfolio" element={<PortfolioPage />} />
-            <Route path="/soumission" element={<SoumissionPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-          </Route>
-          
-          {/* Admin Routes */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route element={<AdminLayout />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/leads" element={<AdminLeads />} />
-            <Route path="/admin/leads/:id" element={<AdminLeadDetail />} />
-            <Route path="/admin/quotes/:id" element={<AdminQuoteView />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-      <Toaster position="top-right" richColors />
-    </div>
+    <HelmetProvider>
+      <div className="App">
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/mobilier" element={<MobilierPage />} />
+              <Route path="/portfolio" element={<PortfolioPage />} />
+              <Route path="/soumission" element={<SoumissionPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/faq" element={<FAQPage />} />
+              <Route path="/confidentialite" element={<PrivacyPage />} />
+              <Route path="/conditions" element={<TermsPage />} />
+              <Route path="/garantie" element={<GarantiePage />} />
+              
+              {/* SEO City Pages */}
+              <Route path="/services/:city" element={<SEOCityPage />} />
+            </Route>
+            
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/leads" element={<AdminLeads />} />
+              <Route path="/admin/leads/:id" element={<AdminLeadDetail />} />
+              <Route path="/admin/quotes/:id" element={<AdminQuoteView />} />
+              <Route path="/admin/clients" element={<AdminClients />} />
+              <Route path="/admin/invoices" element={<AdminInvoices />} />
+              <Route path="/admin/projects" element={<AdminProjects />} />
+              <Route path="/admin/revenue" element={<AdminRevenue />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+        <Toaster position="top-right" richColors />
+      </div>
+    </HelmetProvider>
   );
 }
 
