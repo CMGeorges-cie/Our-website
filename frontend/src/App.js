@@ -124,8 +124,15 @@ function App() {
               <Route path="/conditions" element={<TermsPage />} />
               <Route path="/garantie" element={<GarantiePage />} />
               
-              {/* SEO City Pages */}
+              {/* SEO City Pages - Dynamic */}
               <Route path="/services/:city" element={<SEOCityPage />} />
+              
+              {/* SEO City Pages - Static for better SEO */}
+              <Route path="/services-peinture-montreal" element={<SEOCityPage city="montreal" />} />
+              <Route path="/services-peinture-longueuil" element={<SEOCityPage city="longueuil" />} />
+              <Route path="/services-peinture-brossard" element={<SEOCityPage city="brossard" />} />
+              <Route path="/services-peinture-laval" element={<SEOCityPage city="laval" />} />
+              <Route path="/services-saint-laurent" element={<SEOCityPage city="ville-saint-laurent" />} />
             </Route>
             
             {/* Admin Routes */}
