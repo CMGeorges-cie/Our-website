@@ -28,7 +28,9 @@ import AdminLeadDetail from "@/pages/admin/AdminLeadDetail";
 import AdminQuoteView from "@/pages/admin/AdminQuoteView";
 import AdminClients from "@/pages/admin/AdminClients";
 import AdminInvoices from "@/pages/admin/AdminInvoices";
+import AdminInvoiceDetail from "@/pages/admin/AdminInvoiceDetail";
 import AdminProjects from "@/pages/admin/AdminProjects";
+import AdminProjectDetail from "@/pages/admin/AdminProjectDetail";
 import AdminRevenue from "@/pages/admin/AdminRevenue";
 
 import AdminClientDetail from "@/pages/admin/AdminClientDetail";
