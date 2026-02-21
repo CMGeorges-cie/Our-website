@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { blogApi } from '@/lib/api';
@@ -28,24 +27,20 @@ export default function BlogPostPage() {
     fetchPost();
   }, [slug]);
 
-  // Helper to get safe title for Helmet
-  const getPageTitle = () => {
-    if (!post) return 'Article | CMGeorges';
-    const title = post.meta_title || post.title || 'Article';
-    return String(title) + ' | CMGeorges';
-  };
-
-  const getPageDescription = () => {
-    if (!post) return '';
-    return String(post.meta_description || post.excerpt || '');
-  };
+  // Update document title manually to avoid Helmet issues
+  useEffect(() => {
+    if (post) {
+      document.title = `${post.meta_title || post.title || 'Article'} | CMGeorges`;
+    } else if (loading) {
+      document.title = 'Chargement... | CMGeorges';
+    } else {
+      document.title = 'Article non trouvé | CMGeorges';
+    }
+  }, [post, loading]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <Helmet>
-          <title>Chargement... | CMGeorges</title>
-        </Helmet>
         <p className="text-gray-500">Chargement...</p>
       </div>
     );
@@ -54,9 +49,6 @@ export default function BlogPostPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <Helmet>
-          <title>Article non trouvé | CMGeorges</title>
-        </Helmet>
         <div className="text-center">
           <p className="text-gray-500 mb-4">{error || 'Article non trouvé'}</p>
           <Link to="/blog">
@@ -72,11 +64,6 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]" data-testid="blog-post-page">
-      <Helmet>
-        <title>{getPageTitle()}</title>
-        <meta name="description" content={getPageDescription()} />
-      </Helmet>
-
       {/* Header */}
       <section className="bg-[#1a365d] py-16">
         <div className="container-main max-w-4xl">
@@ -86,7 +73,7 @@ export default function BlogPostPage() {
           </Link>
           
           <span className="inline-block px-3 py-1 bg-[#d4af37] text-[#1a365d] text-sm rounded-full mb-4 font-medium">
-            {post.category}
+            {post.category || 'général'}
           </span>
           
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 font-['Outfit']">
@@ -123,14 +110,16 @@ export default function BlogPostPage() {
             
             <CardContent className="p-6 md:p-10">
               {/* Excerpt */}
-              <p className="text-lg text-gray-600 mb-8 pb-8 border-b border-gray-200 italic">
-                {post.excerpt}
-              </p>
+              {post.excerpt && (
+                <p className="text-lg text-gray-600 mb-8 pb-8 border-b border-gray-200 italic">
+                  {post.excerpt}
+                </p>
+              )}
               
               {/* Content */}
               <div 
                 className="prose prose-lg max-w-none prose-headings:text-[#1a365d] prose-a:text-[#d4af37]"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: post.content || '' }}
               />
               
               {/* Tags */}
