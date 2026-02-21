@@ -1,37 +1,58 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
+import { toast } from 'sonner';
 import { 
   Search, 
-  Users, 
   Mail, 
   Phone, 
   Eye,
   Plus,
-  Download,
-  Printer
+  Pencil,
+  Trash2,
+  UserCheck
 } from 'lucide-react';
+
+const emptyClient = {
+  full_name: '',
+  email: '',
+  phone: '',
+  address: '',
+  city: '',
+  postal_code: '',
+  company_name: '',
+  notes: ''
+};
 
 export default function AdminClients() {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
+  const [formData, setFormData] = useState(emptyClient);
+  const [saving, setSaving] = useState(false);
+
+  const fetchClients = async () => {
+    try {
+      const response = await adminApi.getClients();
+      setClients(response.data || []);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      toast.error('Erreur lors du chargement des clients');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const response = await adminApi.getClients();
-        setClients(response.data || []);
-      } catch (error) {
-        console.error('Error fetching clients:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchClients();
   }, []);
 
@@ -40,6 +61,65 @@ export default function AdminClients() {
     client.email?.toLowerCase().includes(search.toLowerCase()) ||
     client.phone?.includes(search)
   );
+
+  const handleCreate = () => {
+    setEditingClient(null);
+    setFormData(emptyClient);
+    setShowModal(true);
+  };
+
+  const handleEdit = (client) => {
+    setEditingClient(client);
+    setFormData({
+      full_name: client.full_name || '',
+      email: client.email || '',
+      phone: client.phone || '',
+      address: client.address || '',
+      city: client.city || '',
+      postal_code: client.postal_code || '',
+      company_name: client.company_name || '',
+      notes: client.notes || ''
+    });
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    if (!formData.full_name || !formData.email || !formData.phone) {
+      toast.error('Veuillez remplir les champs obligatoires');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (editingClient) {
+        await adminApi.updateClient(editingClient.id, formData);
+        toast.success('Client mis à jour');
+      } else {
+        await adminApi.createClient(formData);
+        toast.success('Client créé');
+      }
+      setShowModal(false);
+      fetchClients();
+    } catch (error) {
+      console.error('Error saving client:', error);
+      toast.error('Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (clientId) => {
+    if (!confirm('Supprimer ce client? Cette action est irréversible.')) return;
+    
+    try {
+      await adminApi.deleteClient(clientId);
+      toast.success('Client supprimé');
+      fetchClients();
+    } catch (error) {
+      console.error('Error deleting client:', error);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -56,7 +136,11 @@ export default function AdminClients() {
           <h1 className="text-2xl font-bold text-white font-['Outfit']">Clients</h1>
           <p className="text-gray-500">Gérez votre base de clients</p>
         </div>
-        <Button className="bg-gold-500 hover:bg-gold-600 text-black font-semibold">
+        <Button 
+          className="bg-gold-500 hover:bg-gold-600 text-black font-semibold"
+          onClick={handleCreate}
+          data-testid="create-client-btn"
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nouveau client
         </Button>
@@ -100,6 +184,7 @@ export default function AdminClients() {
                 ) : filteredClients.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                      <UserCheck className="h-12 w-12 mx-auto mb-4 opacity-50" />
                       Aucun client trouvé
                     </td>
                   </tr>
@@ -145,12 +230,31 @@ export default function AdminClients() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link to={`/admin/clients/${client.id}`}>
-                          <Button variant="outline" size="sm" className="border-gold-500/30 text-gold-500 hover:bg-gold-500/10 hover:border-gold-500">
-                            <Eye className="h-4 w-4 mr-1" />
-                            Voir
+                        <div className="flex items-center justify-end gap-2">
+                          <Link to={`/admin/clients/${client.id}`}>
+                            <Button variant="outline" size="sm" className="border-gold-500/30 text-gold-500 hover:bg-gold-500/10 hover:border-gold-500">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-white"
+                            onClick={() => handleEdit(client)}
+                            data-testid={`edit-client-${client.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        </Link>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-red-500/30 text-red-500 hover:bg-red-500/10"
+                            onClick={() => handleDelete(client.id)}
+                            data-testid={`delete-client-${client.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -160,6 +264,129 @@ export default function AdminClients() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create/Edit Modal */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-white">
+              {editingClient ? 'Modifier le client' : 'Nouveau client'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <Label className="text-gray-300">Nom complet *</Label>
+                <Input
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                  placeholder="Jean Dupont"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  data-testid="input-full-name"
+                />
+              </div>
+
+              <div>
+                <Label className="text-gray-300">Email *</Label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  placeholder="jean@example.com"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  data-testid="input-email"
+                />
+              </div>
+
+              <div>
+                <Label className="text-gray-300">Téléphone *</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  placeholder="514-555-1234"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  data-testid="input-phone"
+                />
+              </div>
+
+              <div>
+                <Label className="text-gray-300">Entreprise</Label>
+                <Input
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({...formData, company_name: e.target.value})}
+                  placeholder="ABC Inc."
+                  className="bg-gray-800 border-gray-700 text-white"
+                  data-testid="input-company"
+                />
+              </div>
+
+              <div>
+                <Label className="text-gray-300">Ville</Label>
+                <Input
+                  value={formData.city}
+                  onChange={(e) => setFormData({...formData, city: e.target.value})}
+                  placeholder="Montréal"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  data-testid="input-city"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <Label className="text-gray-300">Adresse</Label>
+                <Input
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  placeholder="123 rue Exemple"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  data-testid="input-address"
+                />
+              </div>
+
+              <div>
+                <Label className="text-gray-300">Code postal</Label>
+                <Input
+                  value={formData.postal_code}
+                  onChange={(e) => setFormData({...formData, postal_code: e.target.value})}
+                  placeholder="H2X 1Y4"
+                  className="bg-gray-800 border-gray-700 text-white"
+                  data-testid="input-postal"
+                />
+              </div>
+
+              <div className="col-span-2">
+                <Label className="text-gray-300">Notes</Label>
+                <Textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                  placeholder="Notes sur le client..."
+                  rows={3}
+                  className="bg-gray-800 border-gray-700 text-white"
+                  data-testid="input-notes"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowModal(false)}
+              className="border-gray-700 text-gray-300 hover:bg-gray-800"
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-gold-500 hover:bg-gold-600 text-black font-semibold"
+              data-testid="save-client-btn"
+            >
+              {saving ? 'Sauvegarde...' : (editingClient ? 'Mettre à jour' : 'Créer')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
