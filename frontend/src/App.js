@@ -160,7 +160,9 @@ function App() {
               <Route path="/admin/clients" element={<AdminClients />} />
               <Route path="/admin/clients/:id" element={<AdminClientDetail />} />
               <Route path="/admin/invoices" element={<AdminInvoices />} />
+              <Route path="/admin/invoices/:id" element={<AdminInvoiceDetail />} />
               <Route path="/admin/projects" element={<AdminProjects />} />
+              <Route path="/admin/projects/:id" element={<AdminProjectDetail />} />
               <Route path="/admin/revenue" element={<AdminRevenue />} />
             </Route>
           </Routes>
