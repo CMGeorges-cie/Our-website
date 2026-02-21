@@ -2541,6 +2541,287 @@ async def get_portal_invoice_pdf(invoice_id: str, token: str):
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
+# ==================== DISCOUNT CODES ENDPOINTS ====================
+@admin_router.get("/discount-codes", response_model=List[DiscountCode])
+async def get_discount_codes(is_active: Optional[bool] = None, user: dict = Depends(get_current_user)):
+    """Get all discount codes"""
+    query = {}
+    if is_active is not None:
+        query["is_active"] = is_active
+    
+    codes = await db.discount_codes.find(query, {"_id": 0}).to_list(1000)
+    return codes
+
+@admin_router.post("/discount-codes", response_model=DiscountCode)
+async def create_discount_code(code_data: DiscountCodeCreate, request: Request, user: dict = Depends(get_current_user)):
+    """Create a new discount code"""
+    # Check for duplicate code
+    existing = await db.discount_codes.find_one({"code": code_data.code.upper()})
+    if existing:
+        raise HTTPException(status_code=400, detail="Ce code existe déjà")
+    
+    discount = DiscountCode(**code_data.model_dump())
+    discount.code = discount.code.upper()
+    
+    doc = discount.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    if doc.get('valid_from'):
+        doc['valid_from'] = doc['valid_from'].isoformat()
+    if doc.get('valid_until'):
+        doc['valid_until'] = doc['valid_until'].isoformat()
+    
+    await db.discount_codes.insert_one(doc)
+    await create_audit_log("discount_code_created", "discount_code", discount.id, user=user, request=request)
+    
+    return discount
+
+@admin_router.patch("/discount-codes/{code_id}", response_model=DiscountCode)
+async def update_discount_code(code_id: str, update: DiscountCodeUpdate, request: Request, user: dict = Depends(get_current_user)):
+    """Update a discount code"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
+    
+    result = await db.discount_codes.update_one({"id": code_id}, {"$set": update_data})
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Code non trouvé")
+    
+    await create_audit_log("discount_code_updated", "discount_code", code_id, user=user, details=update_data, request=request)
+    
+    code = await db.discount_codes.find_one({"id": code_id}, {"_id": 0})
+    return code
+
+@admin_router.delete("/discount-codes/{code_id}")
+async def delete_discount_code(code_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete a discount code"""
+    result = await db.discount_codes.delete_one({"id": code_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Code non trouvé")
+    
+    await create_audit_log("discount_code_deleted", "discount_code", code_id, user=user, request=request)
+    return {"message": "Code supprimé"}
+
+@v1_router.post("/validate-discount")
+async def validate_discount_code(code: str, subtotal: float = 0, service_type: str = ""):
+    """Validate a discount code and return discount amount"""
+    discount = await db.discount_codes.find_one({"code": code.upper(), "is_active": True}, {"_id": 0})
+    
+    if not discount:
+        raise HTTPException(status_code=404, detail="Code invalide")
+    
+    # Check if max uses reached
+    if discount.get("max_uses") and discount.get("times_used", 0) >= discount["max_uses"]:
+        raise HTTPException(status_code=400, detail="Code expiré (limite d'utilisation atteinte)")
+    
+    # Check validity dates
+    now = datetime.now(timezone.utc)
+    if discount.get("valid_from"):
+        valid_from = datetime.fromisoformat(discount["valid_from"]) if isinstance(discount["valid_from"], str) else discount["valid_from"]
+        if now < valid_from:
+            raise HTTPException(status_code=400, detail="Code pas encore actif")
+    
+    if discount.get("valid_until"):
+        valid_until = datetime.fromisoformat(discount["valid_until"]) if isinstance(discount["valid_until"], str) else discount["valid_until"]
+        if now > valid_until:
+            raise HTTPException(status_code=400, detail="Code expiré")
+    
+    # Check minimum order
+    if subtotal < discount.get("min_order_amount", 0):
+        raise HTTPException(status_code=400, detail=f"Commande minimum: {discount['min_order_amount']}$")
+    
+    # Check applicable services
+    if discount.get("applicable_services") and service_type:
+        if service_type not in discount["applicable_services"]:
+            raise HTTPException(status_code=400, detail="Code non applicable pour ce service")
+    
+    # Calculate discount
+    if discount["discount_type"] == "percentage":
+        discount_amount = subtotal * (discount["discount_value"] / 100)
+    else:
+        discount_amount = min(discount["discount_value"], subtotal)
+    
+    return {
+        "valid": True,
+        "code": discount["code"],
+        "discount_type": discount["discount_type"],
+        "discount_value": discount["discount_value"],
+        "discount_amount": round(discount_amount, 2),
+        "description": discount.get("description", "")
+    }
+
+# ==================== PRICING ENDPOINTS ====================
+@admin_router.get("/pricing", response_model=List[PricingItem])
+async def get_pricing_items(service_type: Optional[str] = None, is_active: Optional[bool] = True, user: dict = Depends(get_current_user)):
+    """Get pricing items"""
+    query = {}
+    if service_type:
+        query["service_type"] = service_type
+    if is_active is not None:
+        query["is_active"] = is_active
+    
+    items = await db.pricing_items.find(query, {"_id": 0}).sort("service_type", 1).to_list(1000)
+    return items
+
+@admin_router.post("/pricing", response_model=PricingItem)
+async def create_pricing_item(item_data: PricingItemCreate, request: Request, user: dict = Depends(get_current_user)):
+    """Create a new pricing item"""
+    item = PricingItem(**item_data.model_dump())
+    
+    doc = item.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.pricing_items.insert_one(doc)
+    await create_audit_log("pricing_item_created", "pricing_item", item.id, user=user, request=request)
+    
+    return item
+
+@admin_router.patch("/pricing/{item_id}", response_model=PricingItem)
+async def update_pricing_item(item_id: str, update: PricingItemUpdate, request: Request, user: dict = Depends(get_current_user)):
+    """Update a pricing item"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.pricing_items.update_one({"id": item_id}, {"$set": update_data})
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Item non trouvé")
+    
+    await create_audit_log("pricing_item_updated", "pricing_item", item_id, user=user, details=update_data, request=request)
+    
+    item = await db.pricing_items.find_one({"id": item_id}, {"_id": 0})
+    return item
+
+@admin_router.delete("/pricing/{item_id}")
+async def delete_pricing_item(item_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete a pricing item"""
+    result = await db.pricing_items.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Item non trouvé")
+    
+    await create_audit_log("pricing_item_deleted", "pricing_item", item_id, user=user, request=request)
+    return {"message": "Item supprimé"}
+
+@v1_router.get("/pricing-public")
+async def get_public_pricing():
+    """Get public pricing items grouped by service"""
+    items = await db.pricing_items.find({"is_active": True}, {"_id": 0}).to_list(1000)
+    
+    grouped = {}
+    for item in items:
+        service = item.get("service_type", "other")
+        if service not in grouped:
+            grouped[service] = []
+        grouped[service].append(item)
+    
+    return grouped
+
+# ==================== POLICIES ENDPOINTS ====================
+@admin_router.get("/policies", response_model=List[Policy])
+async def get_policies(policy_type: Optional[PolicyType] = None, user: dict = Depends(get_current_user)):
+    """Get all policies"""
+    query = {}
+    if policy_type:
+        query["policy_type"] = policy_type
+    
+    policies = await db.policies.find(query, {"_id": 0}).to_list(100)
+    return policies
+
+@admin_router.post("/policies", response_model=Policy)
+async def create_policy(policy_data: PolicyCreate, request: Request, user: dict = Depends(get_current_user)):
+    """Create a new policy"""
+    # Deactivate existing policy of same type
+    await db.policies.update_many(
+        {"policy_type": policy_data.policy_type},
+        {"$set": {"is_active": False}}
+    )
+    
+    policy = Policy(**policy_data.model_dump())
+    
+    doc = policy.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['updated_at'] = doc['updated_at'].isoformat()
+    
+    await db.policies.insert_one(doc)
+    await create_audit_log("policy_created", "policy", policy.id, user=user, request=request)
+    
+    return policy
+
+@admin_router.patch("/policies/{policy_id}", response_model=Policy)
+async def update_policy(policy_id: str, update: PolicyUpdate, request: Request, user: dict = Depends(get_current_user)):
+    """Update a policy"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.policies.update_one({"id": policy_id}, {"$set": update_data})
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Politique non trouvée")
+    
+    await create_audit_log("policy_updated", "policy", policy_id, user=user, details=update_data, request=request)
+    
+    policy = await db.policies.find_one({"id": policy_id}, {"_id": 0})
+    return policy
+
+@admin_router.delete("/policies/{policy_id}")
+async def delete_policy(policy_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete a policy"""
+    result = await db.policies.delete_one({"id": policy_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Politique non trouvée")
+    
+    await create_audit_log("policy_deleted", "policy", policy_id, user=user, request=request)
+    return {"message": "Politique supprimée"}
+
+@v1_router.get("/policies-public")
+async def get_public_policies():
+    """Get active policies for public view"""
+    policies = await db.policies.find({"is_active": True}, {"_id": 0}).to_list(100)
+    return {p["policy_type"]: p for p in policies}
+
+# ==================== FULL CRUD FOR CLIENTS ====================
+@admin_router.delete("/clients/{client_id}")
+async def delete_client(client_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete a client"""
+    result = await db.clients.delete_one({"id": client_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+    
+    await create_audit_log("client_deleted", "client", client_id, user=user, request=request)
+    return {"message": "Client supprimé"}
+
+# ==================== FULL CRUD FOR INVOICES ====================
+@admin_router.delete("/invoices/{invoice_id}")
+async def delete_invoice(invoice_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete an invoice"""
+    result = await db.invoices.delete_one({"id": invoice_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+    
+    await create_audit_log("invoice_deleted", "invoice", invoice_id, user=user, request=request)
+    return {"message": "Facture supprimée"}
+
+# ==================== FULL CRUD FOR PROJECTS ====================
+@admin_router.delete("/projects/{project_id}")
+async def delete_project(project_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete a project"""
+    result = await db.projects.delete_one({"id": project_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Projet non trouvé")
+    
+    await create_audit_log("project_deleted", "project", project_id, user=user, request=request)
+    return {"message": "Projet supprimé"}
+
 # Include routers
 v1_router.include_router(admin_router)
 api_router.include_router(v1_router)
