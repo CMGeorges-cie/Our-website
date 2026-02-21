@@ -1066,16 +1066,18 @@ async def get_me(user: dict = Depends(get_current_user)):
 async def get_leads(
     status: Optional[LeadStatus] = None,
     service_type: Optional[ServiceType] = None,
+    skip: int = 0,
+    limit: int = 100,
     user: dict = Depends(get_current_user)
 ):
-    """Get all leads with optional filters"""
+    """Get all leads with optional filters and pagination"""
     query = {}
     if status:
         query["status"] = status
     if service_type:
         query["service_type"] = service_type
     
-    leads = await db.leads.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    leads = await db.leads.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(min(limit, 500)).to_list(min(limit, 500))
     
     for lead in leads:
         if isinstance(lead.get('created_at'), str):
