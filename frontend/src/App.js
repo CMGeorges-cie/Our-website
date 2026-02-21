@@ -31,6 +31,8 @@ import AdminInvoices from "@/pages/admin/AdminInvoices";
 import AdminProjects from "@/pages/admin/AdminProjects";
 import AdminRevenue from "@/pages/admin/AdminRevenue";
 
+import AdminClientDetail from "@/pages/admin/AdminClientDetail";
+
 // Layout
 import PublicLayout from "@/components/layout/PublicLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
