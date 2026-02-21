@@ -70,11 +70,28 @@
 ---
 
 ## Testing Status
-- **Backend:** 100% (19/19 tests passed) - CRM expansion
-- **Frontend:** 100% - All 3 new pages functional
-- **Theme:** Black and gold applied consistently
-- **PDF:** Download and print working
-- **Test Report:** `/app/test_reports/iteration_4.json`
+- **Backend:** 100% (21/21 tests passed) - CRUD operations
+- **Frontend:** 100% - All modals and buttons functional
+- **Test Report:** `/app/test_reports/iteration_5.json`
+
+---
+
+## Seeded Data
+### Codes Promo (4)
+| Code | Réduction | Min. commande | Validité |
+|------|-----------|---------------|----------|
+| BIENVENUE10 | 10% | 100$ | 1 an |
+| MOBILIER50 | 50$ | 200$ | 6 mois |
+| TECH15 | 15% | 500$ | 3 mois |
+| PEINTURE100 | 100$ | 700$ | 2 mois |
+
+### Tarifs (20+)
+- **Déco Touché:** Peinture 3½-5½ (450-700$), Installation TV (120$), Plancher (2.25$/pi²)
+- **Mobilier:** Lit (75-95$), Commode (65$), PAX (175$), Ancrage (25$)
+- **Tech:** Site vitrine (1500$), E-commerce (3500$), App sur mesure (5000$)
+
+### Politiques (5)
+- Conditions Générales, Confidentialité, Garantie, Annulation, Paiement
 
 ---
 
