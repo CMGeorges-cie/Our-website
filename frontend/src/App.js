@@ -156,6 +156,7 @@ function App() {
               <Route path="/admin/leads/:id" element={<AdminLeadDetail />} />
               <Route path="/admin/quotes/:id" element={<AdminQuoteView />} />
               <Route path="/admin/clients" element={<AdminClients />} />
+              <Route path="/admin/clients/:id" element={<AdminClientDetail />} />
               <Route path="/admin/invoices" element={<AdminInvoices />} />
               <Route path="/admin/projects" element={<AdminProjects />} />
               <Route path="/admin/revenue" element={<AdminRevenue />} />
