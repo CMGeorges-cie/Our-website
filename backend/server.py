@@ -1154,13 +1154,18 @@ async def convert_lead_to_client(lead_id: str, request: Request, user: dict = De
 
 # ==================== ADMIN CLIENTS ENDPOINTS ====================
 @admin_router.get("/clients", response_model=List[Client])
-async def get_clients(status: Optional[ClientStatus] = None, user: dict = Depends(get_current_user)):
-    """Get all clients"""
+async def get_clients(
+    status: Optional[ClientStatus] = None, 
+    skip: int = 0,
+    limit: int = 100,
+    user: dict = Depends(get_current_user)
+):
+    """Get all clients with pagination"""
     query = {}
     if status:
         query["status"] = status
     
-    clients = await db.clients.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    clients = await db.clients.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(min(limit, 500)).to_list(min(limit, 500))
     
     for client in clients:
         if isinstance(client.get('created_at'), str):
