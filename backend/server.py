@@ -1918,6 +1918,295 @@ async def seed_database():
     
     return {"message": "Database seeded successfully", "admin_email": "admin@cmgeorges.com", "admin_password": "admin123"}
 
+@api_router.post("/seed-crm")
+async def seed_crm_data():
+    """Seed CRM data: discount codes, pricing, and policies"""
+    # Check if already seeded
+    existing_code = await db.discount_codes.find_one({})
+    if existing_code:
+        return {"message": "CRM data already seeded"}
+    
+    now = datetime.now(timezone.utc)
+    
+    # Discount Codes
+    discount_codes = [
+        {
+            "id": str(uuid.uuid4()),
+            "code": "BIENVENUE10",
+            "description": "10% de réduction pour les nouveaux clients",
+            "discount_type": "percentage",
+            "discount_value": 10,
+            "min_order_amount": 100,
+            "max_uses": 100,
+            "valid_from": now.isoformat(),
+            "valid_until": (now + timedelta(days=365)).isoformat(),
+            "applicable_services": [],
+            "is_active": True,
+            "times_used": 0,
+            "created_at": now.isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "code": "MOBILIER50",
+            "description": "50$ de rabais sur assemblage de 3+ meubles",
+            "discount_type": "fixed",
+            "discount_value": 50,
+            "min_order_amount": 200,
+            "max_uses": 50,
+            "valid_from": now.isoformat(),
+            "valid_until": (now + timedelta(days=180)).isoformat(),
+            "applicable_services": ["furniture"],
+            "is_active": True,
+            "times_used": 0,
+            "created_at": now.isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "code": "TECH15",
+            "description": "15% sur les services Tech",
+            "discount_type": "percentage",
+            "discount_value": 15,
+            "min_order_amount": 500,
+            "max_uses": None,
+            "valid_from": now.isoformat(),
+            "valid_until": (now + timedelta(days=90)).isoformat(),
+            "applicable_services": ["tech"],
+            "is_active": True,
+            "times_used": 0,
+            "created_at": now.isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "code": "PEINTURE100",
+            "description": "100$ de rabais sur peinture 5½ et plus",
+            "discount_type": "fixed",
+            "discount_value": 100,
+            "min_order_amount": 700,
+            "max_uses": 25,
+            "valid_from": now.isoformat(),
+            "valid_until": (now + timedelta(days=60)).isoformat(),
+            "applicable_services": ["manual"],
+            "is_active": True,
+            "times_used": 0,
+            "created_at": now.isoformat()
+        }
+    ]
+    await db.discount_codes.insert_many(discount_codes)
+    
+    # Pricing Items
+    pricing_items = [
+        # Manual - Peinture
+        {"id": str(uuid.uuid4()), "name": "Peinture 3½ pièces", "description": "Peinture intérieure complète", "service_type": "manual", "category": "peinture", "unit": "forfait", "base_price": 450, "min_price": 400, "max_price": 550, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Peinture 4½ pièces", "description": "Peinture intérieure complète", "service_type": "manual", "category": "peinture", "unit": "forfait", "base_price": 550, "min_price": 500, "max_price": 700, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Peinture 5½ pièces", "description": "Peinture intérieure complète", "service_type": "manual", "category": "peinture", "unit": "forfait", "base_price": 700, "min_price": 650, "max_price": 900, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Peinture par pièce", "description": "Pièce additionnelle", "service_type": "manual", "category": "peinture", "unit": "pièce", "base_price": 150, "min_price": 120, "max_price": 200, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Installation TV murale", "description": "Montage et câblage", "service_type": "manual", "category": "installation", "unit": "unité", "base_price": 120, "min_price": 100, "max_price": 180, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Entretien général", "description": "Main d'oeuvre générale", "service_type": "manual", "category": "general", "unit": "heure", "base_price": 45, "min_price": 40, "max_price": 55, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Installation plancher", "description": "Plancher flottant", "service_type": "manual", "category": "plancher", "unit": "pied carré", "base_price": 2.25, "min_price": 1.75, "max_price": 3.50, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        
+        # Furniture
+        {"id": str(uuid.uuid4()), "name": "Assemblage lit simple/double", "description": "IKEA, JYSK ou similaire", "service_type": "furniture", "category": "assemblage", "unit": "unité", "base_price": 75, "min_price": 65, "max_price": 95, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Assemblage lit Queen/King", "description": "Avec ou sans tiroirs", "service_type": "furniture", "category": "assemblage", "unit": "unité", "base_price": 95, "min_price": 85, "max_price": 125, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Assemblage commode", "description": "4-6 tiroirs", "service_type": "furniture", "category": "assemblage", "unit": "unité", "base_price": 65, "min_price": 55, "max_price": 85, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Assemblage garde-robe PAX", "description": "2-3 sections", "service_type": "furniture", "category": "assemblage", "unit": "unité", "base_price": 175, "min_price": 150, "max_price": 250, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Assemblage bureau", "description": "Standard ou gaming", "service_type": "furniture", "category": "assemblage", "unit": "unité", "base_price": 60, "min_price": 50, "max_price": 80, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Ancrage mural sécuritaire", "description": "Protection anti-basculement", "service_type": "furniture", "category": "installation", "unit": "unité", "base_price": 25, "min_price": 20, "max_price": 35, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Livraison Montréal", "description": "Zone centrale", "service_type": "furniture", "category": "livraison", "unit": "forfait", "base_price": 50, "min_price": 40, "max_price": 75, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        
+        # Tech
+        {"id": str(uuid.uuid4()), "name": "Site vitrine", "description": "5-7 pages, design moderne", "service_type": "tech", "category": "web", "unit": "forfait", "base_price": 1500, "min_price": 1200, "max_price": 2500, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Site e-commerce", "description": "Boutique complète", "service_type": "tech", "category": "web", "unit": "forfait", "base_price": 3500, "min_price": 2500, "max_price": 6000, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Application web sur mesure", "description": "Solution personnalisée", "service_type": "tech", "category": "web", "unit": "forfait", "base_price": 5000, "min_price": 3000, "max_price": 15000, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Développement horaire", "description": "Taux horaire standard", "service_type": "tech", "category": "devops", "unit": "heure", "base_price": 70, "min_price": 60, "max_price": 95, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Maintenance mensuelle", "description": "Support et mises à jour", "service_type": "tech", "category": "maintenance", "unit": "mois", "base_price": 150, "min_price": 100, "max_price": 300, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()},
+        {"id": str(uuid.uuid4()), "name": "Audit DevOps/Cloud", "description": "Analyse infrastructure", "service_type": "tech", "category": "devops", "unit": "forfait", "base_price": 500, "min_price": 400, "max_price": 800, "is_active": True, "created_at": now.isoformat(), "updated_at": now.isoformat()}
+    ]
+    await db.pricing_items.insert_many(pricing_items)
+    
+    # Policies
+    policies = [
+        {
+            "id": str(uuid.uuid4()),
+            "policy_type": "terms",
+            "title": "Conditions Générales de Service",
+            "content": """CONDITIONS GÉNÉRALES DE SERVICE - CMGEORGES
+
+1. SERVICES OFFERTS
+CMGeorges offre des services de peinture, rénovation légère, assemblage de mobilier et solutions technologiques dans la région de Montréal et Rive-Sud.
+
+2. SOUMISSIONS ET PRIX
+- Toutes les soumissions sont valides pour 30 jours
+- Les prix peuvent varier selon la complexité du travail
+- Un dépôt de 30% est requis pour confirmer une réservation
+- Le solde est payable à la fin des travaux
+
+3. ANNULATION
+- Annulation gratuite jusqu'à 48h avant le rendez-vous
+- Frais de 50$ pour annulation moins de 48h à l'avance
+- Report gratuit avec préavis de 24h
+
+4. GARANTIE
+- Garantie de satisfaction sur tous nos travaux
+- Retouches gratuites dans les 30 jours suivant les travaux
+- Garantie de 1 an sur l'assemblage de mobilier
+
+5. RESPONSABILITÉ
+CMGeorges est assuré et responsable des dommages causés pendant l'exécution des travaux. Le client doit signaler tout problème dans les 7 jours.
+
+6. MATÉRIAUX
+Sauf indication contraire, les matériaux (peinture, quincaillerie) sont à la charge du client. CMGeorges peut fournir les matériaux avec supplément.
+
+Pour toute question: info@cmgeorges.com | 514-386-1743""",
+            "version": "2.0",
+            "is_active": True,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "policy_type": "privacy",
+            "title": "Politique de Confidentialité",
+            "content": """POLITIQUE DE CONFIDENTIALITÉ - CMGEORGES
+
+Dernière mise à jour: Février 2026
+
+1. COLLECTE DES DONNÉES
+Nous collectons les informations suivantes:
+- Nom, adresse, téléphone, courriel
+- Détails du projet et préférences
+- Historique des services
+
+2. UTILISATION DES DONNÉES
+Vos données servent uniquement à:
+- Fournir et améliorer nos services
+- Communiquer avec vous concernant vos projets
+- Envoyer des promotions (avec consentement)
+
+3. PROTECTION
+- Données stockées de manière sécurisée
+- Accès limité au personnel autorisé
+- Aucune vente à des tiers
+
+4. VOS DROITS
+Vous pouvez demander:
+- L'accès à vos données personnelles
+- La correction ou suppression de vos données
+- Le retrait de notre liste marketing
+
+Contact: privacy@cmgeorges.com""",
+            "version": "1.0",
+            "is_active": True,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "policy_type": "warranty",
+            "title": "Politique de Garantie",
+            "content": """GARANTIE CMGEORGES
+
+PEINTURE & RÉNOVATION
+- Garantie de 30 jours sur la main d'œuvre
+- Retouches gratuites pour défauts d'application
+- Ne couvre pas les dommages causés par le client
+
+ASSEMBLAGE MOBILIER
+- Garantie de 1 an sur la solidité de l'assemblage
+- Réparation gratuite si l'assemblage se défait
+- Ancrage mural garanti à vie
+
+SERVICES TECH
+- Garantie de 90 jours sur les développements
+- Corrections de bugs gratuites
+- Support technique inclus pendant la période de garantie
+
+EXCLUSIONS
+- Usure normale
+- Mauvaise utilisation
+- Dommages causés par des tiers
+
+Pour une réclamation: garantie@cmgeorges.com""",
+            "version": "1.0",
+            "is_active": True,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "policy_type": "cancellation",
+            "title": "Politique d'Annulation",
+            "content": """POLITIQUE D'ANNULATION CMGEORGES
+
+DÉLAIS D'ANNULATION
+- Plus de 48h avant: Annulation gratuite, remboursement complet du dépôt
+- Entre 24h et 48h: Frais de 50$ applicables
+- Moins de 24h: Dépôt non remboursable
+
+REPORT DE RENDEZ-VOUS
+- Report gratuit avec préavis de 24h minimum
+- Maximum 2 reports par projet
+- Au-delà, des frais peuvent s'appliquer
+
+REMBOURSEMENTS
+- Traités dans les 5-10 jours ouvrables
+- Par le même mode de paiement original
+- Confirmation par courriel
+
+EXCEPTIONS
+En cas de force majeure (météo extrême, urgence médicale), contactez-nous pour une entente sans frais.
+
+Contact: reservations@cmgeorges.com | 514-386-1743""",
+            "version": "1.0",
+            "is_active": True,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "policy_type": "payment",
+            "title": "Modalités de Paiement",
+            "content": """MODALITÉS DE PAIEMENT CMGEORGES
+
+MODES DE PAIEMENT ACCEPTÉS
+- Virement Interac (préféré)
+- Comptant
+- Carte de crédit (frais de 3% applicables)
+- Chèque (clients établis uniquement)
+
+STRUCTURE DE PAIEMENT
+Pour projets de moins de 500$:
+- Paiement complet à la fin des travaux
+
+Pour projets de 500$ à 2000$:
+- Dépôt de 30% à la réservation
+- Solde à la fin des travaux
+
+Pour projets de plus de 2000$:
+- 30% à la réservation
+- 30% à mi-projet
+- 40% à la livraison finale
+
+FACTURES
+- Factures envoyées par courriel
+- Paiement dû Net 30 jours
+- Frais de retard de 2% par mois
+
+Questions: facturation@cmgeorges.com""",
+            "version": "1.0",
+            "is_active": True,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        }
+    ]
+    await db.policies.insert_many(policies)
+    
+    return {
+        "message": "CRM data seeded successfully",
+        "discount_codes": len(discount_codes),
+        "pricing_items": len(pricing_items),
+        "policies": len(policies)
+    }
+
 # ==================== BLOG PUBLIC ENDPOINTS ====================
 @v1_router.get("/blog", response_model=List[BlogPost])
 async def get_published_blog_posts(category: Optional[str] = None, tag: Optional[str] = None, limit: int = 10):
