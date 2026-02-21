@@ -89,6 +89,29 @@ export const adminApi = {
   updateBlogPost: (id, data) => api.patch(`/admin/blog/${id}`, data),
   deleteBlogPost: (id) => api.delete(`/admin/blog/${id}`),
   
+  // Discount Codes
+  getDiscountCodes: (params = {}) => api.get('/admin/discount-codes', { params }),
+  createDiscountCode: (data) => api.post('/admin/discount-codes', data),
+  updateDiscountCode: (id, data) => api.patch(`/admin/discount-codes/${id}`, data),
+  deleteDiscountCode: (id) => api.delete(`/admin/discount-codes/${id}`),
+  
+  // Pricing
+  getPricingItems: (params = {}) => api.get('/admin/pricing', { params }),
+  createPricingItem: (data) => api.post('/admin/pricing', data),
+  updatePricingItem: (id, data) => api.patch(`/admin/pricing/${id}`, data),
+  deletePricingItem: (id) => api.delete(`/admin/pricing/${id}`),
+  
+  // Policies
+  getPolicies: (params = {}) => api.get('/admin/policies', { params }),
+  createPolicy: (data) => api.post('/admin/policies', data),
+  updatePolicy: (id, data) => api.patch(`/admin/policies/${id}`, data),
+  deletePolicy: (id) => api.delete(`/admin/policies/${id}`),
+  
+  // Delete operations
+  deleteClient: (id) => api.delete(`/admin/clients/${id}`),
+  deleteInvoice: (id) => api.delete(`/admin/invoices/${id}`),
+  deleteProject: (id) => api.delete(`/admin/projects/${id}`),
+  
   // Stats & Dashboard
   getStats: () => api.get('/admin/stats'),
   getCeoDashboard: () => api.get('/admin/ceo-dashboard'),
