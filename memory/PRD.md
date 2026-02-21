@@ -34,26 +34,38 @@
 - [x] **Bouton Envoyer** - Pour envoyer documents par email
 - [x] **Image multiculturelle** - Section teamwork avec mains diverses
 
-### Phase 8: CRM Expansion (COMPLETE - Feb 21) ✨ NEW
+### Phase 8: CRM Expansion (COMPLETE - Feb 21)
 - [x] **Codes Promo** - Page admin `/admin/discount-codes` avec CRUD complet
+  - 4 codes pré-configurés: BIENVENUE10, MOBILIER50, TECH15, PEINTURE100
   - Création de codes avec type (pourcentage/fixe), valeur, dates validité
   - Activation/désactivation des codes
-  - Gestion des limites d'utilisation
 - [x] **Grille Tarifaire** - Page admin `/admin/pricing` avec CRUD complet
+  - 20+ tarifs pré-configurés (peinture, mobilier, tech)
   - Onglets par type de service (Déco Touché, Mobilier, Tech)
   - Prix de base, fourchette de prix, unités
-  - Catégories configurables
 - [x] **Politiques** - Page admin `/admin/policies` avec CRUD complet
-  - Types: CGV, Confidentialité, Garantie, Annulation, Paiement
+  - 5 politiques pré-configurées: CGV, Confidentialité, Garantie, Annulation, Paiement
   - Éditeur de contenu avec versionning
-  - Vue prévisualisation
-- [x] **reCAPTCHA v2** - Réactivé sur le formulaire de soumission
-  - Clé site: 6LfOYW8sAAAAAAPWutXG5N24yxCHQkQ-C2UOWLQ21
-  - Note: Nécessite configuration domaine dans Google reCAPTCHA Admin
+- [x] **reCAPTCHA v2** - Réactivé (domaine à configurer: business-hub-222.preview.emergentagent.com)
+
+### Phase 9: CRUD Complet Admin (COMPLETE - Feb 21) ✨ NEW
+- [x] **Clients CRUD** - Modal création/modification fonctionnel
+  - Bouton "Nouveau client" ouvre modal avec tous les champs
+  - Boutons Modifier (crayon) et Supprimer (poubelle) par client
+- [x] **Projets CRUD** - Modal création + dropdown statut
+  - Bouton "Nouveau projet" ouvre modal avec sélection client
+  - Dropdown statut dans le tableau: En attente, En cours, Complété, En pause, Annulé
+  - Boutons Voir, Modifier, Supprimer
+- [x] **Factures CRUD** - Modal création avec lignes de facture
+  - Bouton "Nouvelle facture" ouvre modal avec lignes ajoutables
+  - Calcul automatique TPS (5%) et TVQ (9.975%)
+  - Total affiché en temps réel
+  - Boutons PDF, Imprimer, Voir, Supprimer
 
 ### Bug Fixes (Feb 21)
 - [x] Fix: Bouton "Voir" dans les tableaux admin → Pages blanches
-- [x] Fix: Routes manquantes pour `/admin/clients/:id`, `/admin/invoices/:id`, `/admin/projects/:id`
+- [x] Fix: Routes manquantes pour détails clients/factures/projets
+- [x] Fix: Boutons CRUD ne fonctionnaient pas → Modals ajoutés
 
 ---
 
