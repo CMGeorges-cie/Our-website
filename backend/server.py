@@ -1394,15 +1394,21 @@ async def create_invoice(invoice_data: InvoiceCreate, request: Request, user: di
     return invoice
 
 @admin_router.get("/invoices", response_model=List[Invoice])
-async def get_invoices(client_id: Optional[str] = None, status: Optional[InvoiceStatus] = None, user: dict = Depends(get_current_user)):
-    """Get all invoices"""
+async def get_invoices(
+    client_id: Optional[str] = None, 
+    status: Optional[InvoiceStatus] = None, 
+    skip: int = 0,
+    limit: int = 100,
+    user: dict = Depends(get_current_user)
+):
+    """Get all invoices with pagination"""
     query = {}
     if client_id:
         query["client_id"] = client_id
     if status:
         query["status"] = status
     
-    invoices = await db.invoices.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    invoices = await db.invoices.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(min(limit, 500)).to_list(min(limit, 500))
     
     for invoice in invoices:
         if isinstance(invoice.get('created_at'), str):
