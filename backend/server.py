@@ -573,6 +573,104 @@ class ClientPortalData(BaseModel):
     invoices: List[dict]
     projects: List[dict]
 
+# ==================== DISCOUNT CODES MODELS ====================
+class DiscountType(str, Enum):
+    PERCENTAGE = "percentage"
+    FIXED = "fixed"
+
+class DiscountCodeBase(BaseModel):
+    code: str
+    description: str = ""
+    discount_type: DiscountType = DiscountType.PERCENTAGE
+    discount_value: float  # Percentage (0-100) or fixed amount
+    min_order_amount: float = 0
+    max_uses: Optional[int] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    applicable_services: List[str] = []  # Empty = all services
+
+class DiscountCodeCreate(DiscountCodeBase):
+    pass
+
+class DiscountCode(DiscountCodeBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    is_active: bool = True
+    times_used: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DiscountCodeUpdate(BaseModel):
+    description: Optional[str] = None
+    discount_type: Optional[DiscountType] = None
+    discount_value: Optional[float] = None
+    min_order_amount: Optional[float] = None
+    max_uses: Optional[int] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    applicable_services: Optional[List[str]] = None
+    is_active: Optional[bool] = None
+
+# ==================== PRICING MODELS ====================
+class PricingItemBase(BaseModel):
+    name: str
+    description: str = ""
+    service_type: str  # manual, furniture, tech
+    category: str = "general"
+    unit: str = "unité"  # unité, heure, pied carré, etc.
+    base_price: float
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+
+class PricingItemCreate(PricingItemBase):
+    pass
+
+class PricingItem(PricingItemBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PricingItemUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    unit: Optional[str] = None
+    base_price: Optional[float] = None
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    is_active: Optional[bool] = None
+
+# ==================== POLICIES MODELS ====================
+class PolicyType(str, Enum):
+    TERMS = "terms"
+    PRIVACY = "privacy"
+    WARRANTY = "warranty"
+    CANCELLATION = "cancellation"
+    PAYMENT = "payment"
+
+class PolicyBase(BaseModel):
+    policy_type: PolicyType
+    title: str
+    content: str
+    version: str = "1.0"
+
+class PolicyCreate(PolicyBase):
+    pass
+
+class Policy(PolicyBase):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PolicyUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    version: Optional[str] = None
+    is_active: Optional[bool] = None
+
 # ==================== AUTH HELPERS ====================
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
