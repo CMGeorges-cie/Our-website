@@ -1919,12 +1919,18 @@ async def seed_database():
     return {"message": "Database seeded successfully", "admin_email": "admin@cmgeorges.com", "admin_password": "admin123"}
 
 @api_router.post("/seed-crm")
-async def seed_crm_data():
+async def seed_crm_data(force: bool = False):
     """Seed CRM data: discount codes, pricing, and policies"""
     # Check if already seeded
     existing_code = await db.discount_codes.find_one({})
-    if existing_code:
-        return {"message": "CRM data already seeded"}
+    if existing_code and not force:
+        return {"message": "CRM data already seeded. Use ?force=true to reseed."}
+    
+    if force:
+        # Clear existing data
+        await db.discount_codes.delete_many({})
+        await db.pricing_items.delete_many({})
+        await db.policies.delete_many({})
     
     now = datetime.now(timezone.utc)
     
