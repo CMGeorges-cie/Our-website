@@ -1,12 +1,12 @@
 # CMGeorges - Product Requirements Document
 
 ## Project Overview
-**Company:** CMGeorges
-**Location:** Montreal & Rive-Sud, Quebec
+**Company:** CMGeorges  
+**Location:** Montréal & Rive-Sud, Québec  
 **Services:** 
 - Déco Touché (Peinture/Rénovation)
 - Mobilier & Installation (IKEA, JYSK)
-- CMGeorges Tech (Web development)
+- CMGeorges Tech (Développement web)
 
 **Tech Stack:** React + FastAPI + MongoDB
 
@@ -19,128 +19,131 @@
 
 ---
 
-## What's Been Implemented
+## What's Been Implemented ✅
 
 ### Phase 1: Core Infrastructure (COMPLETE)
-- [x] Full-stack application scaffolding (React + FastAPI + MongoDB)
-- [x] CMGeorges branding applied (colors, logo, fonts)
-- [x] Public site navigation and layout
-- [x] Admin panel layout with authentication
+- [x] Full-stack application (React + FastAPI + MongoDB)
+- [x] CMGeorges branding (couleurs, logo, polices)
+- [x] Navigation et mise en page du site public
+- [x] Panel admin avec authentification JWT
 
-### Phase 2: Public Site (COMPLETE)
-- [x] Homepage with hero section, services overview
-- [x] Services page
-- [x] Mobilier page
-- [x] Portfolio page
-- [x] Contact page
-- [x] Soumission (Lead submission) form with service selection
-- [x] FAQ page
-- [x] Privacy Policy page
-- [x] Terms of Service page
-- [x] Warranty page
-- [x] SEO geo-targeted pages:
+### Phase 2: Site Public (COMPLETE)
+- [x] Page d'accueil avec hero section
+- [x] Page Services
+- [x] Page Mobilier
+- [x] Page Portfolio
+- [x] Page Contact
+- [x] Formulaire de Soumission avec sélection de service
+- [x] Page FAQ
+- [x] Politique de confidentialité
+- [x] Conditions d'utilisation
+- [x] Page Garantie
+- [x] Pages SEO géo-ciblées:
   - /services-peinture-montreal
   - /services-peinture-longueuil
   - /services-peinture-brossard
   - /services-peinture-laval
   - /services-saint-laurent
-- [x] robots.txt and sitemap.xml
+- [x] robots.txt et sitemap.xml
 
-### Phase 3: Backend CRM APIs (COMPLETE)
-- [x] User authentication (JWT with access/refresh tokens)
-- [x] Leads CRUD (create, read, update)
+### Phase 3: Section Blog (COMPLETE) ✨ NEW
+- [x] Page liste des articles `/blog`
+- [x] Page article détaillé `/blog/:slug`
+- [x] Filtrage par catégories
+- [x] Compteur de vues
+- [x] Tags et métadonnées SEO
+- [x] Admin CRUD pour les articles
+- [x] Articles de démonstration créés
+
+### Phase 4: Backend CRM APIs (COMPLETE)
+- [x] Authentification utilisateur (JWT)
+- [x] Leads CRUD (création, lecture, mise à jour)
 - [x] Clients CRUD 
-- [x] Quotes creation with automatic calculations:
-  - Quebec taxes (TPS 5%, TVQ 9.975%)
-  - Contingency fees (10-20%)
-  - Market price comparison
-  - Payment terms (30% deposit, 30% milestone, 40% final)
-- [x] Invoices CRUD with:
-  - Auto-generated invoice numbers (CMG-YYYY-XXXX)
-  - Payment tracking
-- [x] Projects CRUD with status tracking
-- [x] Admin statistics dashboard
-- [x] CEO dashboard with financial metrics
+- [x] Création de devis avec calculs automatiques:
+  - Taxes du Québec (TPS 5%, TVQ 9.975%)
+  - Frais de contingence (10-20%)
+  - Comparaison prix du marché
+  - Termes de paiement (30% dépôt, 30% étape, 40% final)
+- [x] Factures CRUD avec:
+  - Numéros de facture auto-générés (CMG-YYYY-XXXX)
+  - Suivi des paiements
+- [x] Projets CRUD avec suivi de statut
+- [x] Dashboard statistiques admin
+- [x] Dashboard CEO avec métriques financières
 
-### Phase 4: Admin Frontend CRM (COMPLETE)
-- [x] Admin login page
-- [x] Dashboard with statistics overview
-- [x] Leads management page with filters
-- [x] Lead detail view
-- [x] Clients management page
-- [x] Invoices management page
-- [x] Projects management page
-- [x] Revenue/CEO dashboard with:
-  - Monthly revenue tracking
-  - Profit margins by division
-  - Conversion rate visualization
-  - Revenue chart (6 months)
-  - Top services breakdown
+### Phase 5: Génération PDF (COMPLETE) ✨ NEW
+- [x] PDF pour devis/soumissions
+- [x] PDF pour factures
+- [x] Design professionnel avec branding CMGeorges
+- [x] Téléchargement via API admin
+- [x] Téléchargement via portail client
 
-### Phase 5: Integrations (CONFIGURED)
-- [x] Resend API configured for emails
-- [x] Google reCAPTCHA v2 configured
-- [x] Google Analytics 4 configured
-- [x] Meta Pixel configured
+### Phase 6: Portail Client (COMPLETE) ✨ NEW
+- [x] Accès sécurisé par token
+- [x] Création d'accès via admin
+- [x] Envoi automatique d'email avec lien d'accès
+- [x] Consultation des devis
+- [x] Consultation des factures
+- [x] Consultation des projets
+- [x] Téléchargement PDF depuis le portail
+- [x] Page `/portail-client?token=XXX`
 
----
+### Phase 7: Admin Frontend CRM (COMPLETE)
+- [x] Page de connexion admin
+- [x] Dashboard avec statistiques
+- [x] Gestion des leads avec filtres
+- [x] Vue détaillée des leads
+- [x] Gestion des clients
+- [x] Gestion des factures
+- [x] Gestion des projets
+- [x] Dashboard CEO/Revenus
 
-## Bugs Fixed
-
-### Critical - SEO Pages Blank Screen (FIXED - Feb 18, 2026)
-**Issue:** Pages like `/services-peinture-montreal` showed blank white screen
-**Root Cause:** Routes in App.js used `/services/:city` pattern but URLs were `/services-peinture-montreal`
-**Solution:** Added static routes for each SEO page with explicit city prop
-
-### Minor - Admin Login Logo (FIXED - Feb 18, 2026)
-**Issue:** Logo appeared as white square on admin login
-**Solution:** Replaced external image with inline styled logo
+### Phase 8: Intégrations (CONFIGURED)
+- [x] Resend API configuré pour emails ✅ FONCTIONNEL
+- [x] Google reCAPTCHA v2 intégré (code prêt, clé à configurer)
+- [x] Google Analytics 4 configuré
+- [x] Meta Pixel configuré
 
 ---
 
 ## Testing Status
-- **Backend Tests:** 25/25 passed (100%)
-- **Frontend Tests:** 100% pages functional
-- **Test Report:** /app/test_reports/iteration_3.json
+- **Backend Tests:** 100% passés
+- **Frontend Tests:** 100% pages fonctionnelles
+- **Rapports de tests:** `/app/test_reports/`
 
 ---
 
-## Upcoming Tasks (Priority Order)
+## Configuration requise par le client
 
-### P0 - High Priority
-1. **Email Integration Testing** - Test actual email delivery via Resend
-2. **reCAPTCHA Integration** - Wire up to forms
+### reCAPTCHA
+Le code reCAPTCHA est intégré mais désactivé car la clé fournie était invalide.
+Pour activer:
+1. Créer une clé reCAPTCHA v2 "Checkbox" sur https://www.google.com/recaptcha/admin
+2. Ajouter la clé site dans `frontend/.env` → `REACT_APP_RECAPTCHA_SITE_KEY=...`
+3. Ajouter la clé secrète dans `backend/.env` → `RECAPTCHA_SECRET_KEY=...`
 
-### P1 - Medium Priority
-1. **Blog Section** - Create blog listing and article pages
-2. **Quote PDF Generation** - Generate downloadable PDF quotes
-3. **Invoice PDF Generation** - Generate downloadable PDF invoices
-
-### P2 - Lower Priority
-1. **Client Detail Page** - View/edit individual client
-2. **Project Detail Page** - View/edit individual project
-3. **Lead to Client Conversion Flow** - UI for converting leads
+### Emails Resend
+Les emails sont fonctionnels mais limités en mode test:
+- Les emails sont envoyés à l'adresse admin configurée
+- Pour envoyer aux clients: vérifier un domaine sur resend.com/domains
 
 ---
 
-## Future/Backlog Tasks
+## Upcoming Tasks (Backlog)
 
-### DevSecOps
-- Rate limiting implementation
-- Security headers (CSP, HSTS)
-- Database backup automation
-- CI/CD pipeline with GitHub Actions
+### P1 - Moyen terme
+1. **Gestion du Blog Admin** - Interface complète pour créer/modifier des articles
+2. **Export CSV** - Export des leads, clients, factures
 
-### UX Improvements
-- Mobile CTA sticky button
-- Form auto-save draft
-- Dashboard real-time updates
+### P2 - Plus tard
+1. **Notifications SMS** - Intégration Twilio
+2. **Calendrier** - Prise de rendez-vous en ligne
+3. **Multi-langue** - Support EN/FR complet
 
-### Additional Features
-- Multi-language support (EN/FR)
-- Client portal for viewing quotes/invoices
-- SMS notifications via Twilio
-- Calendar integration for scheduling
+### P3 - Futur
+1. **CI/CD Pipeline** - GitHub Actions
+2. **Rate limiting** - Protection API
+3. **Backups automatiques** - MongoDB
 
 ---
 
@@ -149,63 +152,42 @@
 ```
 /app
 ├── backend/
-│   ├── .env              # Environment variables
-│   ├── requirements.txt  # Python dependencies
-│   ├── server.py         # FastAPI application (all routes & models)
-│   └── tests/            # Pytest test files
+│   ├── .env              # Variables d'environnement
+│   ├── requirements.txt  # Dépendances Python
+│   ├── server.py         # Application FastAPI
+│   └── tests/            # Tests Pytest
 └── frontend/
-    ├── .env              # React environment variables
-    ├── package.json      # Node dependencies
+    ├── .env              # Variables React
+    ├── package.json      # Dépendances Node
     ├── public/
     │   ├── robots.txt
     │   └── sitemap.xml
     └── src/
-        ├── App.js        # Router configuration
-        ├── components/   # Reusable UI components
-        │   ├── layout/   # Layout components
-        │   └── ui/       # Shadcn UI components
-        ├── lib/          # Utilities and API client
-        └── pages/        # All application pages
-            ├── admin/    # Admin CRM pages
-            └── ...       # Public pages
+        ├── App.js        # Configuration Router
+        ├── components/   # Composants UI
+        ├── lib/          # Utilitaires et API client
+        └── pages/        # Pages de l'application
+            ├── admin/    # Pages CRM admin
+            ├── BlogPage.jsx
+            ├── BlogPostPage.jsx
+            ├── ClientPortalPage.jsx
+            └── ...
 ```
 
 ## Key API Endpoints
 
 ### Public
-- `POST /api/v1/leads` - Submit lead from form
-- `POST /api/v1/contact` - Contact form submission
-- `GET /api/v1/services` - Get services list
-- `GET /api/v1/portfolio` - Get portfolio items
-- `GET /api/v1/pricing` - Get pricing info
-
-### Auth
-- `POST /api/v1/auth/login` - Admin login
-- `POST /api/v1/auth/refresh` - Refresh token
-- `GET /api/v1/auth/me` - Get current user
+- `GET /api/v1/blog` - Liste des articles
+- `GET /api/v1/blog/:slug` - Article par slug
+- `POST /api/v1/leads` - Soumettre un lead
+- `GET /api/v1/portal/data/:client_id` - Données portail client
 
 ### Admin
-- `GET/PATCH /api/v1/admin/leads` - Leads management
-- `GET/POST/PATCH /api/v1/admin/clients` - Clients management
-- `GET/POST /api/v1/admin/quotes` - Quotes management
-- `GET/POST/PATCH /api/v1/admin/invoices` - Invoices management
-- `GET/POST/PATCH /api/v1/admin/projects` - Projects management
-- `GET /api/v1/admin/stats` - Dashboard statistics
-- `GET /api/v1/admin/ceo-dashboard` - CEO financial dashboard
+- `GET/POST/PATCH /api/v1/admin/blog` - Gestion blog
+- `GET /api/v1/admin/quotes/:id/pdf` - PDF soumission
+- `GET /api/v1/admin/invoices/:id/pdf` - PDF facture
+- `POST /api/v1/admin/clients/:id/portal-access` - Créer accès portail
 
 ---
 
-## Database Collections (MongoDB)
-- `users` - Admin/staff users
-- `leads` - Customer leads
-- `clients` - Converted clients
-- `quotes` - Price quotes
-- `invoices` - Customer invoices
-- `projects` - Active projects
-- `portfolio_media` - Portfolio items
-- `contact_messages` - Contact form submissions
-- `audit_logs` - System audit trail
-
----
-
-*Last Updated: February 18, 2026*
+*Dernière mise à jour: 21 février 2026*
