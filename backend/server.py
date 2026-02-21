@@ -1640,19 +1640,29 @@ async def get_ceo_dashboard(user: dict = Depends(require_admin)):
     # Projects in progress
     projects_in_progress = await db.projects.count_documents({"status": "in_progress"})
     
-    # Average margins from quotes
-    quotes = await db.quotes.find({}, {"_id": 0, "margin_percent": 1, "lead_id": 1}).to_list(1000)
+    # Average margins from quotes - OPTIMIZED: Batch query instead of N+1
+    quotes = await db.quotes.find(
+        {"margin_percent": {"$exists": True, "$ne": None}}, 
+        {"_id": 0, "margin_percent": 1, "lead_id": 1}
+    ).to_list(500)
+    
+    # Get all lead IDs and fetch in one query
+    lead_ids = list(set(q.get("lead_id") for q in quotes if q.get("lead_id")))
+    leads_list = await db.leads.find(
+        {"id": {"$in": lead_ids}}, 
+        {"_id": 0, "id": 1, "service_type": 1}
+    ).to_list(len(lead_ids)) if lead_ids else []
+    lead_map = {l["id"]: l.get("service_type") for l in leads_list}
     
     manual_margins = []
     tech_margins = []
     for quote in quotes:
         if quote.get("margin_percent"):
-            lead = await db.leads.find_one({"id": quote.get("lead_id")}, {"_id": 0, "service_type": 1})
-            if lead:
-                if lead.get("service_type") == "tech":
-                    tech_margins.append(quote["margin_percent"])
-                else:
-                    manual_margins.append(quote["margin_percent"])
+            service_type = lead_map.get(quote.get("lead_id"))
+            if service_type == "tech":
+                tech_margins.append(quote["margin_percent"])
+            elif service_type:
+                manual_margins.append(quote["margin_percent"])
     
     average_margin_manual = sum(manual_margins) / len(manual_margins) if manual_margins else 55.0
     average_margin_tech = sum(tech_margins) / len(tech_margins) if tech_margins else 70.0
@@ -1661,14 +1671,15 @@ async def get_ceo_dashboard(user: dict = Depends(require_admin)):
     monthly_costs = monthly_revenue * 0.4
     monthly_profit = monthly_revenue - monthly_costs
     
-    # Top services (from leads)
-    service_counts = {}
-    leads = await db.leads.find({"status": "won"}, {"_id": 0, "service_type": 1}).to_list(1000)
-    for lead in leads:
-        stype = lead.get("service_type", "other")
-        service_counts[stype] = service_counts.get(stype, 0) + 1
-    
-    top_services = [{"service": k, "count": v} for k, v in sorted(service_counts.items(), key=lambda x: x[1], reverse=True)][:5]
+    # Top services (from leads) - OPTIMIZED: Use aggregation
+    pipeline = [
+        {"$match": {"status": "won"}},
+        {"$group": {"_id": "$service_type", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5}
+    ]
+    service_agg = await db.leads.aggregate(pipeline).to_list(5)
+    top_services = [{"service": s["_id"] or "other", "count": s["count"]} for s in service_agg]
     
     # Revenue by month (last 6 months)
     revenue_by_month = []
