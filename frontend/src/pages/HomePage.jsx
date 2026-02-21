@@ -233,8 +233,8 @@ export default function HomePage() {
             </div>
             <div className="relative">
               <img 
-                src="https://images.unsplash.com/photo-1752159400890-d906038f1b35?crop=entropy&cs=srgb&fm=jpg&q=85&w=800"
-                alt="Équipe CMGeorges"
+                src="https://images.pexels.com/photos/6146704/pexels-photo-6146704.jpeg?auto=compress&cs=tinysrgb&w=800"
+                alt="Équipe multiculturelle CMGeorges"
                 className="rounded-2xl shadow-2xl"
               />
               <div className="absolute -bottom-6 -left-6 bg-white rounded-xl p-6 shadow-xl">
