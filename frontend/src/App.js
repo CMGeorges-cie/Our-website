@@ -32,6 +32,9 @@ import AdminInvoiceDetail from "@/pages/admin/AdminInvoiceDetail";
 import AdminProjects from "@/pages/admin/AdminProjects";
 import AdminProjectDetail from "@/pages/admin/AdminProjectDetail";
 import AdminRevenue from "@/pages/admin/AdminRevenue";
+import AdminDiscountCodes from "@/pages/admin/AdminDiscountCodes";
+import AdminPricing from "@/pages/admin/AdminPricing";
+import AdminPolicies from "@/pages/admin/AdminPolicies";
 
 import AdminClientDetail from "@/pages/admin/AdminClientDetail";
 
@@ -164,6 +167,9 @@ function App() {
               <Route path="/admin/projects" element={<AdminProjects />} />
               <Route path="/admin/projects/:id" element={<AdminProjectDetail />} />
               <Route path="/admin/revenue" element={<AdminRevenue />} />
+              <Route path="/admin/discount-codes" element={<AdminDiscountCodes />} />
+              <Route path="/admin/pricing" element={<AdminPricing />} />
+              <Route path="/admin/policies" element={<AdminPolicies />} />
             </Route>
           </Routes>
         </BrowserRouter>
