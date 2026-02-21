@@ -1542,15 +1542,21 @@ async def create_project(project_data: ProjectCreate, request: Request, user: di
     return project
 
 @admin_router.get("/projects", response_model=List[Project])
-async def get_projects(client_id: Optional[str] = None, status: Optional[ProjectStatus] = None, user: dict = Depends(get_current_user)):
-    """Get all projects"""
+async def get_projects(
+    client_id: Optional[str] = None, 
+    status: Optional[ProjectStatus] = None, 
+    skip: int = 0,
+    limit: int = 100,
+    user: dict = Depends(get_current_user)
+):
+    """Get all projects with pagination"""
     query = {}
     if client_id:
         query["client_id"] = client_id
     if status:
         query["status"] = status
     
-    projects = await db.projects.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    projects = await db.projects.find(query, {"_id": 0}).sort("created_at", -1).skip(skip).limit(min(limit, 500)).to_list(min(limit, 500))
     
     for project in projects:
         if isinstance(project.get('created_at'), str):
