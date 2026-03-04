@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminRevenue() {
+  usePageTitle('Revenus & Analytics');
   const [ceoData, setCeoData] = useState(null);
   const [loading, setLoading] = useState(true);
 

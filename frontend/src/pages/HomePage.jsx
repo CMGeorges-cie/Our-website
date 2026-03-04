@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { 
   Paintbrush, 
   Sofa, 
@@ -73,6 +74,8 @@ const testimonials = [
 ];
 
 export default function HomePage() {
+  usePageTitle('Accueil - Rénovation, Mobilier & Tech à Montréal');
+  
   return (
     <div data-testid="home-page">
       {/* Hero Section */}

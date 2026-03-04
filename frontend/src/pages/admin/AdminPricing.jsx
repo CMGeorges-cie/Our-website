@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { adminApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { toast } from 'sonner';
 import { 
   Search, 
@@ -46,6 +47,7 @@ const emptyItem = {
 };
 
 export default function AdminPricing() {
+  usePageTitle('Grille Tarifaire');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

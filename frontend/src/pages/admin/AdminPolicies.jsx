@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { toast } from 'sonner';
 import { 
   Search, 
@@ -45,6 +46,7 @@ const emptyPolicy = {
 };
 
 export default function AdminPolicies() {
+  usePageTitle('Politiques');
   const [policies, setPolicies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

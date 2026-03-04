@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { 
   Users, 
   FileText, 
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export default function AdminDashboard() {
+  usePageTitle('Tableau de bord Admin');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 

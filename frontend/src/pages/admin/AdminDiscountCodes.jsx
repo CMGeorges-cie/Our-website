@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { toast } from 'sonner';
 import { 
   Search, 
@@ -33,6 +34,7 @@ const emptyCode = {
 };
 
 export default function AdminDiscountCodes() {
+  usePageTitle('Codes Promo');
   const [codes, setCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

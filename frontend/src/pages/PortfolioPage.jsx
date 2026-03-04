@@ -3,8 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { publicApi } from '@/lib/api';
 import { getServiceLabel } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 export default function PortfolioPage() {
+  usePageTitle('Portfolio - Nos Réalisations');
   const [portfolio, setPortfolio] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');

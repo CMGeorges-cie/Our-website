@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { 
   Phone, 
   Mail, 
@@ -14,6 +15,8 @@ import {
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
 export default function ContactPage() {
+  usePageTitle('Contactez-nous');
+  
   return (
     <div className="min-h-screen" data-testid="contact-page">
       {/* Header */}

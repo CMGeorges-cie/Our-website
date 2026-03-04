@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
 import { formatDateShort, formatCurrency } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { toast } from 'sonner';
 import { Eye, FileText, Download, Printer, Send, Plus, Trash2, Receipt } from 'lucide-react';
 
@@ -25,6 +26,7 @@ const statusOptions = [
 const emptyLine = { description: '', quantity: 1, unit_price: 0 };
 
 export default function AdminInvoices() {
+  usePageTitle('Gestion des Factures');
   const [invoices, setInvoices] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);

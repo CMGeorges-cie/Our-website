@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { toast } from 'sonner';
 import { 
   Search, 
@@ -32,6 +33,7 @@ const emptyClient = {
 };
 
 export default function AdminClients() {
+  usePageTitle('Gestion des Clients');
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

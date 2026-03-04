@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authApi, seedDatabase } from '@/lib/api';
 import { setAuthData, isAuthenticated } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { toast } from 'sonner';
 import { LogIn } from 'lucide-react';
 
 export default function AdminLogin() {
+  usePageTitle('Connexion Admin');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [seeding, setSeeding] = useState(false);

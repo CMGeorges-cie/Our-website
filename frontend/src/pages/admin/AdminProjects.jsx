@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
 import { formatDateShort } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { toast } from 'sonner';
 import { Eye, Calendar, Clock, CheckCircle, Pause, Plus, Pencil, Trash2, Briefcase } from 'lucide-react';
 
@@ -36,6 +37,7 @@ const emptyProject = {
 };
 
 export default function AdminProjects() {
+  usePageTitle('Gestion des Projets');
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
