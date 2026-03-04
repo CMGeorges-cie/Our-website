@@ -815,7 +815,7 @@ def get_lead_confirmation_html(lead: dict) -> str:
         </div>
         <div class="footer">
             <p>CMGeorges - Votre partenaire pour tous vos projets</p>
-            <p>info@cmgeorges.com | 514-386-1743</p>
+            <p>cmgeorges.cie@gmail.com | 514-386-1743</p>
         </div>
     </body>
     </html>
@@ -2092,7 +2092,7 @@ CMGeorges est assuré et responsable des dommages causés pendant l'exécution d
 6. MATÉRIAUX
 Sauf indication contraire, les matériaux (peinture, quincaillerie) sont à la charge du client. CMGeorges peut fournir les matériaux avec supplément.
 
-Pour toute question: info@cmgeorges.com | 514-386-1743""",
+Pour toute question: cmgeorges.cie@gmail.com | 514-386-1743""",
             "version": "2.0",
             "is_active": True,
             "created_at": now.isoformat(),
@@ -2399,7 +2399,7 @@ def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
     
     # Header
     elements.append(Paragraph("🦁 CMGeorges", styles['CMGHeader']))
-    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@cmgeorges.com", styles['CMGSubHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | cmgeorges.cie@gmail.com", styles['CMGSubHeader']))
     elements.append(Spacer(1, 20))
     
     # Quote Info
@@ -2519,7 +2519,7 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     
     # Header
     elements.append(Paragraph("🦁 CMGeorges", styles['CMGHeader']))
-    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@cmgeorges.com", styles['CMGSubHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | cmgeorges.cie@gmail.com", styles['CMGSubHeader']))
     elements.append(Spacer(1, 20))
     
     # Invoice Info

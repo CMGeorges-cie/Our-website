@@ -113,7 +113,7 @@ export default function AdminQuoteView() {
               <div className="text-sm text-gray-600">
                 <p>Montréal & Rive-Sud, QC</p>
                 <p>514-386-1743</p>
-                <p>info@cmgeorges.com</p>
+                <p>cmgeorges.cie@gmail.com</p>
               </div>
             </div>
             <div className="text-right">
@@ -244,7 +244,7 @@ export default function AdminQuoteView() {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-[#d4af37] text-center">
             <p className="text-[#1a365d] font-semibold">Merci de faire confiance à CMGeorges!</p>
-            <p className="text-xs text-gray-400 mt-1">514-386-1743 | info@cmgeorges.com</p>
+            <p className="text-xs text-gray-400 mt-1">514-386-1743 | cmgeorges.cie@gmail.com</p>
           </div>
         </CardContent>
       </Card>

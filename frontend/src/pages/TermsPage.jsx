@@ -158,7 +158,7 @@ export default function TermsPage() {
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                 <p className="text-gray-700"><strong>CMGeorges</strong></p>
-                <p className="text-gray-600">Courriel: info@cmgeorges.com</p>
+                <p className="text-gray-600">Courriel: cmgeorges.cie@gmail.com</p>
                 <p className="text-gray-600">Téléphone: 514-386-1743</p>
               </div>
             </div>
