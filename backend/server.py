@@ -2688,8 +2688,9 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
     
     await db.client_portal_access.insert_one(doc)
     
-    # Build portal URL
-    portal_url = f"https://business-hub-222.preview.emergentagent.com/portail-client?token={access_token}"
+    # Build portal URL using environment variable
+    app_url = os.environ.get('APP_URL', os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:3000'))
+    portal_url = f"{app_url}/portail-client?token={access_token}"
     
     # Send email to client
     email_html = f"""
