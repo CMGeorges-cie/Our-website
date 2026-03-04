@@ -238,7 +238,7 @@ export default function AdminQuoteView() {
           {/* Terms */}
           <div className="mt-8 pt-6 border-t border-gray-200 text-xs text-gray-500">
             <p>• Soumission valide 30 jours • Dépôt requis pour confirmer • Garantie satisfaction incluse</p>
-            <p className="mt-2">TPS: 123456789 RT0001 | TVQ: 1234567890 TQ0001</p>
+            <p className="mt-2">TPS: 714767027 RT0001 | TVQ: 4023795081 TQ0001</p>
           </div>
 
           {/* Footer */}

@@ -2499,6 +2499,7 @@ def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
     elements.append(Spacer(1, 30))
     elements.append(Paragraph("Merci de votre confiance!", styles['CMGSubHeader']))
     elements.append(Paragraph("CMGeorges - Votre partenaire pour tous vos projets", styles['CMGSubHeader']))
+    elements.append(Paragraph("TPS: 714767027 RT0001 | TVQ: 4023795081 TQ0001", styles['CMGSubHeader']))
     
     doc.build(elements)
     buffer.seek(0)
@@ -2608,6 +2609,7 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     # Footer
     elements.append(Spacer(1, 30))
     elements.append(Paragraph("Merci de votre confiance!", styles['CMGSubHeader']))
+    elements.append(Paragraph("TPS: 714767027 RT0001 | TVQ: 4023795081 TQ0001", styles['CMGSubHeader']))
     
     doc.build(elements)
     buffer.seek(0)

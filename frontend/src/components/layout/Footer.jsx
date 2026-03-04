@@ -13,7 +13,7 @@ export default function Footer() {
               <img 
                 src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
                 alt="CMGeorges"
-                className="h-12 w-auto brightness-0 invert"
+                className="h-12 w-auto"
               />
               <span className="font-bold text-xl font-['Outfit']">CMGeorges</span>
             </Link>
@@ -123,8 +123,8 @@ export default function Footer() {
             </div>
           </div>
           <div className="flex justify-center gap-6 text-xs text-white/40">
-            <span>TPS: 123456789 RT0001</span>
-            <span>TVQ: 1234567890 TQ0001</span>
+            <span>TPS: 714767027 RT0001</span>
+            <span>TVQ: 4023795081 TQ0001</span>
           </div>
         </div>
       </div>
