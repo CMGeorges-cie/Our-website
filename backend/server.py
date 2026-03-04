@@ -2688,8 +2688,10 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
     
     await db.client_portal_access.insert_one(doc)
     
-    # Build portal URL using environment variable
-    app_url = os.environ.get('APP_URL', os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:3000'))
+    # Build portal URL using environment variable (required)
+    app_url = os.environ.get('APP_URL') or os.environ.get('REACT_APP_BACKEND_URL')
+    if not app_url:
+        raise HTTPException(status_code=500, detail="APP_URL environment variable not configured")
     portal_url = f"{app_url}/portail-client?token={access_token}"
     
     # Send email to client
