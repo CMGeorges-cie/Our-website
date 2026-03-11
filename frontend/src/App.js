@@ -34,6 +34,10 @@ import AdminProjectDetail from "@/pages/admin/AdminProjectDetail";
 import AdminRevenue from "@/pages/admin/AdminRevenue";
 
 import AdminClientDetail from "@/pages/admin/AdminClientDetail";
+import AdminBlog from "@/pages/admin/AdminBlog";
+import AdminDiscounts from "@/pages/admin/AdminDiscounts";
+import AdminPricing from "@/pages/admin/AdminPricing";
+import AdminPolicies from "@/pages/admin/AdminPolicies";
 
 // Layout
 import PublicLayout from "@/components/layout/PublicLayout";
@@ -164,6 +168,10 @@ function App() {
               <Route path="/admin/projects" element={<AdminProjects />} />
               <Route path="/admin/projects/:id" element={<AdminProjectDetail />} />
               <Route path="/admin/revenue" element={<AdminRevenue />} />
+              <Route path="/admin/blog" element={<AdminBlog />} />
+              <Route path="/admin/discounts" element={<AdminDiscounts />} />
+              <Route path="/admin/pricing" element={<AdminPricing />} />
+              <Route path="/admin/policies" element={<AdminPolicies />} />
             </Route>
           </Routes>
         </BrowserRouter>

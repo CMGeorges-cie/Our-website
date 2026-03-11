@@ -111,6 +111,11 @@ export const adminApi = {
   deleteClient: (id) => api.delete(`/admin/clients/${id}`),
   deleteInvoice: (id) => api.delete(`/admin/invoices/${id}`),
   deleteProject: (id) => api.delete(`/admin/projects/${id}`),
+  deleteLead: (id) => api.delete(`/admin/leads/${id}`),
+
+  // Send by email
+  sendInvoiceByEmail: (id) => api.post(`/admin/invoices/${id}/send-email`),
+  sendQuoteByEmail: (id) => api.post(`/admin/quotes/${id}/send-email`),
   
   // Stats & Dashboard
   getStats: () => api.get('/admin/stats'),

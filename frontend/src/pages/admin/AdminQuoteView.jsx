@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { adminApi } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
+import { toast } from 'sonner';
 import { ArrowLeft, Printer, Download, Send } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -13,6 +14,7 @@ export default function AdminQuoteView() {
   const [quote, setQuote] = useState(null);
   const [lead, setLead] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,6 +32,18 @@ export default function AdminQuoteView() {
     };
     fetchData();
   }, [id]);
+
+  const handleSendEmail = async () => {
+    setSending(true);
+    try {
+      const res = await adminApi.sendQuoteByEmail(id);
+      toast.success(res.data.message || 'Soumission envoyée par email!');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Erreur lors de l\'envoi');
+    } finally {
+      setSending(false);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -88,9 +102,9 @@ export default function AdminQuoteView() {
             <Printer className="mr-2 h-4 w-4" />
             Imprimer
           </Button>
-          <Button className="bg-gold-500 hover:bg-gold-600 text-black">
+          <Button className="bg-gold-500 hover:bg-gold-600 text-black" onClick={handleSendEmail} disabled={sending} data-testid="send-quote-email-btn">
             <Send className="mr-2 h-4 w-4" />
-            Envoyer
+            {sending ? 'Envoi...' : 'Envoyer'}
           </Button>
         </div>
       </div>

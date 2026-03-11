@@ -6,7 +6,7 @@
 **Tech Stack:** React + FastAPI + MongoDB
 
 ## Live Preview
-**URL:** https://cmgeorges-staging.preview.emergentagent.com
+**URL:** https://crm-admin-portal-4.preview.emergentagent.com
 
 ## Test Credentials
 - **Admin Email:** admin@cmgeorges.com

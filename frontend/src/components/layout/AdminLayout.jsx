@@ -10,7 +10,11 @@ import {
   Receipt,
   Briefcase,
   Menu,
-  X
+  X,
+  BookOpen,
+  Tag,
+  DollarSign,
+  Shield
 } from 'lucide-react';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,6 +27,13 @@ const sidebarLinks = [
   { href: '/admin/projects', label: 'Projets', icon: Briefcase },
   { href: '/admin/invoices', label: 'Factures', icon: Receipt },
   { href: '/admin/revenue', label: 'Revenus', icon: TrendingUp },
+];
+
+const settingsLinks = [
+  { href: '/admin/blog', label: 'Blog', icon: BookOpen },
+  { href: '/admin/discounts', label: 'Codes Promo', icon: Tag },
+  { href: '/admin/pricing', label: 'Tarification', icon: DollarSign },
+  { href: '/admin/policies', label: 'Politiques', icon: Shield },
 ];
 
 export default function AdminLayout() {
@@ -109,6 +120,31 @@ export default function AdminLayout() {
               </Link>
             );
           })}
+
+          {/* Settings Group */}
+          <div className="mt-4 pt-4 border-t border-gray-800">
+            <p className="text-xs text-gray-600 uppercase px-4 mb-2 tracking-wider">Paramètres</p>
+            {settingsLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location.pathname === link.href || location.pathname.startsWith(link.href + '/');
+              return (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl mb-1 transition-all duration-200 ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-gold-500/20 to-gold-600/10 text-gold-500 border border-gold-500/30' 
+                      : 'text-gray-500 hover:text-white hover:bg-white/5'
+                  }`}
+                  data-testid={`admin-nav-${link.label.toLowerCase().replace(' ', '-')}`}
+                >
+                  <Icon className={`h-4 w-4 ${isActive ? 'text-gold-500' : ''}`} />
+                  <span className="text-sm font-medium">{link.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
         {/* User Info */}

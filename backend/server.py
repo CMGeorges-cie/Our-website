@@ -2364,7 +2364,7 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
     await db.client_portal_access.insert_one(doc)
     
     # Build portal URL
-    portal_url = f"https://cmgeorges-staging.preview.emergentagent.com/portail-client?token={access_token}"
+    portal_url = f"https://crm-admin-portal-4.preview.emergentagent.com/portail-client?token={access_token}"
     
     # Send email to client
     email_html = f"""
@@ -2821,6 +2821,144 @@ async def delete_project(project_id: str, request: Request, user: dict = Depends
     
     await create_audit_log("project_deleted", "project", project_id, user=user, request=request)
     return {"message": "Projet supprimé"}
+
+# ==================== DELETE LEAD ====================
+@admin_router.delete("/leads/{lead_id}")
+async def delete_lead(lead_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete a lead"""
+    result = await db.leads.delete_one({"id": lead_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Lead non trouvé")
+    await create_audit_log("lead_deleted", "lead", lead_id, user=user, request=request)
+    return {"message": "Lead supprimé"}
+
+# ==================== SEND INVOICE BY EMAIL ====================
+@admin_router.post("/invoices/{invoice_id}/send-email")
+async def send_invoice_by_email(invoice_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Send invoice PDF by email to client"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+
+    client = await db.clients.find_one({"id": invoice["client_id"]}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+
+    pdf_buffer = generate_invoice_pdf(invoice, client)
+    pdf_bytes = pdf_buffer.getvalue()
+
+    due_date_str = invoice.get("due_date", "À réception")
+    if isinstance(due_date_str, str) and "T" in str(due_date_str):
+        try:
+            due_date_str = datetime.fromisoformat(str(due_date_str)).strftime("%d/%m/%Y")
+        except Exception:
+            pass
+
+    html_content = f"""
+    <!DOCTYPE html><html><head><style>
+    body{{font-family:Arial,sans-serif;color:#333;}}
+    .header{{background:#1a365d;color:white;padding:20px;text-align:center;}}
+    .header h1{{color:#d4af37;margin:0;}}
+    .content{{padding:30px;}}
+    .highlight{{background:#f8fafc;border-left:4px solid #d4af37;padding:15px;margin:20px 0;}}
+    .footer{{background:#1a365d;color:white;padding:20px;text-align:center;}}
+    </style></head><body>
+    <div class="header"><h1>CMGeorges</h1><p>Montréal & Rive-Sud</p></div>
+    <div class="content">
+    <h2>Bonjour {client['full_name']},</h2>
+    <p>Veuillez trouver ci-joint votre facture.</p>
+    <div class="highlight">
+    <strong>Facture:</strong> {invoice['invoice_number']}<br>
+    <strong>Montant total:</strong> {invoice['total']:.2f}$<br>
+    <strong>Date d'échéance:</strong> {due_date_str}
+    </div>
+    <p>Pour toute question, contactez-nous au 514-386-1743 ou info@cmgeorges.com</p>
+    <p>Merci de votre confiance!</p>
+    </div>
+    <div class="footer"><p>CMGeorges | 514-386-1743 | info@cmgeorges.com</p></div>
+    </body></html>
+    """
+
+    if not resend.api_key:
+        return {"message": "Resend non configuré - PDF disponible en téléchargement direct"}
+
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [client["email"]],
+            "subject": f"Facture {invoice['invoice_number']} - CMGeorges",
+            "html": html_content,
+            "attachments": [{"filename": f"facture-{invoice['invoice_number']}.pdf", "content": list(pdf_bytes)}]
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        await db.invoices.update_one({"id": invoice_id}, {"$set": {"status": "sent"}})
+        await create_audit_log("invoice_sent_email", "invoice", invoice_id, user=user, request=request)
+        return {"message": f"Facture envoyée à {client['email']}"}
+    except Exception as e:
+        logger.error(f"Failed to send invoice email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur d'envoi: {str(e)}")
+
+# ==================== SEND QUOTE BY EMAIL ====================
+@admin_router.post("/quotes/{quote_id}/send-email")
+async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Send quote PDF by email to lead/client"""
+    quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Soumission non trouvée")
+
+    lead = await db.leads.find_one({"id": quote["lead_id"]}, {"_id": 0})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead non trouvé")
+
+    client = None
+    if quote.get("client_id"):
+        client = await db.clients.find_one({"id": quote["client_id"]}, {"_id": 0})
+
+    pdf_buffer = generate_quote_pdf(quote, lead, client)
+    pdf_bytes = pdf_buffer.getvalue()
+
+    html_content = f"""
+    <!DOCTYPE html><html><head><style>
+    body{{font-family:Arial,sans-serif;color:#333;}}
+    .header{{background:#1a365d;color:white;padding:20px;text-align:center;}}
+    .header h1{{color:#d4af37;margin:0;}}
+    .content{{padding:30px;}}
+    .highlight{{background:#f8fafc;border-left:4px solid #d4af37;padding:15px;margin:20px 0;}}
+    .footer{{background:#1a365d;color:white;padding:20px;text-align:center;}}
+    </style></head><body>
+    <div class="header"><h1>CMGeorges</h1><p>Montréal & Rive-Sud</p></div>
+    <div class="content">
+    <h2>Bonjour {lead['full_name']},</h2>
+    <p>Veuillez trouver ci-joint votre soumission.</p>
+    <div class="highlight">
+    <strong>Montant total (taxes incluses):</strong> {quote['total_with_tax']:.2f}$<br>
+    <strong>Validité:</strong> 30 jours
+    </div>
+    <p>Pour accepter ou pour toute question, contactez-nous au 514-386-1743 ou info@cmgeorges.com</p>
+    <p>Merci de votre confiance!</p>
+    </div>
+    <div class="footer"><p>CMGeorges | 514-386-1743 | info@cmgeorges.com</p></div>
+    </body></html>
+    """
+
+    if not resend.api_key:
+        return {"message": "Resend non configuré - PDF disponible en téléchargement direct"}
+
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [lead["email"]],
+            "subject": f"Soumission CMGeorges - {lead['full_name']}",
+            "html": html_content,
+            "attachments": [{"filename": f"soumission-{quote['id'][:8]}.pdf", "content": list(pdf_bytes)}]
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        await db.quotes.update_one({"id": quote_id}, {"$set": {"status": "sent"}})
+        await create_audit_log("quote_sent_email", "quote", quote_id, user=user, request=request)
+        return {"message": f"Soumission envoyée à {lead['email']}"}
+    except Exception as e:
+        logger.error(f"Failed to send quote email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur d'envoi: {str(e)}")
 
 # Include routers
 v1_router.include_router(admin_router)

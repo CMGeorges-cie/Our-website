@@ -20,30 +20,44 @@ import {
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
+const sendInvoiceEmail = async (id, setLoading, refetch) => {
+  setLoading(true);
+  try {
+    const res = await adminApi.sendInvoiceByEmail(id);
+    toast.success(res.data.message || 'Facture envoyée par email!');
+    if (refetch) refetch();
+  } catch (e) {
+    toast.error(e.response?.data?.detail || 'Erreur lors de l\'envoi');
+  } finally {
+    setLoading(false);
+  }
+};
+
 export default function AdminInvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
   const [client, setClient] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const invoiceRes = await adminApi.getInvoice(id);
+      setInvoice(invoiceRes.data);
+      if (invoiceRes.data.client_id) {
+        const clientRes = await adminApi.getClient(invoiceRes.data.client_id);
+        setClient(clientRes.data);
+      }
+    } catch (error) {
+      console.error('Error fetching invoice:', error);
+      toast.error('Erreur lors du chargement');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const invoiceRes = await adminApi.getInvoice(id);
-        setInvoice(invoiceRes.data);
-        
-        if (invoiceRes.data.client_id) {
-          const clientRes = await adminApi.getClient(invoiceRes.data.client_id);
-          setClient(clientRes.data);
-        }
-      } catch (error) {
-        console.error('Error fetching invoice:', error);
-        toast.error('Erreur lors du chargement');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [id]);
 
@@ -115,9 +129,9 @@ export default function AdminInvoiceDetail() {
             <Printer className="h-4 w-4 mr-2" />
             Imprimer
           </Button>
-          <Button className="bg-gold-500 hover:bg-gold-600 text-black">
+          <Button className="bg-gold-500 hover:bg-gold-600 text-black" onClick={() => sendInvoiceEmail(id, setSending, fetchData)} disabled={sending} data-testid="send-invoice-email-btn">
             <Send className="h-4 w-4 mr-2" />
-            Envoyer
+            {sending ? 'Envoi...' : 'Envoyer'}
           </Button>
         </div>
       </div>

@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
+import { toast } from 'sonner';
 import { 
   formatDateShort, 
   getStatusLabel, 
@@ -16,7 +18,8 @@ import {
   Filter,
   Eye,
   Phone,
-  Mail
+  Mail,
+  Trash2
 } from 'lucide-react';
 
 const statusOptions = [
@@ -42,28 +45,37 @@ export default function AdminLeads() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'all');
   const [serviceFilter, setServiceFilter] = useState('all');
+  const [showDelete, setShowDelete] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    const fetchLeads = async () => {
-      try {
-        const params = {};
-        if (statusFilter && statusFilter !== 'all') {
-          params.status = statusFilter;
-        }
-        if (serviceFilter && serviceFilter !== 'all') {
-          params.service_type = serviceFilter;
-        }
-        
-        const response = await adminApi.getLeads(params);
-        setLeads(response.data);
-      } catch (error) {
-        console.error('Error fetching leads:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLeads();
-  }, [statusFilter, serviceFilter]);
+  const fetchLeads = async () => {
+    try {
+      const params = {};
+      if (statusFilter && statusFilter !== 'all') params.status = statusFilter;
+      if (serviceFilter && serviceFilter !== 'all') params.service_type = serviceFilter;
+      const response = await adminApi.getLeads(params);
+      setLeads(response.data);
+    } catch (error) {
+      console.error('Error fetching leads:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchLeads(); }, [statusFilter, serviceFilter]);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await adminApi.deleteLead(selectedLead.id);
+      toast.success('Lead supprimé');
+      setShowDelete(false);
+      fetchLeads();
+    } catch (e) {
+      toast.error('Erreur lors de la suppression');
+    } finally { setDeleting(false); }
+  };
 
   const filteredLeads = leads.filter(lead => {
     if (!searchTerm) return true;
@@ -208,12 +220,17 @@ export default function AdminLeads() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link to={`/admin/leads/${lead.id}`}>
-                          <Button variant="outline" size="sm" data-testid={`view-lead-${lead.id}`}>
-                            <Eye className="h-4 w-4 mr-1" />
-                            Voir
+                        <div className="flex justify-end gap-2">
+                          <Link to={`/admin/leads/${lead.id}`}>
+                            <Button variant="outline" size="sm" data-testid={`view-lead-${lead.id}`}>
+                              <Eye className="h-4 w-4 mr-1" />
+                              Voir
+                            </Button>
+                          </Link>
+                          <Button variant="outline" size="sm" onClick={() => { setSelectedLead(lead); setShowDelete(true); }} className="border-red-500/30 text-red-400 hover:bg-red-500/10" data-testid={`delete-lead-${lead.id}`}>
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        </Link>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -223,6 +240,20 @@ export default function AdminLeads() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Lead Modal */}
+      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-md">
+          <DialogHeader><DialogTitle className="text-red-400">Supprimer le lead</DialogTitle></DialogHeader>
+          <p className="text-gray-400">Supprimer le lead <strong className="text-white">{selectedLead?.full_name}</strong> ? Cette action est irréversible.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDelete(false)} className="border-gray-700 text-gray-400">Annuler</Button>
+            <Button onClick={handleDelete} disabled={deleting} className="bg-red-600 hover:bg-red-700 text-white" data-testid="confirm-delete-lead">
+              {deleting ? 'Suppression...' : 'Supprimer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
