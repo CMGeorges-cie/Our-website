@@ -103,13 +103,13 @@ export default function AdminLeads() {
     <div data-testid="admin-leads">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-[#1a365d] font-['Outfit']">Leads</h1>
+          <h1 className="text-2xl font-bold text-white font-['Outfit']">Leads</h1>
           <p className="text-gray-500">Gérez vos demandes de soumission</p>
         </div>
       </div>
 
       {/* Filters */}
-      <Card className="mb-6" data-testid="leads-filters">
+      <Card className="mb-6 bg-gray-900 border-gray-800" data-testid="leads-filters">
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -118,27 +118,27 @@ export default function AdminLeads() {
                 placeholder="Rechercher par nom, email, téléphone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-gray-800 border-gray-700 text-white"
                 data-testid="leads-search"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[180px]" data-testid="leads-status-filter">
+              <SelectTrigger className="w-full md:w-[180px] bg-gray-800 border-gray-700 text-white" data-testid="leads-status-filter">
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-gray-800 border-gray-700">
                 {statusOptions.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  <SelectItem key={opt.value} value={opt.value} className="text-white hover:bg-gray-700">{opt.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={serviceFilter} onValueChange={setServiceFilter}>
-              <SelectTrigger className="w-full md:w-[180px]" data-testid="leads-service-filter">
+              <SelectTrigger className="w-full md:w-[180px] bg-gray-800 border-gray-700 text-white" data-testid="leads-service-filter">
                 <SelectValue placeholder="Service" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-gray-800 border-gray-700">
                 {serviceOptions.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  <SelectItem key={opt.value} value={opt.value} className="text-white hover:bg-gray-700">{opt.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -147,12 +147,12 @@ export default function AdminLeads() {
       </Card>
 
       {/* Leads Table */}
-      <Card data-testid="leads-table">
+      <Card className="bg-gray-900 border-gray-800" data-testid="leads-table">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className="border-b border-gray-800">
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Client</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Service</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Statut</th>
@@ -165,7 +165,7 @@ export default function AdminLeads() {
                 {loading ? (
                   <tr>
                     <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
-                      Chargement...
+                      <div className="animate-spin h-8 w-8 border-4 border-gold-500 border-t-transparent rounded-full mx-auto mb-4"></div>Chargement...
                     </td>
                   </tr>
                 ) : filteredLeads.length === 0 ? (
@@ -178,26 +178,26 @@ export default function AdminLeads() {
                   filteredLeads.map((lead) => (
                     <tr 
                       key={lead.id} 
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
                       data-testid={`lead-row-${lead.id}`}
                     >
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-[#1a365d]">{lead.full_name}</p>
-                          <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                          <p className="font-medium text-white">{lead.full_name}</p>
+                          <div className="flex items-center gap-4 mt-1 text-xs text-gray-400">
                             <span className="flex items-center gap-1">
-                              <Mail className="h-3 w-3" />
+                              <Mail className="h-3 w-3 text-gold-500" />
                               {lead.email}
                             </span>
                             <span className="flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
+                              <Phone className="h-3 w-3 text-gold-500" />
                               {lead.phone}
                             </span>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm">{getServiceLabel(lead.service_type)}</span>
+                        <span className="text-sm text-gray-300">{getServiceLabel(lead.service_type)}</span>
                         {lead.items?.length > 0 && (
                           <span className="block text-xs text-gray-500">
                             {lead.items.length} meuble(s)
@@ -210,12 +210,12 @@ export default function AdminLeads() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`text-sm ${lead.urgency_level === 'urgent' ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
+                        <span className={`text-sm ${lead.urgency_level === 'urgent' ? 'text-red-400 font-medium' : 'text-gray-400'}`}>
                           {getUrgencyLabel(lead.urgency_level)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-400">
                           {formatDateShort(lead.created_at)}
                         </span>
                       </td>
