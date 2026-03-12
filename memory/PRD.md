@@ -1,15 +1,15 @@
-# CMGeorges - Product Requirements Document
+# CMGeorges / ServiceFlow — Product Requirements Document
 
 **Dernière mise à jour:** Mars 2026  
 **Stack:** React + FastAPI + MongoDB  
-**Langue:** Français (répondre toujours en français)
+**Langue:** Français
 
 ---
 
-## Description du Projet
+## Vision Produit
 
-Site web complet pour **CMGeorges** (Décoration & Rénovation à Montréal et Rive-Sud).  
-Composé d'un site public et d'un panneau d'administration CRM complet.
+**CMGeorges** = Entreprise de services (déco, rénovation) — Montréal & Rive-Sud  
+**ServiceFlow** = Plateforme SaaS CRM pour entreprises de services (vendable à d'autres entreprises)
 
 ---
 
@@ -18,118 +18,156 @@ Composé d'un site public et d'un panneau d'administration CRM complet.
 ```
 /app
 ├── backend/
-│   ├── server.py       # FastAPI app (monolithique, 2800+ lignes)
-│   ├── models.py       # Modèles Pydantic supplémentaires
-│   ├── features.py     # Features supplémentaires
-│   └── .env            # MONGO_URL, DB_NAME, RESEND_API_KEY, etc.
+│   ├── server.py       # FastAPI app (2900+ lignes, à découper en Phase 4)
+│   ├── models.py
+│   ├── features.py
+│   └── .env
 └── frontend/
     ├── src/
-    │   ├── App.js              # Routeur principal
-    │   ├── components/
-    │   │   ├── layout/AdminLayout.jsx  # Layout admin noir/or
-    │   │   └── LoadingSpinner.jsx      # Composant chargement (non intégré)
-    │   ├── lib/
-    │   │   ├── api.js          # Toutes les requêtes API
-    │   │   └── utils.js        # Utilitaires
+    │   ├── App.js
+    │   ├── components/layout/AdminLayout.jsx   # Sidebar ServiceFlow branding
+    │   ├── lib/api.js                          # Toutes les requêtes API
+    │   ├── lib/utils.js
     │   └── pages/
-    │       ├── admin/          # Toutes les pages admin
-    │       └── ...             # Pages publiques
-    └── .env                    # REACT_APP_BACKEND_URL
+    │       ├── admin/          # Panel admin (thème noir/or)
+    │       ├── client/         # Portail client
+    │       │   ├── ClientLogin.jsx
+    │       │   └── ClientDashboard.jsx
+    │       └── ServiceFlowPricing.jsx  # /serviceflow/pricing
 ```
 
 ---
 
-## Ce Qui a Été Implémenté
+## Ce Qui est Implémenté
 
-### Site Public
-- [x] Page d'accueil avec image multiculturelle
-- [x] Formulaire de soumission (sans reCAPTCHA pour l'instant)
-- [x] Pages SEO géo-ciblées
-- [x] Blog public (liste + détail d'articles)
-- [x] Pages légales (FAQ, Politique de confidentialité, CGU)
-- [x] Google Analytics 4 + Meta Pixel (configurés)
+### Phase 1 ✅ (Complétée)
 
-### Backend CRM
-- [x] Authentification JWT (users, admin/staff roles)
-- [x] CRUD complet: Leads, Clients, Quotes, Invoices, Projects
-- [x] CRUD: Blog, Discount Codes, Pricing Items, Policies
-- [x] Génération PDF (quotes + invoices)
-- [x] Envoi email par Resend (soumissions + envoi documents)
-- [x] Logs d'audit
-- [x] Rate limiting
+#### Branding & Visual
+- [x] Animation Vanta.js NET sur page login (fond violet/or)
+- [x] Branding ServiceFlow sur login + sidebar admin
+- [x] Badge "CMGeorges Workspace" dans sidebar
 
-### Admin Panel (thème noir & or)
-- [x] Dashboard avec métriques
-- [x] Gestion Leads (liste + détail + suppression)
-- [x] Gestion Clients (liste + créer + modifier + supprimer + détail)
-- [x] Gestion Factures (liste + créer + supprimer + télécharger PDF + envoyer email)
-- [x] Gestion Projets (liste + créer + supprimer + détail)
-- [x] Gestion Quotes/Soumissions (vue + télécharger PDF + envoyer email)
-- [x] Revenus (analytics)
-- [x] Blog Admin (créer + modifier + supprimer articles)
+#### CRM Admin (CRUD complet)
+- [x] Leads (liste + détail + suppression)
+- [x] Clients (liste + créer + modifier + supprimer + détail)
+- [x] Factures (liste + créer + supprimer + PDF + email)
+- [x] Projets (liste + créer + supprimer + détail)
+- [x] Soumissions/Devis (vue + PDF + email)
+- [x] Blog (CRUD complet)
 - [x] Codes Promo (CRUD complet)
 - [x] Tarification (CRUD complet)
 - [x] Politiques (CRUD complet)
+- [x] Gestion Utilisateurs (CRUD + rôles + reset mdp + activer/désactiver)
+
+#### Portail Client
+- [x] Inscription et connexion client (/client/login)
+- [x] Dashboard client (projets, factures, statuts)
+- [x] Paiement facture en ligne via Stripe
+
+#### ServiceFlow SaaS
+- [x] Page tarification publique (/serviceflow/pricing)
+- [x] Plans: Starter 29$/mois, Pro 79$/mois, Business 149$/mois
+- [x] Stripe checkout pour abonnements SaaS
+- [x] Stripe checkout pour paiements factures
+- [x] Webhooks Stripe
+
+#### Backend
+- [x] Multi-tenant foundation (tenant_id field, client router isolation)
+- [x] Endpoints gestion utilisateurs admin
+- [x] Client portal auth (register, login, dashboard, projects, invoices)
+- [x] SaaS subscription endpoints
+- [x] Invoice payment endpoints
 
 ---
 
 ## Identifiants de Test
 
-- **Admin:** admin@cmgeorges.com / strongpassword123
-- **Test:** test@cmgeorges.com / testpassword
-- **Staff:** staff@cmgeorges.com / staffpassword123
+| Role | Email | Mot de passe |
+|------|-------|-------------|
+| Admin | admin@cmgeorges.com | strongpassword123 |
+| Test | test@cmgeorges.com | testpassword |
+| Staff | staff@cmgeorges.com | staffpassword123 |
+| Client test | testclient@email.com | password123 |
 
 ---
 
-## Intégrations 3rd Party
+## Intégrations
 
 | Service | Statut | Notes |
 |---------|--------|-------|
-| Resend | ✅ Configuré | Envoi emails (soumissions + documents PDF) |
-| Google reCAPTCHA | ⛔ Désactivé | Clé invalide (type incorrect) - attente nouvelle clé |
-| Google Analytics 4 | ✅ Configuré | Basic setup |
-| Meta Pixel | ✅ Configuré | Basic setup |
-| fpdf/pyfpdf | ✅ Actif | Génération PDF quotes + invoices |
+| Resend | ✅ | Email devis + factures |
+| Stripe | ✅ | Abonnements SaaS + paiements factures |
+| Google reCAPTCHA | ⛔ Désactivé | Attente clé v2 Checkbox |
+| Google Analytics 4 | ✅ | Setup de base |
+| Meta Pixel | ✅ | Setup de base |
+| Vanta.js | ✅ | Animation NET sur login |
+| fpdf/pyfpdf | ✅ | PDF quotes + invoices |
 
 ---
 
 ## Backlog Priorisé
 
-### P0 (Critique - Bloquant)
-- [ ] reCAPTCHA: Demander nouvelle clé "v2 Checkbox" à l'utilisateur
+### P0 (Critique)
+- [ ] reCAPTCHA: clé "v2 Checkbox" requise
 
-### P1 (Important)
-- [ ] Intégrer LoadingSpinner dans le routing de l'app
-- [ ] Tester l'envoi d'email réel via Resend avec une vraie adresse
-- [ ] Portail client (stubs backend existent, frontend à créer)
+### P1 — Phase 2 (Prochaine)
+- [ ] Projects: barre de progression interactive + tâches + timeline + photos
+- [ ] Projects: bouton "Modifier" opérationnel + rapport d'intervention
+- [ ] Messagerie interne par projet (fil de discussion client/admin)
+- [ ] Notifications email automatiques (nouveau lead, facture émise, statut projet)
+- [ ] Work Orders (interventions terrain + check-in/out + signature)
+- [ ] Calendrier de planification + assignation techniciens
 
-### P2 (Améliorations)
-- [ ] Analytics personnalisés GA4 + Meta Pixel (événements conversions)
-- [ ] Migration PostgreSQL (à confirmer avec l'utilisateur)
-- [ ] DevSecOps: headers sécurité avancés, CI/CD
-- [ ] Refactoring backend: séparer server.py en routers/models/services
-- [ ] Page admin Leads: ajouter bouton "Créer lead" manuellement
+### P2 — Phase 3
+- [ ] Gestion des dépenses (matériaux, carburant, déplacements)
+- [ ] Gestion immeubles (Buildings, Units, Tenants, Maintenance Requests)
+- [ ] Inventaire (outils, pièces, stock)
+- [ ] Tableaux de bord avancés + export CSV/PDF
+- [ ] Suivi des heures par projet
 
-### P3 (Futur)
-- [ ] Notifications push/email pour nouveaux leads
-- [ ] Tableau de bord amélioré avec graphiques interactifs
-- [ ] Import/Export CSV pour clients et factures
-- [ ] Système de rappels pour factures en retard
+### P3 — Phase 4
+- [ ] App mobile React Native (client + technicien)
+- [ ] Firebase Push Notifications
+- [ ] Architecture multi-tenant complète (isolation par tenantId dans TOUTES les collections)
+- [ ] Refactoring server.py en modules (routers/, models/, services/)
+- [ ] Migration PostgreSQL (à confirmer)
+
+### P4 — Futur
+- [ ] CRM avancé (segmentation, campagnes marketing, relances auto)
+- [ ] Contrats et abonnements récurrents pour clients
+- [ ] API publique ServiceFlow
+- [ ] Tableau de bord super-admin (multi-tenant view)
 
 ---
 
-## Problèmes Connus
+## Routes de l'Application
 
-1. **reCAPTCHA désactivé** - Clé invalide (type "v2 invisible" au lieu de "v2 checkbox")
-2. **Resend non testé** - API configurée mais envoi réel non validé
-3. **server.py monolithique** - Devrait être découpé en modules
+| Route | Description |
+|-------|-------------|
+| / | Site public CMGeorges |
+| /serviceflow/pricing | Page tarification ServiceFlow |
+| /client/login | Portail client connexion/inscription |
+| /client/dashboard | Tableau de bord client |
+| /admin/login | Connexion admin ServiceFlow |
+| /admin/dashboard | Dashboard CRM |
+| /admin/users | Gestion utilisateurs et rôles |
+| /admin/leads | Gestion des leads |
+| /admin/clients | Gestion des clients |
+| /admin/projects | Gestion des projets |
+| /admin/invoices | Gestion des factures |
+| /admin/revenue | Analytics revenus |
+| /admin/blog | Blog admin |
+| /admin/discounts | Codes promo |
+| /admin/pricing | Grille tarifaire |
+| /admin/policies | Politiques |
 
 ---
 
 ## Notes Techniques
 
-- `formatCurrency`, `formatDateShort`, `getStatusLabel`, etc. sont dans `lib/utils.js`
-- L'authentification utilise JWT via `Authorization: Bearer <token>`
-- Le thème admin utilise Tailwind custom colors: `gold-500` = #d4af37, `gold-600` = #b8962e
-- MongoDB `_id` exclu de toutes les réponses API (projection `{"_id": 0}`)
-- Bcrypt utilisé pour les mots de passe (sel valide requis)
+- Bcrypt pour les mots de passe (sel valide requis)
+- JWT auth pour admin + client (tokens séparés en localStorage)
+- MongoDB `_id` exclu de toutes les réponses API
+- Stripe via `emergentintegrations` library (clé `sk_test_emergent`)
+- Vanta.js via npm (`yarn add vanta three`)
+- Thème admin: gold-500 = #d4af37, fond = #0f0f1a
