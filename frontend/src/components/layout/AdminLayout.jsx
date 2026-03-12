@@ -14,7 +14,9 @@ import {
   BookOpen,
   Tag,
   DollarSign,
-  Shield
+  Shield,
+  Zap,
+  UserCog
 } from 'lucide-react';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -30,6 +32,7 @@ const sidebarLinks = [
 ];
 
 const settingsLinks = [
+  { href: '/admin/users', label: 'Utilisateurs', icon: UserCog },
   { href: '/admin/blog', label: 'Blog', icon: BookOpen },
   { href: '/admin/discounts', label: 'Codes Promo', icon: Tag },
   { href: '/admin/pricing', label: 'Tarification', icon: DollarSign },
@@ -83,16 +86,22 @@ export default function AdminLayout() {
         data-testid="admin-sidebar"
       >
         {/* Logo */}
-        <div className="p-6 border-b border-gold-500/20">
-          <Link to="/admin" className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-gold-400 to-gold-600 rounded-xl flex items-center justify-center shadow-lg shadow-gold-500/30">
-              <span className="text-2xl">🦁</span>
+        <div className="p-5 border-b border-gold-500/20">
+          <Link to="/admin" className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 bg-yellow-400 rounded-lg flex items-center justify-center shadow-lg shadow-yellow-400/20">
+              <Zap className="w-5 h-5 text-[#23153c]" fill="currentColor" />
             </div>
             <div>
-              <span className="font-bold text-xl text-white font-['Outfit']">CMGeorges</span>
-              <span className="block text-xs text-gold-500/80">Administration</span>
+              <span className="font-black text-lg text-white tracking-tight">Service<span className="text-yellow-400">Flow</span></span>
             </div>
           </Link>
+          <div className="flex items-center gap-2 bg-gold-500/10 border border-gold-500/20 rounded-lg px-3 py-2">
+            <div className="w-6 h-6 bg-gradient-to-br from-gold-400 to-gold-600 rounded-md flex items-center justify-center text-xs font-bold text-black">C</div>
+            <div>
+              <span className="text-xs font-semibold text-white block leading-none">CMGeorges</span>
+              <span className="text-[10px] text-gold-500/60">Workspace</span>
+            </div>
+          </div>
         </div>
 
         {/* Navigation */}

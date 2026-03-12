@@ -27,6 +27,9 @@ from enum import Enum
 import bcrypt
 import jwt
 
+# Stripe
+from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
@@ -48,6 +51,16 @@ ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'cmgeorges.cie@gmail.com')
 
 # reCAPTCHA Configuration
 RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', '')
+
+# Stripe Configuration
+STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
+
+# ServiceFlow SaaS Plans (backend-defined, never from frontend)
+SERVICEFLOW_PLANS = {
+    "starter": {"name": "Starter", "price": 29.00, "currency": "usd", "users": 2, "projects": 50},
+    "pro": {"name": "Pro", "price": 79.00, "currency": "usd", "users": 5, "projects": 200},
+    "business": {"name": "Business", "price": 149.00, "currency": "usd", "users": -1, "projects": -1},
+}
 
 # Create the main app
 app = FastAPI(title="CMGeorges API", version="2.0.0", description="API production CMGeorges")
@@ -2960,8 +2973,455 @@ async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depe
         logger.error(f"Failed to send quote email: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur d'envoi: {str(e)}")
 
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [lead["email"]],
+            "subject": f"Soumission CMGeorges - {lead['full_name']}",
+            "html": html_content,
+            "attachments": [{"filename": f"soumission-{quote['id'][:8]}.pdf", "content": list(pdf_bytes)}]
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        await db.quotes.update_one({"id": quote_id}, {"$set": {"status": "sent"}})
+        await create_audit_log("quote_sent_email", "quote", quote_id, user=user, request=request)
+        return {"message": f"Soumission envoyée à {lead['email']}"}
+    except Exception as e:
+        logger.error(f"Failed to send quote email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erreur d'envoi: {str(e)}")
+
+
+# ===================== TENANT MANAGEMENT =====================
+
+class TenantCreate(BaseModel):
+    name: str
+    slug: str
+    owner_email: str
+    plan: str = "starter"
+
+@v1_router.get("/tenants/current")
+async def get_current_tenant(user: dict = Depends(get_current_user)):
+    """Get the current user's tenant info"""
+    tenant_id = user.get("tenant_id", "default")
+    tenant = await db.tenants.find_one({"id": tenant_id}, {"_id": 0})
+    if not tenant:
+        return {"id": "default", "name": "CMGeorges", "slug": "cmgeorges", "plan": "pro"}
+    return tenant
+
+@v1_router.get("/admin/users-list")
+async def get_users_list(user: dict = Depends(require_admin)):
+    """Get all users for admin management"""
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(200)
+    return users
+
+@v1_router.post("/admin/users-create")
+async def create_user_admin(data: dict, request: Request, user: dict = Depends(require_admin)):
+    """Create a new user"""
+    if not data.get("email") or not data.get("password"):
+        raise HTTPException(status_code=400, detail="Email et mot de passe requis")
+    existing = await db.users.find_one({"email": data["email"]})
+    if existing:
+        raise HTTPException(status_code=400, detail="Cet email existe déjà")
+    pw_hash = bcrypt.hashpw(data["password"].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    new_user = {
+        "id": str(uuid.uuid4()),
+        "email": data["email"],
+        "full_name": data.get("full_name", ""),
+        "role": data.get("role", "staff"),
+        "type": data.get("type", "staff"),
+        "is_active": True,
+        "password_hash": pw_hash,
+        "tenant_id": data.get("tenant_id", "default"),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.users.insert_one(new_user)
+    await create_audit_log("user_created", "user", new_user["id"], user=user, request=request)
+    return {"id": new_user["id"], "email": new_user["email"], "role": new_user["role"]}
+
+@v1_router.patch("/admin/users/{user_id}")
+async def update_user_admin(user_id: str, data: dict, request: Request, user: dict = Depends(require_admin)):
+    """Update a user"""
+    update_data = {}
+    if "role" in data:
+        update_data["role"] = data["role"]
+    if "is_active" in data:
+        update_data["is_active"] = data["is_active"]
+    if "full_name" in data:
+        update_data["full_name"] = data["full_name"]
+    if data.get("password"):
+        update_data["password_hash"] = bcrypt.hashpw(data["password"].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
+    result = await db.users.update_one({"id": user_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    await create_audit_log("user_updated", "user", user_id, user=user, request=request)
+    return {"message": "Utilisateur mis à jour"}
+
+@v1_router.delete("/admin/users/{user_id}")
+async def delete_user_admin(user_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Delete a user"""
+    target = await db.users.find_one({"id": user_id})
+    if not target:
+        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+    if target.get("role") == "super_admin":
+        raise HTTPException(status_code=403, detail="Impossible de supprimer un super admin")
+    await db.users.delete_one({"id": user_id})
+    await create_audit_log("user_deleted", "user", user_id, user=user, request=request)
+    return {"message": "Utilisateur supprimé"}
+
+
+# ===================== CLIENT PORTAL AUTH =====================
+
+class ClientRegister(BaseModel):
+    full_name: str
+    email: EmailStr
+    password: str
+    phone: Optional[str] = None
+
+class ClientLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+client_router = APIRouter(prefix="/client")
+
+@client_router.post("/register")
+async def client_register(data: ClientRegister):
+    """Register a new client portal user"""
+    existing = await db.users.find_one({"email": data.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Cet email est déjà utilisé")
+    pw_hash = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    user_id = str(uuid.uuid4())
+    new_user = {
+        "id": user_id,
+        "email": data.email,
+        "full_name": data.full_name,
+        "phone": data.phone or "",
+        "role": "client",
+        "type": "client",
+        "is_active": True,
+        "password_hash": pw_hash,
+        "tenant_id": "default",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.users.insert_one(new_user)
+    # Create corresponding client record
+    client_record = {
+        "id": str(uuid.uuid4()),
+        "full_name": data.full_name,
+        "email": data.email,
+        "phone": data.phone or "",
+        "portal_user_id": user_id,
+        "status": "active",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.clients.insert_one(client_record)
+    token = create_access_token(user_id, data.email, "client")
+    return {"access_token": token, "user": {"id": user_id, "email": data.email, "full_name": data.full_name, "role": "client"}}
+
+@client_router.post("/login")
+async def client_login(credentials: ClientLogin):
+    """Client portal login"""
+    user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="Identifiants invalides")
+    try:
+        if not bcrypt.checkpw(credentials.password.encode('utf-8'), user.get("password_hash", "").encode('utf-8')):
+            raise HTTPException(status_code=401, detail="Identifiants invalides")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Identifiants invalides")
+    if not user.get("is_active", True):
+        raise HTTPException(status_code=403, detail="Compte désactivé")
+    token = create_access_token(user["id"], user["email"], user.get("role", "client"))
+    return {"access_token": token, "user": {"id": user["id"], "email": user["email"], "full_name": user.get("full_name", ""), "role": user.get("role", "client")}}
+
+@client_router.get("/dashboard")
+async def client_dashboard(user: dict = Depends(get_current_user)):
+    """Get client dashboard data"""
+    # Find the client record linked to this user
+    client = await db.clients.find_one({"portal_user_id": user["id"]}, {"_id": 0})
+    if not client:
+        # Fallback: find by email
+        client = await db.clients.find_one({"email": user["email"]}, {"_id": 0})
+    
+    projects, invoices, quotes = [], [], []
+    if client:
+        client_id = client["id"]
+        projects = await db.projects.find({"client_id": client_id}, {"_id": 0}).sort("created_at", -1).to_list(20)
+        invoices = await db.invoices.find({"client_id": client_id}, {"_id": 0}).sort("created_at", -1).to_list(20)
+        quotes = await db.quotes.find({"client_id": client_id}, {"_id": 0}).sort("created_at", -1).to_list(10)
+    
+    return {
+        "client": client,
+        "stats": {
+            "projects_count": len(projects),
+            "invoices_count": len(invoices),
+            "pending_amount": sum(i.get("balance_due", 0) for i in invoices if i.get("status") not in ["paid", "cancelled"]),
+            "active_projects": len([p for p in projects if p.get("status") in ["in_progress", "scheduled"]]),
+        },
+        "recent_projects": projects[:5],
+        "recent_invoices": invoices[:5],
+    }
+
+@client_router.get("/projects")
+async def client_projects(user: dict = Depends(get_current_user)):
+    """Get all projects for the logged-in client"""
+    client = await db.clients.find_one({"portal_user_id": user["id"]}, {"_id": 0})
+    if not client:
+        client = await db.clients.find_one({"email": user["email"]}, {"_id": 0})
+    if not client:
+        return []
+    return await db.projects.find({"client_id": client["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
+
+@client_router.get("/invoices")
+async def client_invoices(user: dict = Depends(get_current_user)):
+    """Get all invoices for the logged-in client"""
+    client = await db.clients.find_one({"portal_user_id": user["id"]}, {"_id": 0})
+    if not client:
+        client = await db.clients.find_one({"email": user["email"]}, {"_id": 0})
+    if not client:
+        return []
+    return await db.invoices.find({"client_id": client["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
+
+
+# ===================== STRIPE SAAS SUBSCRIPTIONS =====================
+
+saas_router = APIRouter(prefix="/saas")
+
+@saas_router.get("/plans")
+async def get_saas_plans():
+    """Get available ServiceFlow SaaS subscription plans"""
+    return [
+        {
+            "id": "starter",
+            "name": "Starter",
+            "price": 29.00,
+            "currency": "CAD",
+            "interval": "mois",
+            "description": "Pour les petites équipes",
+            "features": ["2 utilisateurs", "50 projets", "5GB stockage", "Portail client", "PDF & Email"],
+            "recommended": False
+        },
+        {
+            "id": "pro",
+            "name": "Pro",
+            "price": 79.00,
+            "currency": "CAD",
+            "interval": "mois",
+            "description": "Pour les entreprises en croissance",
+            "features": ["5 utilisateurs", "200 projets", "25GB stockage", "Portail client", "PDF & Email", "Work Orders", "Calendrier"],
+            "recommended": True
+        },
+        {
+            "id": "business",
+            "name": "Business",
+            "price": 149.00,
+            "currency": "CAD",
+            "interval": "mois",
+            "description": "Pour les grandes équipes",
+            "features": ["Utilisateurs illimités", "Projets illimités", "100GB stockage", "Tout Pro inclus", "Multi-tenant", "API Access", "Support prioritaire"],
+            "recommended": False
+        }
+    ]
+
+@saas_router.post("/subscribe")
+async def create_subscription_checkout(data: dict, request: Request, user: dict = Depends(get_current_user)):
+    """Create a Stripe checkout session for a SaaS subscription"""
+    plan_id = data.get("plan_id")
+    if plan_id not in SERVICEFLOW_PLANS:
+        raise HTTPException(status_code=400, detail="Plan invalide")
+    
+    plan = SERVICEFLOW_PLANS[plan_id]
+    host_url = data.get("origin_url", str(request.base_url).rstrip('/'))
+    
+    stripe_checkout = StripeCheckout(
+        api_key=STRIPE_API_KEY,
+        webhook_url=f"{str(request.base_url).rstrip('/')}/api/webhook/stripe"
+    )
+    
+    success_url = f"{host_url}/admin/subscription?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{host_url}/serviceflow/pricing"
+    
+    checkout_req = CheckoutSessionRequest(
+        amount=float(plan["price"]),
+        currency=plan["currency"],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "type": "saas_subscription",
+            "plan_id": plan_id,
+            "user_id": user["id"],
+            "user_email": user["email"],
+        }
+    )
+    
+    session = await stripe_checkout.create_checkout_session(checkout_req)
+    
+    # Store pending transaction
+    await db.payment_transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "session_id": session.session_id,
+        "type": "saas_subscription",
+        "plan_id": plan_id,
+        "amount": plan["price"],
+        "currency": plan["currency"],
+        "user_id": user["id"],
+        "user_email": user["email"],
+        "payment_status": "pending",
+        "status": "initiated",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "_id_exclude": True
+    })
+    
+    return {"url": session.url, "session_id": session.session_id}
+
+@saas_router.get("/checkout-status/{session_id}")
+async def get_checkout_status(session_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Check Stripe checkout session status and activate subscription"""
+    stripe_checkout = StripeCheckout(
+        api_key=STRIPE_API_KEY,
+        webhook_url=f"{str(request.base_url).rstrip('/')}/api/webhook/stripe"
+    )
+    
+    checkout_status = await stripe_checkout.get_checkout_status(session_id)
+    
+    # Update payment transaction
+    existing = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+    if existing and existing.get("payment_status") != "paid" and checkout_status.payment_status == "paid":
+        # Activate subscription
+        plan_id = existing.get("plan_id", "starter")
+        await db.payment_transactions.update_one(
+            {"session_id": session_id},
+            {"$set": {"payment_status": "paid", "status": "completed", "paid_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        # Create/update subscription record
+        await db.subscriptions.update_one(
+            {"user_id": user["id"]},
+            {"$set": {
+                "id": str(uuid.uuid4()),
+                "user_id": user["id"],
+                "tenant_id": user.get("tenant_id", "default"),
+                "plan_id": plan_id,
+                "status": "active",
+                "session_id": session_id,
+                "amount": existing.get("amount"),
+                "activated_at": datetime.now(timezone.utc).isoformat(),
+                "current_period_end": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }},
+            upsert=True
+        )
+        await create_audit_log("subscription_activated", "subscription", session_id, user=user, request=request)
+    
+    return {
+        "status": checkout_status.status,
+        "payment_status": checkout_status.payment_status,
+        "amount": checkout_status.amount_total / 100,
+        "plan_id": existing.get("plan_id") if existing else None,
+    }
+
+@saas_router.get("/subscription")
+async def get_my_subscription(user: dict = Depends(get_current_user)):
+    """Get current user's subscription"""
+    sub = await db.subscriptions.find_one({"user_id": user["id"]}, {"_id": 0})
+    if not sub:
+        return {"status": "none", "plan_id": None}
+    return sub
+
+# Invoice payment via Stripe
+invoice_pay_router = APIRouter(prefix="/pay")
+
+@invoice_pay_router.post("/invoice/{invoice_id}")
+async def pay_invoice_online(invoice_id: str, data: dict, request: Request, user: dict = Depends(get_current_user)):
+    """Create Stripe checkout for invoice payment"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+    balance = invoice.get("balance_due", invoice.get("total", 0))
+    if balance <= 0:
+        raise HTTPException(status_code=400, detail="Facture déjà payée")
+    
+    host_url = data.get("origin_url", str(request.base_url).rstrip('/'))
+    stripe_checkout = StripeCheckout(
+        api_key=STRIPE_API_KEY,
+        webhook_url=f"{str(request.base_url).rstrip('/')}/api/webhook/stripe"
+    )
+    
+    success_url = f"{host_url}/client/invoices?session_id={{CHECKOUT_SESSION_ID}}&invoice={invoice_id}"
+    cancel_url = f"{host_url}/client/invoices"
+    
+    checkout_req = CheckoutSessionRequest(
+        amount=float(round(balance, 2)),
+        currency="usd",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={"type": "invoice_payment", "invoice_id": invoice_id, "user_id": user["id"]}
+    )
+    session = await stripe_checkout.create_checkout_session(checkout_req)
+    
+    await db.payment_transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "session_id": session.session_id,
+        "type": "invoice_payment",
+        "invoice_id": invoice_id,
+        "amount": balance,
+        "currency": "usd",
+        "user_id": user["id"],
+        "payment_status": "pending",
+        "status": "initiated",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    
+    return {"url": session.url, "session_id": session.session_id}
+
+@invoice_pay_router.get("/status/{session_id}")
+async def get_invoice_payment_status(session_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Check invoice payment status"""
+    stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=f"{str(request.base_url).rstrip('/')}/api/webhook/stripe")
+    checkout_status = await stripe_checkout.get_checkout_status(session_id)
+    
+    existing = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+    if existing and existing.get("payment_status") != "paid" and checkout_status.payment_status == "paid":
+        invoice_id = existing.get("invoice_id")
+        amount = existing.get("amount", 0)
+        await db.payment_transactions.update_one({"session_id": session_id}, {"$set": {"payment_status": "paid", "status": "completed"}})
+        if invoice_id:
+            invoice = await db.invoices.find_one({"id": invoice_id})
+            if invoice:
+                new_paid = invoice.get("amount_paid", 0) + amount
+                new_balance = max(0, invoice.get("total", 0) - new_paid)
+                new_status = "paid" if new_balance <= 0 else "partial"
+                await db.invoices.update_one({"id": invoice_id}, {"$set": {"amount_paid": new_paid, "balance_due": new_balance, "status": new_status}})
+    
+    return {"status": checkout_status.status, "payment_status": checkout_status.payment_status}
+
+
+# Stripe Webhook
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks"""
+    body = await request.body()
+    stripe_sig = request.headers.get("Stripe-Signature", "")
+    try:
+        stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="")
+        event = await stripe_checkout.handle_webhook(body, stripe_sig)
+        if event.payment_status == "paid":
+            await db.payment_transactions.update_one(
+                {"session_id": event.session_id},
+                {"$set": {"payment_status": "paid", "status": "completed"}}
+            )
+        logger.info(f"Stripe webhook: {event.event_type}")
+    except Exception as e:
+        logger.warning(f"Stripe webhook handling: {str(e)}")
+    return {"received": True}
+
+
 # Include routers
 v1_router.include_router(admin_router)
+v1_router.include_router(client_router)
+v1_router.include_router(saas_router)
+v1_router.include_router(invoice_pay_router)
 api_router.include_router(v1_router)
 app.include_router(api_router)
 

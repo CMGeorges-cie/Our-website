@@ -38,6 +38,12 @@ import AdminBlog from "@/pages/admin/AdminBlog";
 import AdminDiscounts from "@/pages/admin/AdminDiscounts";
 import AdminPricing from "@/pages/admin/AdminPricing";
 import AdminPolicies from "@/pages/admin/AdminPolicies";
+import AdminUsers from "@/pages/admin/AdminUsers";
+
+// ServiceFlow / Client Portal
+import ServiceFlowPricing from "@/pages/ServiceFlowPricing";
+import ClientLogin from "@/pages/client/ClientLogin";
+import ClientDashboard from "@/pages/client/ClientDashboard";
 
 // Layout
 import PublicLayout from "@/components/layout/PublicLayout";
@@ -153,6 +159,16 @@ function App() {
             {/* Client Portal - No layout */}
             <Route path="/portail-client" element={<ClientPortalPage />} />
             
+            {/* Client Portal - New */}
+            <Route path="/client/login" element={<ClientLogin />} />
+            <Route path="/client/register" element={<ClientLogin />} />
+            <Route path="/client/dashboard" element={<ClientDashboard />} />
+            <Route path="/client/projects" element={<ClientDashboard />} />
+            <Route path="/client/invoices" element={<ClientDashboard />} />
+            
+            {/* ServiceFlow SaaS */}
+            <Route path="/serviceflow/pricing" element={<ServiceFlowPricing />} />
+            
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route element={<AdminLayout />}>
@@ -172,6 +188,7 @@ function App() {
               <Route path="/admin/discounts" element={<AdminDiscounts />} />
               <Route path="/admin/pricing" element={<AdminPricing />} />
               <Route path="/admin/policies" element={<AdminPolicies />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
           </Routes>
         </BrowserRouter>

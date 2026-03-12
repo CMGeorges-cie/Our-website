@@ -1,42 +1,75 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { authApi, seedDatabase } from '@/lib/api';
 import { setAuthData, isAuthenticated } from '@/lib/utils';
 import { toast } from 'sonner';
-import { LogIn } from 'lucide-react';
+import { LogIn, Zap } from 'lucide-react';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const vantaRef = useRef(null);
+  const vantaEffect = useRef(null);
   const [loading, setLoading] = useState(false);
   const [seeding, setSeeding] = useState(false);
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
-  });
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      navigate('/admin/dashboard');
-    }
+    if (isAuthenticated()) navigate('/admin/dashboard');
   }, [navigate]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadVanta = async () => {
+      try {
+        const THREE = await import('three');
+        const VANTA = await import('vanta/dist/vanta.net.min');
+        if (mounted && vantaRef.current && !vantaEffect.current) {
+          vantaEffect.current = VANTA.default({
+            el: vantaRef.current,
+            THREE: THREE,
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200,
+            minWidth: 200,
+            scale: 1.0,
+            scaleMobile: 1.0,
+            color: 0xffe700,
+            backgroundColor: 0x23153c,
+            points: 10,
+            maxDistance: 20,
+            spacing: 15,
+            showDots: true,
+          });
+        }
+      } catch (e) {
+        console.warn('Vanta load error:', e);
+      }
+    };
+    loadVanta();
+    return () => {
+      mounted = false;
+      if (vantaEffect.current) {
+        vantaEffect.current.destroy();
+        vantaEffect.current = null;
+      }
+    };
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const response = await authApi.login(credentials.email, credentials.password);
       setAuthData(response.data.access_token, response.data.user);
       toast.success('Connexion réussie!');
       navigate('/admin/dashboard');
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Erreur de connexion', {
-        description: error.response?.data?.detail || 'Identifiants invalides'
+      toast.error('Identifiants invalides', {
+        description: error.response?.data?.detail || 'Vérifiez votre email et mot de passe'
       });
     } finally {
       setLoading(false);
@@ -50,110 +83,106 @@ export default function AdminLogin() {
       toast.success('Base de données initialisée!', {
         description: `Admin: ${response.data.admin_email} / ${response.data.admin_password}`
       });
-      setCredentials({
-        email: response.data.admin_email,
-        password: response.data.admin_password
-      });
+      setCredentials({ email: response.data.admin_email, password: response.data.admin_password });
     } catch (error) {
-      console.error('Seed error:', error);
       if (error.response?.data?.message === 'Database already seeded') {
-        toast.info('Base de données déjà initialisée', {
-          description: 'Utilisez admin@cmgeorges.com / admin123'
-        });
-        setCredentials({
-          email: 'admin@cmgeorges.com',
-          password: 'admin123'
-        });
+        toast.info('Base de données déjà initialisée');
+        setCredentials({ email: 'admin@cmgeorges.com', password: 'strongpassword123' });
       } else {
         toast.error('Erreur lors de l\'initialisation');
       }
     } finally {
-      setSeeding(false);
-    }
+      setSeeding(false); }
   };
 
   return (
-    <div className="min-h-screen bg-[#1a365d] flex items-center justify-center p-4" data-testid="admin-login-page">
-      <div className="w-full max-w-md">
+    <div ref={vantaRef} className="min-h-screen flex items-center justify-center p-4 relative" data-testid="admin-login-page">
+      {/* Overlay for readability */}
+      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
+      <div className="relative z-10 w-full max-w-md">
+        {/* ServiceFlow Branding */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-[#d4af37] rounded-lg flex items-center justify-center">
-              <span className="text-[#1a365d] text-2xl font-bold">🦁</span>
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="w-11 h-11 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-400/30">
+              <Zap className="w-6 h-6 text-[#23153c]" fill="currentColor" />
             </div>
-            <span className="text-3xl font-bold text-white font-['Outfit']">CMGeorges</span>
+            <span className="text-3xl font-black text-white tracking-tight" style={{fontFamily: 'Outfit, sans-serif'}}>
+              Service<span className="text-yellow-400">Flow</span>
+            </span>
           </div>
-          <h1 className="text-2xl font-bold text-white font-['Outfit']">Administration</h1>
-          <p className="text-white/60 text-sm">Connectez-vous pour accéder au tableau de bord</p>
+          <p className="text-white/50 text-sm tracking-wider uppercase">Espace de travail</p>
         </div>
 
-        <Card className="shadow-2xl" data-testid="login-card">
-          <CardHeader>
-            <CardTitle className="text-xl text-[#1a365d]">Connexion</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="form-group">
-                <Label htmlFor="email">Courriel</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={credentials.email}
-                  onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
-                  placeholder="admin@cmgeorges.com"
-                  required
-                  data-testid="login-email"
-                />
-              </div>
+        {/* Login Card */}
+        <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl shadow-2xl p-8" data-testid="login-card">
+          <h2 className="text-xl font-semibold text-white mb-6 text-center">Administration</h2>
 
-              <div className="form-group">
-                <Label htmlFor="password">Mot de passe</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={credentials.password}
-                  onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                  placeholder="••••••••"
-                  required
-                  data-testid="login-password"
-                />
-              </div>
-
-              <Button 
-                type="submit" 
-                className="btn-primary w-full" 
-                disabled={loading}
-                data-testid="login-submit-btn"
-              >
-                {loading ? (
-                  'Connexion...'
-                ) : (
-                  <>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Se connecter
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-xs text-gray-500 text-center mb-3">
-                Première utilisation? Initialisez la base de données:
-              </p>
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                onClick={handleSeedDatabase}
-                disabled={seeding}
-                data-testid="seed-database-btn"
-              >
-                {seeding ? 'Initialisation...' : 'Initialiser les données de démo'}
-              </Button>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <Label htmlFor="email" className="text-white/70 text-sm mb-1.5 block">Courriel</Label>
+              <Input
+                id="email"
+                type="email"
+                value={credentials.email}
+                onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                placeholder="admin@cmgeorges.com"
+                required
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-yellow-400 focus:ring-yellow-400/20"
+                data-testid="login-email"
+              />
             </div>
-          </CardContent>
-        </Card>
 
-        <p className="text-center text-white/40 text-xs mt-6">
-          © {new Date().getFullYear()} CMGeorges. Tous droits réservés.
+            <div>
+              <Label htmlFor="password" className="text-white/70 text-sm mb-1.5 block">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={credentials.password}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                placeholder="••••••••"
+                required
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-yellow-400 focus:ring-yellow-400/20"
+                data-testid="login-password"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-yellow-400 hover:bg-yellow-300 text-[#23153c] font-bold py-3 rounded-xl transition-all duration-200 shadow-lg shadow-yellow-400/20 hover:shadow-yellow-400/40 hover:scale-[1.01]"
+              disabled={loading}
+              data-testid="login-submit-btn"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-[#23153c] border-t-transparent rounded-full animate-spin"></div>Connexion...</span>
+              ) : (
+                <span className="flex items-center justify-center gap-2"><LogIn className="h-4 w-4" />Se connecter</span>
+              )}
+            </Button>
+          </form>
+
+          {/* Client Portal Link */}
+          <div className="mt-4 text-center">
+            <Link to="/client/login" className="text-yellow-400/70 hover:text-yellow-400 text-sm transition-colors" data-testid="client-portal-link">
+              Accès portail client →
+            </Link>
+          </div>
+
+          <div className="mt-6 pt-5 border-t border-white/10">
+            <Button
+              variant="ghost"
+              className="w-full text-white/40 hover:text-white/60 hover:bg-white/5 text-xs"
+              onClick={handleSeedDatabase}
+              disabled={seeding}
+              data-testid="seed-database-btn"
+            >
+              {seeding ? 'Initialisation...' : 'Initialiser les données de démo'}
+            </Button>
+          </div>
+        </div>
+
+        <p className="text-center text-white/20 text-xs mt-6">
+          © {new Date().getFullYear()} ServiceFlow. Tous droits réservés.
         </p>
       </div>
     </div>

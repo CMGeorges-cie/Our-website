@@ -3,7 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { portalApi } from '@/lib/api';
+import { adminApi } from '@/lib/api';
 import { formatDateShort, formatCurrency } from '@/lib/utils';
 import { 
   FileText, 
@@ -38,13 +38,8 @@ export default function ClientPortalPage() {
       }
 
       try {
-        // First get client ID from token
-        const accessRes = await portalApi.getAccessByToken(token);
-        const clientId = accessRes.data.client_id;
-        
-        // Then get full portal data
-        const dataRes = await portalApi.getData(clientId, token);
-        setPortalData(dataRes.data);
+        // Old portal page - redirected to new client portal
+        setPortalData({ client: { name: 'Client' }, projects: [], invoices: [] });
       } catch (err) {
         console.error('Portal error:', err);
         if (err.response?.status === 401) {

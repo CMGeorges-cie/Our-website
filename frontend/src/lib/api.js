@@ -121,6 +121,12 @@ export const adminApi = {
   getStats: () => api.get('/admin/stats'),
   getCeoDashboard: () => api.get('/admin/ceo-dashboard'),
   getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
+
+  // Admin users management
+  listUsers: () => api.get('/admin/users-list'),
+  createUser: (data) => api.post('/admin/users-create', data),
+  updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
 };
 
 // Blog Public API
@@ -131,9 +137,22 @@ export const blogApi = {
 };
 
 // Client Portal API
-export const portalApi = {
-  getAccessByToken: (token) => api.get(`/portal/access?token=${token}`),
-  getData: (clientId, token) => api.get(`/portal/data/${clientId}?token=${token}`),
+export const clientPortalApi = {
+  register: (data) => api.post('/client/register', data),
+  login: (email, password) => api.post('/client/login', { email, password }),
+  getDashboard: () => api.get('/client/dashboard'),
+  getProjects: () => api.get('/client/projects'),
+  getInvoices: () => api.get('/client/invoices'),
+  payInvoice: (invoice_id) => api.post(`/pay/invoice/${invoice_id}`, { origin_url: window.location.origin }),
+  getPaymentStatus: (session_id) => api.get(`/pay/status/${session_id}`),
+};
+
+// SaaS Plans API
+export const saasApi = {
+  getPlans: () => api.get('/saas/plans'),
+  subscribe: (plan_id) => api.post('/saas/subscribe', { plan_id, origin_url: window.location.origin }),
+  getCheckoutStatus: (session_id) => api.get(`/saas/checkout-status/${session_id}`),
+  getMySubscription: () => api.get('/saas/subscription'),
 };
 
 // Seed API (dev)
