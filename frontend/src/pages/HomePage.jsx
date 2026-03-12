@@ -10,11 +10,12 @@ import {
   Clock, 
   CheckCircle,
   Star,
-  Zap,
   Users,
   Receipt,
   Calendar
 } from 'lucide-react';
+
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
 
 const services = [
   {
@@ -300,10 +301,12 @@ export default function HomePage() {
                 <span className="text-white/60">Notre produit interne</span>
               </span>
               
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-[#d4af37] rounded-xl flex items-center justify-center shadow-lg shadow-[#d4af37]/30">
-                  <Zap className="w-6 h-6 text-[#1a365d]" fill="currentColor" />
-                </div>
+              <div className="flex items-center gap-4 mb-4">
+                <img 
+                  src={SERVICEFLOW_LOGO} 
+                  alt="ServiceFlow" 
+                  className="w-14 h-14 rounded-xl shadow-lg shadow-[#d4af37]/30"
+                />
                 <span className="text-3xl font-black text-white tracking-tight font-['Outfit']">
                   Service<span className="text-[#d4af37]">Flow</span>
                 </span>
@@ -349,9 +352,11 @@ export default function HomePage() {
             <div className="relative">
               <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 shadow-2xl">
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-                  <div className="w-8 h-8 bg-[#d4af37] rounded-lg flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-[#1a365d]" fill="currentColor" />
-                  </div>
+                  <img 
+                    src={SERVICEFLOW_LOGO} 
+                    alt="ServiceFlow" 
+                    className="w-8 h-8 rounded-lg"
+                  />
                   <span className="text-lg font-bold text-white font-['Outfit']">
                     Service<span className="text-[#d4af37]">Flow</span>
                   </span>

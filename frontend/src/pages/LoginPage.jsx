@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { authApi, clientPortalApi } from '@/lib/api';
 import { setAuthData, isAuthenticated, getCurrentUser } from '@/lib/utils';
 import { toast } from 'sonner';
-import { LogIn, Zap, Users, Briefcase, ArrowLeft } from 'lucide-react';
+import { LogIn, Users, Briefcase, ArrowLeft } from 'lucide-react';
+
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -183,9 +185,11 @@ export default function LoginPage() {
           {loginType === 'admin' ? (
             <>
               <div className="flex items-center justify-center gap-3 mb-3">
-                <div className="w-11 h-11 bg-[#d4af37] rounded-xl flex items-center justify-center shadow-lg shadow-[#d4af37]/30">
-                  <Zap className="w-6 h-6 text-[#1a365d]" fill="currentColor" />
-                </div>
+                <img 
+                  src={SERVICEFLOW_LOGO} 
+                  alt="ServiceFlow" 
+                  className="w-12 h-12 rounded-xl shadow-lg shadow-[#d4af37]/30"
+                />
                 <span className="text-3xl font-black text-white tracking-tight font-['Outfit']">
                   Service<span className="text-[#d4af37]">Flow</span>
                 </span>

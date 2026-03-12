@@ -15,7 +15,6 @@ import {
   Tag,
   DollarSign,
   Shield,
-  Zap,
   UserCog,
   Bell
 } from 'lucide-react';
@@ -23,6 +22,8 @@ import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import LoadingLion from '@/components/LoadingLion';
 import { adminApi } from '@/lib/api';
+
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
 
 const sidebarLinks = [
   { href: '/admin/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
@@ -109,9 +110,11 @@ export default function AdminLayout() {
         {/* Logo */}
         <div className="p-5 border-b border-gold-500/20">
           <Link to="/admin" className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 bg-yellow-400 rounded-lg flex items-center justify-center shadow-lg shadow-yellow-400/20">
-              <Zap className="w-5 h-5 text-[#23153c]" fill="currentColor" />
-            </div>
+            <img 
+              src={SERVICEFLOW_LOGO} 
+              alt="ServiceFlow" 
+              className="w-10 h-10 rounded-lg shadow-lg shadow-yellow-400/20"
+            />
             <div>
               <span className="font-black text-lg text-white tracking-tight">Service<span className="text-yellow-400">Flow</span></span>
             </div>

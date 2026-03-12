@@ -18,6 +18,8 @@ import {
   Smartphone
 } from 'lucide-react';
 
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
+
 const problems = [
   { icon: MessageSquare, text: 'Messages clients dispersés' },
   { icon: Receipt, text: 'Factures manuelles ou Excel' },
@@ -68,10 +70,12 @@ export default function ServiceFlowPage() {
             </div>
             
             {/* Logo */}
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-14 h-14 bg-[#d4af37] rounded-xl flex items-center justify-center shadow-lg shadow-[#d4af37]/30">
-                <Zap className="w-8 h-8 text-[#1a365d]" fill="currentColor" />
-              </div>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <img 
+                src={SERVICEFLOW_LOGO} 
+                alt="ServiceFlow" 
+                className="w-20 h-20 rounded-2xl shadow-lg shadow-[#d4af37]/30"
+              />
               <span className="text-4xl md:text-5xl font-black text-white tracking-tight font-['Outfit']">
                 Service<span className="text-[#d4af37]">Flow</span>
               </span>
@@ -239,9 +243,11 @@ export default function ServiceFlowPage() {
             <div className="relative">
               <div className="bg-gradient-to-br from-[#1a365d] to-[#0f0f1a] rounded-2xl p-8 shadow-2xl">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-[#d4af37] rounded-lg flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-[#1a365d]" fill="currentColor" />
-                  </div>
+                  <img 
+                    src={SERVICEFLOW_LOGO} 
+                    alt="ServiceFlow" 
+                    className="w-10 h-10 rounded-lg"
+                  />
                   <span className="text-xl font-bold text-white font-['Outfit']">
                     Service<span className="text-[#d4af37]">Flow</span>
                   </span>

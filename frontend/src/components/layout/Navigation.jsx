@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, LogIn, Zap } from 'lucide-react';
+import { Menu, X, Phone, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
+
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
 
 const navLinks = [
   { href: '/', label: 'Accueil' },
@@ -59,7 +61,7 @@ export default function Navigation() {
               }`}
               data-testid="nav-link-serviceflow"
             >
-              <Zap className="w-3.5 h-3.5" />
+              <img src={SERVICEFLOW_LOGO} alt="" className="w-5 h-5 rounded" />
               ServiceFlow
             </Link>
           </div>
@@ -131,7 +133,7 @@ export default function Navigation() {
                 className="px-4 py-3 rounded-lg text-sm font-medium bg-[#1a365d]/5 text-[#1a365d] flex items-center gap-2"
                 onClick={() => setIsOpen(false)}
               >
-                <Zap className="w-4 h-4" />
+                <img src={SERVICEFLOW_LOGO} alt="" className="w-5 h-5 rounded" />
                 ServiceFlow
                 <span className="text-xs bg-[#d4af37] text-[#1a365d] px-2 py-0.5 rounded-full ml-auto">CRM</span>
               </Link>

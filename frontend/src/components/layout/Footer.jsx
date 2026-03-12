@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Zap } from 'lucide-react';
+import { Phone, Mail, MapPin } from 'lucide-react';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
+
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
 
 export default function Footer() {
   return (
@@ -50,7 +52,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/serviceflow" className="text-white/70 hover:text-white transition-colors flex items-center gap-2">
-                  <Zap className="w-3.5 h-3.5 text-[#d4af37]" />
+                  <img src={SERVICEFLOW_LOGO} alt="" className="w-4 h-4 rounded" />
                   ServiceFlow
                 </Link>
               </li>
