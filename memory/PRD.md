@@ -1,6 +1,6 @@
 # CMGeorges / ServiceFlow — Product Requirements Document
 
-**Dernière mise à jour:** Mars 2026  
+**Dernière mise à jour:** 12 Mars 2026  
 **Stack:** React + FastAPI + MongoDB  
 **Langue:** Français
 
@@ -18,22 +18,27 @@
 ```
 /app
 ├── backend/
-│   ├── server.py       # FastAPI app (2900+ lignes, à découper en Phase 4)
+│   ├── server.py       # FastAPI app (3600+ lignes, à découper en Phase 4)
 │   ├── models.py
 │   ├── features.py
+│   ├── tests/          # Tests pytest
+│   │   └── test_notifications.py
 │   └── .env
 └── frontend/
     ├── src/
     │   ├── App.js
-    │   ├── components/layout/AdminLayout.jsx   # Sidebar ServiceFlow branding
+    │   ├── components/layout/AdminLayout.jsx   # Sidebar + notification bell
     │   ├── lib/api.js                          # Toutes les requêtes API
     │   ├── lib/utils.js
     │   └── pages/
     │       ├── admin/          # Panel admin (thème noir/or)
+    │       │   └── AdminNotifications.jsx  # Centre de notifications
     │       ├── client/         # Portail client
     │       │   ├── ClientLogin.jsx
     │       │   └── ClientDashboard.jsx
     │       └── ServiceFlowPricing.jsx  # /serviceflow/pricing
+    └── tests/e2e/
+        └── notifications.spec.ts
 ```
 
 ---
@@ -59,6 +64,15 @@
 - [x] Politiques (CRUD complet)
 - [x] Gestion Utilisateurs (CRUD + rôles + reset mdp + activer/désactiver)
 
+#### Système de Notifications ✅ (NEW - Mars 2026)
+- [x] Icône cloche dans le header admin avec badge compteur non-lus
+- [x] Page /admin/notifications - Centre de notifications
+- [x] API endpoints: GET list, GET unread-count, PATCH mark-read, DELETE
+- [x] Notifications automatiques: nouveaux leads, factures créées, paiements reçus, changements statut projet
+- [x] Emails envoyés via Resend + notifications in-app stockées en DB
+- [x] Filtres: Toutes / Non lues + bouton "Tout marquer lu"
+- [x] Actions: Voir détails, marquer lu, supprimer
+
 #### Portail Client
 - [x] Inscription et connexion client (/client/login)
 - [x] Dashboard client (projets, factures, statuts)
@@ -77,6 +91,7 @@
 - [x] Client portal auth (register, login, dashboard, projects, invoices)
 - [x] SaaS subscription endpoints
 - [x] Invoice payment endpoints
+- [x] Notification endpoints (list, unread-count, mark-read, delete)
 
 ---
 
@@ -95,7 +110,7 @@
 
 | Service | Statut | Notes |
 |---------|--------|-------|
-| Resend | ✅ | Email devis + factures |
+| Resend | ✅ | Email devis + factures + notifications |
 | Stripe | ✅ | Abonnements SaaS + paiements factures |
 | Google reCAPTCHA | ⛔ Désactivé | Attente clé v2 Checkbox |
 | Google Analytics 4 | ✅ | Setup de base |
@@ -114,7 +129,6 @@
 - [ ] Projects: barre de progression interactive + tâches + timeline + photos
 - [ ] Projects: bouton "Modifier" opérationnel + rapport d'intervention
 - [ ] Messagerie interne par projet (fil de discussion client/admin)
-- [ ] Notifications email automatiques (nouveau lead, facture émise, statut projet)
 - [ ] Work Orders (interventions terrain + check-in/out + signature)
 - [ ] Calendrier de planification + assignation techniciens
 
@@ -150,6 +164,7 @@
 | /client/dashboard | Tableau de bord client |
 | /admin/login | Connexion admin ServiceFlow |
 | /admin/dashboard | Dashboard CRM |
+| /admin/notifications | Centre de notifications |
 | /admin/users | Gestion utilisateurs et rôles |
 | /admin/leads | Gestion des leads |
 | /admin/clients | Gestion des clients |
@@ -171,3 +186,4 @@
 - Stripe via `emergentintegrations` library (clé `sk_test_emergent`)
 - Vanta.js via npm (`yarn add vanta three`)
 - Thème admin: gold-500 = #d4af37, fond = #0f0f1a
+- Notifications stockées dans collection `notifications` MongoDB
