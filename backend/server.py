@@ -859,6 +859,160 @@ async def verify_recaptcha(token: str) -> bool:
         logger.error(f"reCAPTCHA verification failed: {str(e)}")
         return False
 
+# ==================== NOTIFICATION HELPER ====================
+async def create_notification(
+    title: str,
+    body: str,
+    notif_type: str,
+    entity_type: str = None,
+    entity_id: str = None,
+    user_id: str = None,
+    tenant_id: str = "default"
+):
+    """Create an in-app notification"""
+    notif = {
+        "id": str(uuid.uuid4()),
+        "tenant_id": tenant_id,
+        "user_id": user_id,
+        "type": notif_type,
+        "title": title,
+        "body": body,
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "is_read": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.notifications.insert_one(notif)
+    return notif
+
+def _notif_html(title: str, body_html: str, cta_text: str = None, cta_link: str = None) -> str:
+    """Reusable ServiceFlow notification email template"""
+    cta_block = ""
+    if cta_text and cta_link:
+        cta_block = f'<p style="text-align:center;margin-top:24px;"><a href="{cta_link}" style="background:#ffe700;color:#23153c;padding:12px 28px;font-weight:bold;border-radius:8px;text-decoration:none;display:inline-block;">{cta_text}</a></p>'
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+body{{font-family:Arial,sans-serif;background:#0d0d1f;margin:0;padding:0;}}
+.wrap{{max-width:600px;margin:30px auto;background:#13132b;border-radius:12px;overflow:hidden;border:1px solid #2a2a4a;}}
+.hdr{{background:#1a1a3e;padding:24px 32px;display:flex;align-items:center;gap:12px;}}
+.logo-icon{{background:#ffe700;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:36px;text-align:center;}}
+.brand{{font-size:20px;font-weight:900;color:white;}}
+.brand span{{color:#ffe700;}}
+.body{{padding:32px;color:#e0e0e0;}}
+.body h2{{color:white;margin-top:0;font-size:18px;}}
+.card{{background:#1e1e3a;border-radius:8px;padding:20px;margin:20px 0;border-left:4px solid #ffe700;}}
+.card p{{margin:6px 0;font-size:14px;}}
+.label{{color:#ffe700;font-weight:bold;}}
+.footer{{background:#0d0d1f;padding:20px 32px;color:#555;font-size:12px;text-align:center;border-top:1px solid #2a2a4a;}}
+</style></head><body>
+<div class="wrap">
+<div class="hdr">
+<div class="logo-icon">⚡</div>
+<div class="brand">Service<span>Flow</span></div>
+</div>
+<div class="body">
+<h2>{title}</h2>
+{body_html}
+{cta_block}
+</div>
+<div class="footer">ServiceFlow — Plateforme CRM pour entreprises de services<br>CMGeorges | 514-386-1743 | info@cmgeorges.com</div>
+</div></body></html>"""
+
+async def notify_new_lead(lead: dict, background_tasks: BackgroundTasks):
+    """Notification: new lead received"""
+    urgence = "🚨 URGENT" if lead.get("urgency_level") == "urgent" else "Normal"
+    service_map = {"manual": "Déco Touché", "furniture": "Mobilier", "tech": "Tech", "other": "Autre"}
+    service = service_map.get(lead.get("service_type", ""), lead.get("service_type", "N/A"))
+    body_html = f"""
+    <p>Un nouveau lead a été reçu via le formulaire de soumission.</p>
+    <div class="card">
+        <p><span class="label">Nom:</span> {lead.get('full_name','N/A')}</p>
+        <p><span class="label">Email:</span> {lead.get('email','N/A')}</p>
+        <p><span class="label">Téléphone:</span> {lead.get('phone','N/A')}</p>
+        <p><span class="label">Service:</span> {service}</p>
+        <p><span class="label">Ville:</span> {lead.get('city','N/A')}</p>
+        <p><span class="label">Urgence:</span> {urgence}</p>
+        {f"<p><span class='label'>Description:</span> {lead.get('description','')[:200]}</p>" if lead.get('description') else ''}
+    </div>
+    """
+    html = _notif_html(f"Nouveau lead : {lead.get('full_name','')}", body_html, "Voir dans l'admin", f"{os.environ.get('FRONTEND_URL','')}/admin/leads")
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"🔔 Nouveau lead: {lead.get('full_name','')} — ServiceFlow", html)
+    background_tasks.add_task(create_notification, f"Nouveau lead: {lead.get('full_name','')}", f"Service: {service} — Urgence: {urgence}", "new_lead", "lead", lead.get("id"))
+
+async def notify_invoice_created(invoice: dict, client: dict, background_tasks: BackgroundTasks):
+    """Notification: invoice created"""
+    body_html = f"""
+    <p>Une nouvelle facture a été créée pour le client <strong>{client.get('full_name','')}</strong>.</p>
+    <div class="card">
+        <p><span class="label">Numéro:</span> {invoice.get('invoice_number','')}</p>
+        <p><span class="label">Client:</span> {client.get('full_name','')}</p>
+        <p><span class="label">Montant total:</span> {invoice.get('total',0):.2f}$</p>
+        <p><span class="label">Échéance:</span> {str(invoice.get('due_date','À réception'))[:10]}</p>
+    </div>
+    """
+    html_admin = _notif_html(f"Facture {invoice.get('invoice_number','')} créée", body_html, "Voir la facture", f"{os.environ.get('FRONTEND_URL','')}/admin/invoices/{invoice.get('id','')}")
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"📄 Facture {invoice.get('invoice_number','')} créée — ServiceFlow", html_admin)
+    # Email to client
+    if client.get("email"):
+        client_body = f"""
+        <p>Bonjour {client.get('full_name','').split()[0]},</p>
+        <p>Une facture a été émise à votre attention.</p>
+        <div class="card">
+            <p><span class="label">Numéro:</span> {invoice.get('invoice_number','')}</p>
+            <p><span class="label">Montant total:</span> {invoice.get('total',0):.2f}$</p>
+            <p><span class="label">Date d'échéance:</span> {str(invoice.get('due_date','À réception'))[:10]}</p>
+        </div>
+        <p>Vous pouvez consulter et payer cette facture via votre portail client.</p>
+        """
+        html_client = _notif_html(f"Votre facture {invoice.get('invoice_number','')}", client_body, "Accéder au portail client", f"{os.environ.get('FRONTEND_URL','')}/client/login")
+        background_tasks.add_task(send_email, client["email"], f"Votre facture {invoice.get('invoice_number','')} — CMGeorges", html_client)
+    background_tasks.add_task(create_notification, f"Facture {invoice.get('invoice_number','')} créée", f"Client: {client.get('full_name','')} — {invoice.get('total',0):.2f}$", "invoice_created", "invoice", invoice.get("id"))
+
+async def notify_payment_received(invoice: dict, client: dict, amount: float, background_tasks: BackgroundTasks):
+    """Notification: payment received"""
+    body_html = f"""
+    <p>Un paiement a été reçu pour la facture <strong>{invoice.get('invoice_number','')}</strong>.</p>
+    <div class="card">
+        <p><span class="label">Client:</span> {client.get('full_name','') if client else 'N/A'}</p>
+        <p><span class="label">Montant reçu:</span> {amount:.2f}$</p>
+        <p><span class="label">Solde restant:</span> {invoice.get('balance_due',0):.2f}$</p>
+        <p><span class="label">Statut:</span> {'✅ Payée en totalité' if invoice.get('status') == 'paid' else '⚠️ Paiement partiel'}</p>
+    </div>
+    """
+    html = _notif_html(f"Paiement reçu — {invoice.get('invoice_number','')}", body_html, "Voir la facture", f"{os.environ.get('FRONTEND_URL','')}/admin/invoices/{invoice.get('id','')}")
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"💰 Paiement reçu: {amount:.2f}$ — {invoice.get('invoice_number','')} — ServiceFlow", html)
+    background_tasks.add_task(create_notification, f"Paiement de {amount:.2f}$ reçu", f"Facture {invoice.get('invoice_number','')} — Solde: {invoice.get('balance_due',0):.2f}$", "payment_received", "invoice", invoice.get("id"))
+
+async def notify_project_status(project: dict, old_status: str, new_status: str, client: dict, background_tasks: BackgroundTasks):
+    """Notification: project status changed"""
+    status_labels = {"draft":"Brouillon","scheduled":"Planifié","in_progress":"En cours","on_hold":"En pause","completed":"Terminé ✅","cancelled":"Annulé"}
+    old_lbl = status_labels.get(old_status, old_status)
+    new_lbl = status_labels.get(new_status, new_status)
+    body_html = f"""
+    <p>Le statut du projet <strong>{project.get('title','')}</strong> a changé.</p>
+    <div class="card">
+        <p><span class="label">Projet:</span> {project.get('title','')}</p>
+        <p><span class="label">Client:</span> {client.get('full_name','N/A') if client else 'N/A'}</p>
+        <p><span class="label">Ancien statut:</span> {old_lbl}</p>
+        <p><span class="label">Nouveau statut:</span> {new_lbl}</p>
+    </div>
+    """
+    html_admin = _notif_html(f"Projet mis à jour: {project.get('title','')}", body_html, "Voir le projet", f"{os.environ.get('FRONTEND_URL','')}/admin/projects/{project.get('id','')}")
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"🔄 Projet {new_lbl}: {project.get('title','')} — ServiceFlow", html_admin)
+    if client and client.get("email"):
+        client_body = f"""
+        <p>Bonjour {client.get('full_name','').split()[0]},</p>
+        <p>Votre projet <strong>{project.get('title','')}</strong> a été mis à jour.</p>
+        <div class="card">
+            <p><span class="label">Nouveau statut:</span> {new_lbl}</p>
+            {f"<p><span class='label'>Progression:</span> {project.get('progress',0)}%</p>" if project.get('progress') else ''}
+        </div>
+        <p>Connectez-vous au portail client pour plus de détails.</p>
+        """
+        html_client = _notif_html(f"Mise à jour de votre projet", client_body, "Voir mon projet", f"{os.environ.get('FRONTEND_URL','')}/client/dashboard")
+        background_tasks.add_task(send_email, client["email"], f"Mise à jour: {project.get('title','')} — CMGeorges", html_client)
+    background_tasks.add_task(create_notification, f"Projet: {new_lbl}", f"{project.get('title','')} — {old_lbl} → {new_lbl}", "project_status", "project", project.get("id"))
+
+
 # ==================== AUDIT LOG HELPER ====================
 async def create_audit_log(action: str, entity_type: str, entity_id: str, user: dict = None, details: dict = None, request: Request = None):
     """Create an audit log entry"""
@@ -917,9 +1071,10 @@ async def create_lead(lead_data: LeadCreate, background_tasks: BackgroundTasks, 
     # Create audit log
     await create_audit_log("lead_created", "lead", lead.id, details={"source": lead.source, "service_type": lead.service_type}, request=request)
     
-    # Send notification emails in background
-    lead_dict = doc
-    background_tasks.add_task(send_email, ADMIN_EMAIL, f"🦁 Nouveau lead: {lead.full_name}", get_lead_notification_html(lead_dict))
+    # Send notification emails + create in-app notification
+    lead_dict = {**doc, "id": lead.id}
+    await notify_new_lead(lead_dict, background_tasks)
+    # Confirmation email to client
     background_tasks.add_task(send_email, lead.email, "CMGeorges - Confirmation de votre demande", get_lead_confirmation_html(lead_dict))
     
     return lead
@@ -1397,6 +1552,13 @@ async def create_invoice(invoice_data: InvoiceCreate, request: Request, user: di
     await db.invoices.insert_one(doc)
     await create_audit_log("invoice_created", "invoice", invoice.id, user=user, details={"client_id": invoice_data.client_id, "total": invoice.total}, request=request)
     
+    # Email + in-app notification
+    background_tasks = BackgroundTasks()
+    invoice_dict = {**doc, "id": invoice.id}
+    await notify_invoice_created(invoice_dict, client, background_tasks)
+    for task in background_tasks.tasks:
+        asyncio.create_task(task.func(*task.args, **task.kwargs))
+    
     return invoice
 
 @admin_router.get("/invoices", response_model=List[Invoice])
@@ -1458,7 +1620,7 @@ async def update_invoice(invoice_id: str, update: InvoiceUpdate, request: Reques
     return invoice
 
 @admin_router.post("/invoices/{invoice_id}/payments", response_model=Invoice)
-async def add_payment(invoice_id: str, payment: PaymentCreate, request: Request, user: dict = Depends(get_current_user)):
+async def add_payment(invoice_id: str, payment: PaymentCreate, request: Request, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     """Add a payment to an invoice"""
     invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
     if not invoice:
@@ -1495,13 +1657,19 @@ async def add_payment(invoice_id: str, payment: PaymentCreate, request: Request,
     )
     
     # Update client revenue
+    client = None
     if invoice.get("client_id"):
         await db.clients.update_one(
             {"id": invoice["client_id"]},
             {"$inc": {"total_revenue": payment.amount}}
         )
+        client = await db.clients.find_one({"id": invoice["client_id"]}, {"_id": 0})
     
     await create_audit_log("payment_added", "invoice", invoice_id, user=user, details={"amount": payment.amount, "method": payment.method}, request=request)
+    
+    # Send payment notification
+    updated_invoice = {**invoice, "id": invoice_id, "balance_due": round(max(0, new_balance), 2), "status": new_status}
+    await notify_payment_received(updated_invoice, client, payment.amount, background_tasks)
     
     return await get_invoice(invoice_id, user)
 
@@ -1579,8 +1747,15 @@ async def get_project(project_id: str, user: dict = Depends(get_current_user)):
     return project
 
 @admin_router.patch("/projects/{project_id}", response_model=Project)
-async def update_project(project_id: str, update: ProjectUpdate, request: Request, user: dict = Depends(get_current_user)):
+async def update_project(project_id: str, update: ProjectUpdate, request: Request, background_tasks: BackgroundTasks, user: dict = Depends(get_current_user)):
     """Update project"""
+    # Get current project to check status change
+    current_project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not current_project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    old_status = current_project.get("status")
+    
     update_data = {k: v for k, v in update.model_dump().items() if v is not None}
     
     if not update_data:
@@ -1597,6 +1772,15 @@ async def update_project(project_id: str, update: ProjectUpdate, request: Reques
         raise HTTPException(status_code=404, detail="Project not found")
     
     await create_audit_log("project_updated", "project", project_id, user=user, details=update_data, request=request)
+    
+    # Send notification if status changed
+    new_status = update_data.get("status")
+    if new_status and new_status != old_status:
+        updated_project = {**current_project, **update_data, "id": project_id}
+        client = None
+        if current_project.get("client_id"):
+            client = await db.clients.find_one({"id": current_project["client_id"]}, {"_id": 0})
+        await notify_project_status(updated_project, old_status, new_status, client, background_tasks)
     
     return await get_project(project_id, user)
 
@@ -2377,7 +2561,7 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
     await db.client_portal_access.insert_one(doc)
     
     # Build portal URL
-    portal_url = f"https://crm-admin-portal-4.preview.emergentagent.com/portail-client?token={access_token}"
+    portal_url = f"https://flow-preview-6.preview.emergentagent.com/portail-client?token={access_token}"
     
     # Send email to client
     email_html = f"""
@@ -3415,6 +3599,56 @@ async def stripe_webhook(request: Request):
     except Exception as e:
         logger.warning(f"Stripe webhook handling: {str(e)}")
     return {"received": True}
+
+
+# ==================== NOTIFICATIONS ENDPOINTS ====================
+@admin_router.get("/notifications")
+async def get_notifications(
+    unread_only: bool = False,
+    limit: int = 50,
+    user: dict = Depends(get_current_user)
+):
+    """Get notifications for admin users"""
+    query = {}
+    if unread_only:
+        query["is_read"] = False
+    
+    notifications = await db.notifications.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    return notifications
+
+@admin_router.get("/notifications/unread-count")
+async def get_unread_notification_count(user: dict = Depends(get_current_user)):
+    """Get count of unread notifications"""
+    count = await db.notifications.count_documents({"is_read": False})
+    return {"count": count}
+
+@admin_router.patch("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, user: dict = Depends(get_current_user)):
+    """Mark a notification as read"""
+    result = await db.notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"success": True}
+
+@admin_router.patch("/notifications/mark-all-read")
+async def mark_all_notifications_read(user: dict = Depends(get_current_user)):
+    """Mark all notifications as read"""
+    result = await db.notifications.update_many(
+        {"is_read": False},
+        {"$set": {"is_read": True, "read_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"marked_read": result.modified_count}
+
+@admin_router.delete("/notifications/{notification_id}")
+async def delete_notification(notification_id: str, user: dict = Depends(get_current_user)):
+    """Delete a notification"""
+    result = await db.notifications.delete_one({"id": notification_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"success": True}
 
 
 # Include routers

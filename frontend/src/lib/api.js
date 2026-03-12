@@ -127,6 +127,13 @@ export const adminApi = {
   createUser: (data) => api.post('/admin/users-create', data),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
+
+  // Notifications
+  getNotifications: (params = {}) => api.get('/admin/notifications', { params }),
+  getUnreadCount: () => api.get('/admin/notifications/unread-count'),
+  markNotificationRead: (id) => api.patch(`/admin/notifications/${id}/read`),
+  markAllNotificationsRead: () => api.patch('/admin/notifications/mark-all-read'),
+  deleteNotification: (id) => api.delete(`/admin/notifications/${id}`),
 };
 
 // Blog Public API

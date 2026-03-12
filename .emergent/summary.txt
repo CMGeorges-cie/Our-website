@@ -1,232 +1,186 @@
 <analysis>**original_problem_statement:**
-The user wants to build a complete, production-ready website for their company, CMGeorges. The initial tech stack was specified as Next.js, .NET 8, and PostgreSQL, but was revised to React, FastAPI, and MongoDB.
+The user initially requested a production-ready website for their company, CMGeorges, with a React, FastAPI, and MongoDB stack. This included a full CRM, a quoting system, SEO, and various content pages.
 
-The project scope was defined by a detailed production-ready upgrade request, encompassing:
-- **PRODUCT REQUIREMENTS:**
-    1.  **Full Backend Activation:** Connect forms to the backend, send automated emails (Resend), and add anti-spam (reCAPTCHA).
-    2.  **Complete CRM Module:** An admin panel to manage leads, clients, quotes, invoices, and projects. This was later expanded to include full CRUD capabilities, discount code management, a price grid, and policy management.
-    3.  **Intelligent Quoting System:** A dynamic quote calculator, handling taxes, and generating professional PDF quotes. The user later requested simplifying this by removing a market price comparison.
-    4.  **CEO Dashboard:** A strategic overview of business metrics.
-    5.  **Comprehensive SEO:** Unique metadata, Schema.org, sitemap, robots.txt, and geo-targeted landing pages.
-    6.  **Content Pages:** FAQ, Privacy Policy, Terms & Conditions, and a Blog.
-    7.  **Analytics:** Integration of Google Analytics 4 and Meta Pixel.
-    8.  **Security & DevOps:** HTTPS, security headers, rate limiting, and CI/CD.
-    9.  **UX Improvements:** A new black and gold admin theme, a custom loading page animation, a multicultural image on the homepage, and functional Print/Send buttons for documents.
+However, the project's scope underwent a massive pivot. The new goal is to build **ServiceFlow**, a complete, multi-tenant SaaS platform for service-based businesses (handymen, contractors, property managers). The platform should be sold via a subscription model (managed by Stripe).
+
+**PRODUCT REQUIREMENTS (Post-Pivot):**
+1.  **Multi-Tenant SaaS Architecture:** The entire platform must be built to support multiple companies (tenants), with complete data isolation for each workspace.
+2.  **SaaS Subscription Management:** Integrate Stripe to handle monthly/annual subscription plans (e.g., Starter, Pro, Business), including checkout, webhooks, and billing management.
+3.  **Complete CRM & Operations Suite:**
+    *   **Core Modules:** Stabilize and enhance existing modules (Clients, Projects, Invoices, Leads) within the new multi-tenant structure.
+    *   **New Modules:** Implement new modules for Scheduling, Work Orders, Expense Management, Inventory, and Property Management.
+    *   **Project Management:** Make the project progress bar interactive, add internal tasks, and a Rapport (report) button.
+4.  **Client Portal:** A dedicated portal for clients to log in, view their projects/invoices, communicate via an internal messaging system, and make payments.
+5.  **User & Role Management:** An admin section to manage users (technicians, managers, clients) and define granular permissions (RBAC).
+6.  **Notifications:** Implement a full notification system for both email (Resend) and an in-app notification center (bell icon) for key events (new leads, project updates, invoices sent, payments received).
+7.  **Native Mobile App (Future Goal):** A React Native application for both clients and technicians.
+8.  **Branding:** The public service business remains CMGeorges. The SaaS product is branded ServiceFlow. The login page should feature a Vanta.js animated background.
 
 **User's preferred language**: français
 
 **what currently exists?**
-A full-stack application using React, FastAPI, and MongoDB.
-- **Frontend:** A public-facing site and a functional admin area. The admin dashboard has been restyled with a custom black and gold theme. Detail pages for clients, invoices, and projects have been created. A blog section with list and detail pages is present. A custom loading spinner component has been created but not yet integrated.
-- **Backend:** The  file contains most of the logic, with some models and features split into  and . Endpoints exist for users, leads, clients, quotes, invoices, projects, and a blog. Backend logic for PDF generation of quotes is implemented. API stubs have been added for discount codes, price lists, and policies.
-- **Integrations:** Resend, Google reCAPTCHA, GA4, and Meta Pixel keys are in  files. reCAPTCHA was implemented on the submission form but has been temporarily disabled due to a key configuration error.
+The application has been significantly refactored from a simple internal CRM into the foundational structure for the ServiceFlow SaaS platform.
+-   **Frontend (React):** The login page has been rebranded to ServiceFlow and features a Vanta.js animated background. The admin dashboard is also rebranded and includes sidebar links for the new SaaS management pages (Billing, Users & Roles, Settings) and a client portal. Full CRUD functionality for the original CRM modules (Leads, Clients, Invoices, Projects, etc.) has been implemented and placed within the new layout. A public pricing page for ServiceFlow has been created at .
+-   **Backend (FastAPI):** The backend has been partially refactored for multi-tenancy. It includes new Pydantic models and API endpoints for , Stripe , and fetching client portal data. Stripe keys are configured. A  helper module has been created to centralize sending emails via Resend and creating database notification records.
+-   **Database (MongoDB):** The schema is being expanded to support the new multi-tenant models (, , etc.) as specified by the user.
 
 **Last working item**:
-The agent was creating a new test user with full admin privileges as requested by the user.
-- Last item agent was working: Executing a python script to add a user  with password  to the MongoDB database.
-- Status: **IN PROGRESS** (The user has not yet confirmed if the new credentials work.)
-- Agent Testing Done: N
-- Which testing method agent to use? Manual testing by user.
-- User Testing Done: N
+-   Last item agent was working: Implementing a comprehensive notification system. The agent created a  helper for creating DB records and sending emails, added a  endpoint, and started integrating notification triggers into existing business logic endpoints (like lead creation).
+-   Status: **IN PROGRESS**
+-   Agent Testing Done: N
+-   Which testing method agent to use? backend testing agent
+-   User Testing Done: N
 
 **All Pending/In progress Issue list**:
-- Issue 1: Missing Full CRUD in Admin (P0)
-- Issue 2: Print and Send buttons are not implemented (P0)
-- Issue 3: Simplify Submission/Quote form (P1)
-- Issue 4: reCAPTCHA is disabled due to invalid key type (P2)
-- Issue 5: Voir button on admin tables leads to a blank page (P2)
+-   Issue 1: Incomplete Notification System (P0)
 
 Issues Detail:
-- Issue 1:
-    - **Description:** The user has explicitly stated that full Create, Read, Update, Delete (CRUD) functionality is missing from the CRM. The admin can view lists of items, but cannot create, edit, or delete them. This also applies to the new modules for discount codes, price lists, and policies.
-    - **Attempted fixes:** Backend models and API stubs have been created, but no frontend UI or backend logic for mutations (create, update, delete) has been implemented.
-    - **Next debug checklist**:
-        1. For each module (Clients, Invoices, Projects, Leads, etc.), implement backend endpoints for , , .
-        2. Create frontend forms/modals for creating and editing records.
-        3. Add Edit and Delete buttons to the admin tables and wire them to the corresponding API calls.
-        4. Build the UI pages for managing discount codes, price lists, and policies from scratch.
-    - **Why fix this issue and what will be achieved with the fix?** This is the core functionality of the CRM. Fixing it will make the admin panel a usable tool for managing the business.
-    - **Status:** **NOT STARTED**
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** both
-    - **Blocked on other issue:** No
-
-- Issue 2:
-    - **Description:** The user cannot see the option print et envoie de docuement in the admin panel for estimates, quotes, invoices, etc.
-    - **Attempted fixes:** The backend API for generating a PDF quote exists and works. However, no frontend buttons have been added to trigger this functionality.
-    - **Next debug checklist**:
-        1. In the detail pages (, , etc.) and list pages, add Download PDF and Send by Email buttons.
-        2. Wire the Download PDF button to the existing backend endpoint.
-        3. Implement a new backend endpoint that generates the PDF and sends it via Resend. Wire the Send by Email button to this new endpoint.
-    - **Why fix this issue and what will be achieved with the fix?** This will complete a key business workflow, allowing the admin to easily share documents with clients.
-    - **Status:** **NOT STARTED**
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** both
-    - **Blocked on other issue:** No
-
-- Issue 3:
-    - **Description:** The user requested to simplify the submission form by removing the prix du marcher (market price) column, stating it should be simple and professional.
-    - **Attempted fixes:** The agent viewed the relevant files (, ) but did not perform any edits to remove the logic or UI elements.
-    - **Next debug checklist**:
-        1. In , remove the  calculation logic from the quote generation endpoint.
-        2. In  (and any other relevant frontend components), remove the Market Price column from the quote display table.
-    - **Why fix this issue and what will be achieved with the fix?** It aligns the application with the user's refined business requirements for a cleaner quote presentation.
-    - **Status:** **IN PROGRESS**
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** both
-    - **Blocked on other issue:** No
-
-- Issue 4:
-    - **Description:** The reCAPTCHA component on the public submission form shows an Invalid key type error, preventing form submission.
-    - **Attempted fixes:** The agent temporarily fixed this by commenting out the entire reCAPTCHA implementation in  to allow the form to work without it. This is not a solution.
-    - **Next debug checklist**:
-        1. Inform the user that the provided reCAPTCHA key is for a different type (e.g., v2 invisible) than the component being used (v2 checkbox).
-        2. Ask the user to provide the correct Site Key for reCAPTCHA v2 Checkbox and update it in .
-        3. Uncomment the reCAPTCHA code in  and test the form again.
-    - **Why fix this issue and what will be achieved with the fix?** It will restore the anti-spam protection on public-facing forms.
-    - **Status:** **BLOCKED** (Awaiting correct API key from user)
-    - **Is recurring issue?** Y
-    - **Should Test frontend/backend/both after fix?** frontend
-    - **Blocked on other issue:** No
-
-- Issue 5:
-    - **Description:** The user reported that the Voir (View) button in admin tables leads to a blank page.
-    - **Attempted fixes:** The agent created detail pages and routes for Clients, Invoices, and Projects, which should have resolved this for those specific tables.
-    - **Next debug checklist**:
-        1. Verify with the user if the issue persists for the Clients, Invoices, or Projects tables.
-        2. Check other admin tables (e.g., Leads) to see if their Voir button is still un-linked or points to a non-existent route.
-        3. If any are broken, create the corresponding detail page and add the route to .
-    - **Why fix this issue and what will be achieved with the fix?** Ensures basic navigation and functionality within the admin panel.
-    - **Status:** **USER VERIFICATION PENDING**
-    - **Is recurring issue?** Y
-    - **Should Test frontend/backend/both after fix?** frontend
-    - **Blocked on other issue:** No
+-   Issue 1:
+    -   **Description:** The notification system is partially built. The backend helper exists, but it hasn't been integrated into all the required business logic endpoints (, , , etc.). The frontend UI for the notification center (bell icon and notifications page) has not been created.
+    -   **Attempted fixes:** A  module and a  endpoint were created. The  endpoint was modified to trigger a notification.
+    -   **Next debug checklist**:
+        1.  **Backend:** In , continue integrating the  function into all relevant endpoints: , , etc.
+        2.  **Frontend:** In , add a bell icon to the header with a badge for unread notifications.
+        3.  **Frontend:** Create a new page  to display a history of all notifications.
+        4.  **Frontend:** Wire up the bell icon and the new page to the  endpoint.
+    -   **Why fix this issue and what will be achieved with the fix?** This will complete a core communication feature of the SaaS, keeping users informed of important events.
+    -   **Status:** **IN PROGRESS**
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** No
 
 **In progress Task List**:
-- N/A
+-   Task 1: Full Multi-Tenant SaaS Implementation (P0)
+
+Task Detail:
+-   Task 1:
+    -   **Where to resume:** The backend has foundational tenant models and endpoints, but the business logic in  is not yet fully data-isolated. The work to break down the monolithic  into modular files (e.g., , ) needs to continue. Every database query must be rewritten to include a  clause, using a middleware to extract the  from the authenticated user's session.
+    -   **What will be achieved with this?** A true, secure multi-tenant architecture where one company cannot access another's data. This is the absolute core of the SaaS product.
+    -   **Status:** **IN PROGRESS**
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on something:** No
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks:**
-    - **(P0) Integrate Loading Spinner:** A loading component () with a custom golden lion animation has been created. It needs to be integrated into the app's routing () to display during page transitions and data fetching.
-    - **(P1) Test and Finalize Email Integration:** Test the Resend API with a real email dispatch to confirm it's working, then implement it for the Send document feature.
-    - **(P1) Build Client Portal:** The user approved the agent's suggestion for a client portal. Backend stubs exist, but the frontend pages and logic need to be built.
-- **Future Tasks:**
-    - **(P2) Database Migration to PostgreSQL:** A standing architectural requirement from the user that has been deferred. This should be re-confirmed before any further major development.
-    - **(P2) Full Analytics Integration:** Wire up custom event tracking in GA4 and Meta Pixel for conversions like form submissions.
-    - **(P2) DevSecOps:** Implement security headers, rate limiting, and CI/CD.
+-   **Upcoming Tasks (Phase 1):**
+    -   **(P0) Finalize Stripe Subscription Integration:** Implement Stripe webhooks to handle subscription status changes (e.g., , ). Build the UI in  for a tenant to manage their subscription.
+    -   **(P1) Build Full Client Portal:** Develop the frontend for the client portal, including authentication, a dashboard to view projects and invoices, and the UI to pay invoices online.
+    -   **(P1) Implement User & Role Management (RBAC):** Build the UI in  to invite, create, and assign roles to users. Implement a middleware on the backend to enforce permissions based on user roles for all API endpoints.
+    -   **(P1) Stabilize Core CRM Modules:** Ensure the CRUD functionality for Projects, Clients, Invoices, etc., is robust within the new multi-tenant context. Implement the interactive project progress bar.
+
+-   **Future Tasks (Phases 2 & 3):**
+    -   Integrate Stripe for end-client invoice payments.
+    -   Build the Scheduling and Work Orders module.
+    -   Build the Expense Management and advanced Analytics modules.
+    -   Build the Inventory and Property Management modules.
+    -   Develop the React Native mobile application for clients and technicians.
+    -   Re-evaluate migrating the database from MongoDB to PostgreSQL once the platform matures.
 
 **Completed work in this session**
-- **Admin UI Overhaul:** Implemented a new black and gold theme across the entire admin section and fixed the logo rendering on the login page.
-- **Critical Bug Fix:** Corrected a routing issue that caused all SEO-targeted pages to render a blank screen.
-- **New Feature Implementation:**
-  - Implemented backend PDF generation for quotes.
-  - Added backend models and API stubs for Blog, Discount Codes, Price Lists, and Policies.
-  - Created a functional Blog section on the frontend with list and detail pages.
-- **User Request Fulfillment:**
-  - Created detail view pages for Clients, Invoices, and Projects, fixing the Voir button bug for those modules.
-  - Created the custom loading spinner component ().
-  - Replaced the homepage hero image with a multicultural hands image.
-- **Testing:** Successfully used the testing agent to identify and confirm fixes for critical frontend bugs.
+-   **Architecture Pivot:** Refactored the entire application from a single-user CRM to a multi-tenant SaaS architecture foundation (ServiceFlow).
+-   **Branding & UI:** Rebranded the login and admin areas for ServiceFlow and added a Vanta.js animated background to the login page.
+-   **Stripe Integration:** Integrated Stripe SDK and created a backend endpoint to initiate SaaS subscription checkout sessions.
+-   **Full Admin CRUD:** Implemented complete Create, Read, Update, and Delete functionality for all core CRM modules (Leads, Clients, Projects, Invoices, Blog, Discounts, Pricing, Policies).
+-   **SaaS Pages:** Created placeholder frontend pages for Billing, User Management, Settings, a Client Portal, and a public pricing page.
+-   **Bug Fixes:** Resolved a critical admin login failure by correctly hashing user passwords in the database.
+-   **Testing:** Successfully used the testing agent on two separate occasions to validate major features and fix minor bugs reported in the test results.
 
 **Earlier issues found/mentioned but not fixed**
-- The fundamental discrepancy between the user's request for **PostgreSQL** and the current **MongoDB** implementation remains unresolved. The user agreed to MongoDB for now, but this poses a risk for future development alignment.
-
-**Known issue recurrence from previous fork**
-- The blank page rendering issue, originally on SEO pages, reappeared on the  due to a problem with the  component. It has since been fixed.
+-   **Issue 1: reCAPTCHA on the public lead form is still disabled.** The original Invalid key type error was bypassed by commenting out the feature and never revisited after the SaaS pivot.
+-   **Issue 2: The Print and Send document feature is incomplete.** The backend can generate PDFs, but the full frontend workflow (including sending via email with Resend) is not wired up.
+-   **Issue 3: The quote simplification (removing market price) was never implemented.**
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Frontend:** React, React Router (), Tailwind CSS, .
-- **Backend:** FastAPI, Pydantic, Motor (for MongoDB), FPDF () for PDF generation.
-- **Database:** MongoDB.
-- **Integrations:** Resend (email), Google reCAPTCHA (disabled), Google Analytics 4, Meta Pixel.
+-   **Frontend:** React, React Router, Tailwind CSS, Vanta.js
+-   **Backend:** FastAPI, Pydantic, Motor (MongoDB), Resend
+-   **Database:** MongoDB
+-   **Architecture:** Multi-tenant SaaS
+-   **Integrations:** Stripe (SaaS Subscriptions), Resend (Email), Google Analytics, Meta Pixel
 
 **key DB schema**
-- **(Existing)** users, leads, quotes, clients, invoices, projects
-- **(Newly Added Stubs)** blog_posts, discount_codes, price_list_items, policies
+The user has provided a comprehensive 20-collection schema for the full SaaS platform. The implementation has only begun, with initial models for  and . The next agent must refer to the user's detailed schema specification in **message #122** for all future data modeling.
 
 **changes in tech stack**
-- No changes in this session. The stack remains React, FastAPI, MongoDB.
+-   **Stripe** has been added for payment processing.
+-   **Vanta.js** (with Three.js) has been added for UI animation.
 
 **All files of reference**
-- **Admin Theme:** , , all files in 
-- **New Detail Pages:** , , 
-- **Routing:** 
-- **Backend Logic:** , , 
-- **reCAPTCHA:** 
-- **New Component:** 
-- **Homepage Image:** 
+-   **User Vision & Schema:** Messages #116, #119, and especially #122 contain the new product definition and database schema.
+-   **Backend Logic:** , , 
+-   **Frontend Routing:** 
+-   **Frontend Layout:** 
+-   **New SaaS Pages:** All new files under  and the  pages.
+-   **Login UI:** , 
 
 **Areas that need refactoring**:
-- The backend logic is split inconsistently between , , and . A clear, modular structure (e.g., routers, models, services directories) should be established to prevent  from growing into a monolith again.
+-   The monolithic  file is extremely large and contains logic for many different domains (auth, clients, projects, invoices, tenants, stripe). It must be aggressively broken down into a modular structure with separate files/routers for each feature (e.g., , , etc.) to be maintainable.
 
 **key api endpoints**
-- **(Working)**  - Generates a PDF for a quote.
-- **(Working)** , 
-- **(Stubs)** , , 
+-   : Creates a Stripe checkout session for a SaaS subscription.
+-   : (Stub) For fetching tenant data.
+-   : (Stub) For fetching data for the client portal.
+-   : For fetching user notifications.
+-   All core CRUD endpoints: 
 
 **Critical Info for New Agent**
-- **Language:** You MUST respond to the user in **French**.
-- **Priorities:** The user's last message is a clear list of priorities: test the invoice page, add missing CRM functionality (CRUD), and simplify the submission form. Address these first.
-- **Test User:** The agent created a test user:  / . You should present these credentials to the user for testing the preview environment.
-- **reCAPTCHA is Blocked:** The feature is disabled. You need to explain the invalid key type issue to the user and request a new key for reCAPTCHA v2 Checkbox to proceed.
-- **PostgreSQL vs. MongoDB:** Be aware of this major architectural discrepancy. If the user brings up databases, be prepared to discuss the possibility of a migration.
+-   **Major Pivot:** The project is no longer an internal tool. It is a multi-tenant SaaS platform named **ServiceFlow**. Your primary source of truth is the user's detailed specifications in messages #116, #119, and #122.
+-   **Language:** You MUST respond to the user in **French**.
+-   **Immediate Task:** Your first priority is to complete the **notification system** (both backend triggers and frontend UI).
+-   **Core Architecture Task:** Your next priority is to continue the **multi-tenant refactoring**. All backend logic must be strictly scoped by . Continue breaking down .
+-   **Roadmap:** Follow the 12-week roadmap provided by the user. After notifications, focus on the remaining Phase 1 items: Stripe webhooks, the Client Portal, and User/Role Management.
 
 **documents and test reports created in this job**
--  (updated)
-- 
-- 
+-   
+-   
+-    (updated with completed CRUD tasks, but needs a major rewrite to reflect the new ServiceFlow vision).
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **User:** (Requests) Test the invoice page, add missing CRM features (CRUD, discounts, pricing, policies), and simplify the submission form (remove market price). (Status: **Pending**)
-9.  **Agent:** Presents the updated app with the new black/gold theme, fixed Voir button, and multicultural image, then calls the finish tool.
-8.  **User:** (Reports Bug) The Voir button in admin tables leads to a blank page. (Requests) A loading page with a golden lion, a black/gold admin theme, Print/Send options, and a multicultural hands image. (Status: **Completed**, except for Print/Send and loading page integration).
-7.  **Agent:** Finishes the task after implementing the blog, client portal stubs, and PDF generation, and temporarily disabling reCAPTCHA.
-6.  **User:**  (finish the tasks). (Status: **Completed**).
-5.  **Agent:** Identifies a persistent bug in  and prepares to fix it.
-4.  **User:**  (yes, do all of that) - Approves the agent's plan to implement Resend emails, reCAPTCHA, Blog, PDF generation, and the client portal suggestion. (Status: **Partially Implemented**).
-3.  **Agent:** Finishes the task after fixing the SEO page bug and a minor admin login logo issue, and provides a list of next actions (email, reCAPTCHA, blog, PDF) and suggests a client portal.
-2.  **User:**  and . (Start implementing the CRM backend/forms and run a 100% test suite). (Status: **Completed**).
-1.  **Agent:** Asks the user how to proceed after fixing the critical SEO bug.
+-   10. : Confirms the plan to start implementing the notification system. (Status: **In Progress**)
+-   9. : User asks to pull from git again. (Status: **Addressed** - Agent explained it's a managed environment).
+-   8. : User confirms the plan to integrate Stripe, Vanta.js, and build the pricing page. (Status: **Completed**).
+-   7. : User specifies the route for the SaaS pricing page. (Status: **Completed**).
+-   6. : A long, detailed message outlining the new SaaS vision, tech choices (stick with Mongo for now), branding (CMGeorges vs. ServiceFlow), and priorities (SaaS subscriptions first). (Status: **Completed/In Progress**).
+-   5. : A massive prompt detailing the full SaaS product vision, architecture, feature set, and modules. **This is a critical source of truth.** (Status: **Acknowledged**).
+-   4. : A long list of future features, which became the basis for the full SaaS pivot. (Status: **Acknowledged**).
+-   3. : Initial confirmation to start work and a request to pull code. (Status: **Addressed**).
 
 **Project Health Check:**
-- **Broken:**
-    - Full CRUD functionality in the admin CRM is missing.
-    - The UI for Print/Send documents is not implemented.
-- **Mocked:**
-    - reCAPTCHA on public forms is disabled.
-    - The new CRM features (discounts, prices, policies) are backend stubs with no UI.
-    - The  component exists but is not integrated anywhere.
-- **Partially Implemented:**
-    - PDF generation works on the backend but is not accessible from the frontend.
-    - Email integration (Resend) is configured but not used in any workflow.
+-   **Broken:**
+    -   No strictly broken features, but the application is in a transitional state between a simple CRM and a full SaaS product.
+-   **Mocked:**
+    -   The SaaS management pages (Billing, Users, Settings) are UI stubs with no backend logic.
+    -   The Client Portal is a placeholder.
+-   **Partially Implemented:**
+    -   **Multi-tenancy:** Backend models exist, but data access is not yet fully isolated across the application.
+    -   **Stripe Integration:** Can create checkout sessions, but full subscription lifecycle management (webhooks, cancellations) is missing.
+    -   **Notification System:** Backend helpers are created, but triggers are not fully integrated, and the frontend UI is non-existent.
 
 **3rd Party Integrations**
-- **Resend** (Email): Requires User API Key. Configured but not fully used.
-- **Google reCAPTCHA v2** (Anti-Spam): Requires User API Key. **Disabled due to incorrect key type**.
-- **Google Analytics 4** (Analytics): Requires User Measurement ID. Basic setup complete.
-- **Meta Pixel** (Analytics): Requires User Pixel ID. Basic setup complete.
-- **fpdf (pyfpdf)** (PDF Generation): Implemented on the backend.
+-   **Stripe** (SaaS Subscriptions): Partially integrated. Requires User API Key.
+-   **Resend** (Email): Configured and being used for the new notification system. Requires User API Key.
+-   **Google reCAPTCHA v2**: Configured in  but **disabled** in the code due to an unresolved key type error.
+-   **Google Analytics 4**: Basic setup complete.
+-   **Meta Pixel**: Basic setup complete.
+-   **Vanta.js / Three.js** (UI Animation): Implemented on the login page.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES. It was used to find and verify fixes for frontend bugs.
-- **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** None.
-- **Known regressions:** None currently active. Previous regressions were fixed.
+-   Testing agent used after significant changes: **YES** (twice, successfully)
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: None
+-   Known regressions: None
 
 **Credentials to test flow:**
-- **Admin Login:**
-  - Email: 
-  - Password: 
-- **New Test User (pending user verification):**
-  - Email: 
-  - Password: 
+-   **Admin Login:**
+    -   Email: 
+    -   Password: 
+-   **Test User:**
+    -   Email: 
+    -   Password: 
 
 **What agent forgot to execute**
-- The agent created the  component but forgot to integrate it into the application to show during page loads.
-- The agent identified the files to remove the market price from quotes but did not execute the file edits.
-- The agent did not build the UI for the Print/Send document feature, even though the backend PDF generation was completed.
-- The agent created backend stubs for new CRM features (discounts, policies) but did not build any frontend UI for them.
-- The agent did not implement full Create, Update, or Delete functionality for any of the existing or new CRM modules.</analysis>
+During the major pivot to the ServiceFlow SaaS model, the following smaller tasks from the original scope were overlooked and never implemented:
+-   Re-enabling and fixing the Google **reCAPTCHA** on public forms.
+-   Simplifying the quote creation form by removing the market price field.
+-   Fully wiring up the Print/Send document feature on the frontend.</analysis>

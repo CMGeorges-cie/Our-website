@@ -16,11 +16,13 @@ import {
   DollarSign,
   Shield,
   Zap,
-  UserCog
+  UserCog,
+  Bell
 } from 'lucide-react';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import LoadingLion from '@/components/LoadingLion';
+import { adminApi } from '@/lib/api';
 
 const sidebarLinks = [
   { href: '/admin/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
@@ -45,6 +47,7 @@ export default function AdminLayout() {
   const user = getCurrentUser();
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -52,8 +55,26 @@ export default function AdminLayout() {
     } else {
       // Simulate initial load
       setTimeout(() => setLoading(false), 800);
+      // Fetch unread notifications count
+      fetchUnreadCount();
     }
   }, [navigate]);
+
+  // Refresh unread count when location changes
+  useEffect(() => {
+    if (isAuthenticated()) {
+      fetchUnreadCount();
+    }
+  }, [location.pathname]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await adminApi.getUnreadCount();
+      setUnreadCount(res.data.count);
+    } catch (err) {
+      console.error('Failed to fetch notification count');
+    }
+  };
 
   const handleLogout = () => {
     clearAuthData();
@@ -186,15 +207,35 @@ export default function AdminLayout() {
           <div className="flex items-center justify-between">
             <div className="lg:hidden w-10"></div>
             <h1 className="text-xl font-bold text-white font-['Outfit']">
-              {sidebarLinks.find(l => location.pathname.startsWith(l.href))?.label || 'Administration'}
+              {sidebarLinks.find(l => location.pathname.startsWith(l.href))?.label || 
+               settingsLinks.find(l => location.pathname.startsWith(l.href))?.label ||
+               (location.pathname.includes('notifications') ? 'Notifications' : 'Administration')}
             </h1>
-            <Link 
-              to="/" 
-              className="text-sm text-gold-500 hover:text-gold-400 flex items-center gap-1 transition-colors"
-            >
-              Voir le site
-              <span className="text-lg">→</span>
-            </Link>
+            <div className="flex items-center gap-3">
+              {/* Notification Bell */}
+              <Link
+                to="/admin/notifications"
+                className="relative p-2 rounded-lg text-gray-400 hover:text-gold-500 hover:bg-gold-500/10 transition-colors"
+                data-testid="notification-bell"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span 
+                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center px-1"
+                    data-testid="notification-badge"
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+              <Link 
+                to="/" 
+                className="text-sm text-gold-500 hover:text-gold-400 flex items-center gap-1 transition-colors"
+              >
+                Voir le site
+                <span className="text-lg">→</span>
+              </Link>
+            </div>
           </div>
         </header>
 
