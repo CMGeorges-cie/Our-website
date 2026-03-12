@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { clientPortalApi } from '@/lib/api';
 import { toast } from 'sonner';
-import { LogIn, Zap, User } from 'lucide-react';
+import { LogIn, User } from 'lucide-react';
+
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
 
 const CLIENT_TOKEN_KEY = 'sf_client_token';
 const CLIENT_USER_KEY = 'sf_client_user';
@@ -99,9 +101,11 @@ export default function ClientLogin() {
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="w-11 h-11 bg-yellow-400 rounded-xl flex items-center justify-center shadow-lg shadow-yellow-400/30">
-              <Zap className="w-6 h-6 text-[#23153c]" fill="currentColor" />
-            </div>
+            <img 
+              src={SERVICEFLOW_LOGO} 
+              alt="ServiceFlow" 
+              className="w-12 h-12 rounded-xl shadow-lg shadow-yellow-400/30"
+            />
             <span className="text-3xl font-black text-white tracking-tight" style={{fontFamily: 'Outfit, sans-serif'}}>
               Service<span className="text-yellow-400">Flow</span>
             </span>

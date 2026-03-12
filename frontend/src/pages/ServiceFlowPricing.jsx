@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { saasApi } from '@/lib/api';
 import { toast } from 'sonner';
-import { Check, Zap, Crown, Building2, ArrowRight, Star } from 'lucide-react';
+import { Check, Crown, Building2, ArrowRight, Star, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { isAuthenticated } from '@/lib/utils';
+
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
 
 const plans = [
   {
@@ -12,7 +14,7 @@ const plans = [
     name: 'Starter',
     price: 29,
     description: 'Parfait pour démarrer',
-    icon: Zap,
+    icon: Rocket,
     color: 'text-white',
     features: [
       '2 utilisateurs inclus',
@@ -101,9 +103,11 @@ export default function ServiceFlowPricing() {
       <header className="border-b border-white/10 bg-[#0d0d1f]/80 backdrop-blur-sm relative z-10">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
-              <Zap className="w-4 h-4 text-[#23153c]" fill="currentColor" />
-            </div>
+            <img 
+              src={SERVICEFLOW_LOGO} 
+              alt="ServiceFlow" 
+              className="w-8 h-8 rounded-lg"
+            />
             <span className="font-black text-white text-lg">Service<span className="text-yellow-400">Flow</span></span>
           </Link>
           <div className="flex items-center gap-3">
