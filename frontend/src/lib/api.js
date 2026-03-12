@@ -82,6 +82,18 @@ export const adminApi = {
   getProject: (id) => api.get(`/admin/projects/${id}`),
   createProject: (data) => api.post('/admin/projects', data),
   updateProject: (id, data) => api.patch(`/admin/projects/${id}`, data),
+  deleteProject: (id) => api.delete(`/admin/projects/${id}`),
+  
+  // Project Tasks
+  createProjectTask: (projectId, data) => api.post(`/admin/projects/${projectId}/tasks`, data),
+  updateProjectTask: (projectId, taskId, status) => api.patch(`/admin/projects/${projectId}/tasks/${taskId}`, null, { params: { status } }),
+  deleteProjectTask: (projectId, taskId) => api.delete(`/admin/projects/${projectId}/tasks/${taskId}`),
+  
+  // Project Timeline
+  addProjectTimeline: (projectId, eventType, description) => api.post(`/admin/projects/${projectId}/timeline`, null, { params: { event_type: eventType, description } }),
+  
+  // Project Report
+  getProjectReport: (projectId) => api.get(`/admin/projects/${projectId}/report`, { responseType: 'blob' }),
   
   // Blog
   getBlogPosts: (params = {}) => api.get('/admin/blog', { params }),
@@ -110,7 +122,6 @@ export const adminApi = {
   // Delete operations
   deleteClient: (id) => api.delete(`/admin/clients/${id}`),
   deleteInvoice: (id) => api.delete(`/admin/invoices/${id}`),
-  deleteProject: (id) => api.delete(`/admin/projects/${id}`),
   deleteLead: (id) => api.delete(`/admin/leads/${id}`),
 
   // Send by email

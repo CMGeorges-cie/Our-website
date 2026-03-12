@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, BackgroundTasks
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, BackgroundTasks, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import HTMLResponse, StreamingResponse
 from dotenv import load_dotenv
@@ -445,13 +445,51 @@ class Project(BaseModel):
     total_revenue: float = 0
     total_cost: float = 0
     notes: str = ""
+    tasks: list = []
+    photos: list = []
+    timeline: list = []
+    progress: int = 0
+
+class ProjectTask(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str = ""
+    status: str = "pending"  # pending, in_progress, completed
+    assigned_to: Optional[str] = None
+    due_date: Optional[str] = None
+    completed_at: Optional[str] = None
+    order: int = 0
+
+class ProjectTaskCreate(BaseModel):
+    title: str
+    description: str = ""
+    assigned_to: Optional[str] = None
+    due_date: Optional[str] = None
+
+class ProjectPhoto(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    url: str
+    caption: str = ""
+    uploaded_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    uploaded_by: Optional[str] = None
+
+class ProjectTimelineEvent(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    event_type: str  # status_change, task_completed, photo_added, note_added, report_generated
+    description: str
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: Optional[str] = None
+    metadata: dict = {}
 
 class ProjectUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
     status: Optional[ProjectStatus] = None
     scheduled_date: Optional[str] = None
     completed_date: Optional[str] = None
     actual_hours: Optional[float] = None
     notes: Optional[str] = None
+    address: Optional[str] = None
 
 # Audit Log
 class AuditLog(BaseModel):
@@ -1783,6 +1821,269 @@ async def update_project(project_id: str, update: ProjectUpdate, request: Reques
         await notify_project_status(updated_project, old_status, new_status, client, background_tasks)
     
     return await get_project(project_id, user)
+
+
+# ==================== PROJECT TASKS ====================
+@admin_router.post("/projects/{project_id}/tasks")
+async def create_project_task(project_id: str, task: ProjectTaskCreate, user: dict = Depends(get_current_user)):
+    """Add a task to a project"""
+    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    tasks = project.get("tasks", [])
+    new_task = {
+        "id": str(uuid.uuid4()),
+        "title": task.title,
+        "description": task.description,
+        "status": "pending",
+        "assigned_to": task.assigned_to,
+        "due_date": task.due_date,
+        "completed_at": None,
+        "order": len(tasks)
+    }
+    tasks.append(new_task)
+    
+    # Recalculate progress
+    completed_count = sum(1 for t in tasks if t.get("status") == "completed")
+    progress = int((completed_count / len(tasks)) * 100) if tasks else 0
+    
+    # Add timeline event
+    timeline = project.get("timeline", [])
+    timeline.append({
+        "id": str(uuid.uuid4()),
+        "event_type": "task_added",
+        "description": f"Tâche ajoutée: {task.title}",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": user.get("full_name", user.get("email")),
+        "metadata": {"task_id": new_task["id"]}
+    })
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {"tasks": tasks, "progress": progress, "timeline": timeline}}
+    )
+    
+    return {"task": new_task, "progress": progress}
+
+
+@admin_router.patch("/projects/{project_id}/tasks/{task_id}")
+async def update_project_task(project_id: str, task_id: str, status: str, user: dict = Depends(get_current_user)):
+    """Update a task status"""
+    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    tasks = project.get("tasks", [])
+    task_found = False
+    task_title = ""
+    
+    for task in tasks:
+        if task.get("id") == task_id:
+            task["status"] = status
+            task_title = task.get("title", "")
+            if status == "completed":
+                task["completed_at"] = datetime.now(timezone.utc).isoformat()
+            task_found = True
+            break
+    
+    if not task_found:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    # Recalculate progress
+    completed_count = sum(1 for t in tasks if t.get("status") == "completed")
+    progress = int((completed_count / len(tasks)) * 100) if tasks else 0
+    
+    # Add timeline event if task completed
+    timeline = project.get("timeline", [])
+    if status == "completed":
+        timeline.append({
+            "id": str(uuid.uuid4()),
+            "event_type": "task_completed",
+            "description": f"Tâche complétée: {task_title}",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": user.get("full_name", user.get("email")),
+            "metadata": {"task_id": task_id}
+        })
+    
+    # Update project status based on progress
+    new_project_status = project.get("status")
+    if progress == 100:
+        new_project_status = "completed"
+    elif progress > 0 and project.get("status") == "pending":
+        new_project_status = "in_progress"
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {"tasks": tasks, "progress": progress, "timeline": timeline, "status": new_project_status}}
+    )
+    
+    return {"progress": progress, "status": new_project_status}
+
+
+@admin_router.delete("/projects/{project_id}/tasks/{task_id}")
+async def delete_project_task(project_id: str, task_id: str, user: dict = Depends(get_current_user)):
+    """Delete a task from a project"""
+    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    tasks = [t for t in project.get("tasks", []) if t.get("id") != task_id]
+    
+    # Recalculate progress
+    completed_count = sum(1 for t in tasks if t.get("status") == "completed")
+    progress = int((completed_count / len(tasks)) * 100) if tasks else 0
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {"tasks": tasks, "progress": progress}}
+    )
+    
+    return {"success": True, "progress": progress}
+
+
+@admin_router.post("/projects/{project_id}/timeline")
+async def add_timeline_event(project_id: str, event_type: str, description: str, user: dict = Depends(get_current_user)):
+    """Add a timeline event (note) to a project"""
+    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    timeline = project.get("timeline", [])
+    new_event = {
+        "id": str(uuid.uuid4()),
+        "event_type": event_type,
+        "description": description,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": user.get("full_name", user.get("email")),
+        "metadata": {}
+    }
+    timeline.append(new_event)
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {"timeline": timeline}}
+    )
+    
+    return new_event
+
+
+@admin_router.get("/projects/{project_id}/report")
+async def generate_project_report(project_id: str, user: dict = Depends(get_current_user)):
+    """Generate a project intervention report"""
+    from io import BytesIO
+    from fpdf import FPDF
+    
+    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    client = None
+    if project.get("client_id"):
+        client = await db.clients.find_one({"id": project["client_id"]}, {"_id": 0})
+    
+    # Create PDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    
+    # Header
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.cell(0, 15, "Rapport d'intervention", ln=True, align="C")
+    pdf.set_font("Helvetica", "", 10)
+    pdf.cell(0, 8, f"Genere le {datetime.now().strftime('%d/%m/%Y a %H:%M')}", ln=True, align="C")
+    pdf.ln(10)
+    
+    # Project Info
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 10, project.get("title", "Sans titre"), ln=True)
+    pdf.set_font("Helvetica", "", 11)
+    
+    service_labels = {"manual": "Deco Touche", "furniture": "Mobilier", "tech": "Tech"}
+    pdf.cell(0, 7, f"Service: {service_labels.get(project.get('service_type', ''), project.get('service_type', ''))}", ln=True)
+    
+    status_labels = {"pending": "En attente", "in_progress": "En cours", "completed": "Termine", "on_hold": "En pause"}
+    pdf.cell(0, 7, f"Statut: {status_labels.get(project.get('status', ''), project.get('status', ''))}", ln=True)
+    pdf.cell(0, 7, f"Progression: {project.get('progress', 0)}%", ln=True)
+    pdf.ln(5)
+    
+    # Client Info
+    if client:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Client", ln=True)
+        pdf.set_font("Helvetica", "", 11)
+        pdf.cell(0, 7, f"Nom: {client.get('full_name', 'N/A')}", ln=True)
+        pdf.cell(0, 7, f"Email: {client.get('email', 'N/A')}", ln=True)
+        pdf.cell(0, 7, f"Telephone: {client.get('phone', 'N/A')}", ln=True)
+        if client.get("address"):
+            pdf.cell(0, 7, f"Adresse: {client.get('address', '')}, {client.get('city', '')}", ln=True)
+        pdf.ln(5)
+    
+    # Description
+    if project.get("description"):
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Description", ln=True)
+        pdf.set_font("Helvetica", "", 11)
+        pdf.multi_cell(0, 7, project.get("description", ""))
+        pdf.ln(5)
+    
+    # Tasks
+    tasks = project.get("tasks", [])
+    if tasks:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, f"Taches ({len(tasks)})", ln=True)
+        pdf.set_font("Helvetica", "", 10)
+        for task in tasks:
+            status_icon = "[X]" if task.get("status") == "completed" else "[ ]"
+            pdf.cell(0, 6, f"  {status_icon} {task.get('title', '')}", ln=True)
+        pdf.ln(5)
+    
+    # Timeline
+    timeline = project.get("timeline", [])
+    if timeline:
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Historique", ln=True)
+        pdf.set_font("Helvetica", "", 9)
+        for event in sorted(timeline, key=lambda x: x.get("created_at", ""), reverse=True)[:10]:
+            date_str = event.get("created_at", "")[:10]
+            pdf.cell(0, 5, f"  - [{date_str}] {event.get('description', '')}", ln=True)
+    
+    # Notes
+    if project.get("notes"):
+        pdf.ln(5)
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 8, "Notes", ln=True)
+        pdf.set_font("Helvetica", "", 11)
+        pdf.multi_cell(0, 7, project.get("notes", ""))
+    
+    # Footer
+    pdf.ln(10)
+    pdf.set_font("Helvetica", "I", 9)
+    pdf.cell(0, 5, "CMGeorges - Montreal & Rive-Sud", ln=True, align="C")
+    
+    # Output
+    pdf_bytes = BytesIO()
+    pdf.output(pdf_bytes)
+    pdf_bytes.seek(0)
+    
+    # Add timeline event
+    timeline = project.get("timeline", [])
+    timeline.append({
+        "id": str(uuid.uuid4()),
+        "event_type": "report_generated",
+        "description": "Rapport d'intervention genere",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": user.get("full_name", user.get("email")),
+        "metadata": {}
+    })
+    await db.projects.update_one({"id": project_id}, {"$set": {"timeline": timeline}})
+    
+    return Response(
+        content=pdf_bytes.getvalue(),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=rapport_{project_id[:8]}.pdf"}
+    )
+
 
 # ==================== ADMIN STATS & DASHBOARD ====================
 @admin_router.get("/stats", response_model=DashboardStats)

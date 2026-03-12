@@ -51,6 +51,7 @@
 - [x] Animation Vanta.js NET sur page login (fond violet/or)
 - [x] Branding ServiceFlow sur login + sidebar admin
 - [x] Badge "CMGeorges Workspace" dans sidebar
+- [x] Logo lion couronné ServiceFlow sur toutes les pages
 
 #### CRM Admin (CRUD complet)
 - [x] Leads (liste + détail + suppression)
@@ -64,14 +65,55 @@
 - [x] Politiques (CRUD complet)
 - [x] Gestion Utilisateurs (CRUD + rôles + reset mdp + activer/désactiver)
 
-#### Système de Notifications ✅ (NEW - Mars 2026)
+#### Système de Notifications ✅ (Mars 2026)
 - [x] Icône cloche dans le header admin avec badge compteur non-lus
 - [x] Page /admin/notifications - Centre de notifications
 - [x] API endpoints: GET list, GET unread-count, PATCH mark-read, DELETE
 - [x] Notifications automatiques: nouveaux leads, factures créées, paiements reçus, changements statut projet
 - [x] Emails envoyés via Resend + notifications in-app stockées en DB
-- [x] Filtres: Toutes / Non lues + bouton "Tout marquer lu"
-- [x] Actions: Voir détails, marquer lu, supprimer
+
+#### Stratégie de Marque ServiceFlow ✅ (Mars 2026)
+- [x] Navigation avec lien "ServiceFlow" + logo lion
+- [x] Section ServiceFlow sur page d'accueil
+- [x] Page /serviceflow dédiée (Hero, Problem, Solution, For Who, CTA)
+- [x] Footer avec section "Produits"
+- [x] "Built by CMGeorges" sur toutes les pages ServiceFlow
+
+#### Page de Connexion Unifiée ✅ (Mars 2026)
+- [x] Route /connexion avec choix Admin ou Client
+- [x] Redirection automatique selon le rôle après login
+- [x] Animation Vanta.js
+
+### Phase 2 ✅ (Projets Améliorés - Mars 2026)
+
+#### Gestion des Tâches de Projet
+- [x] Modèle de tâches (title, description, status, due_date)
+- [x] API: POST /projects/{id}/tasks - Créer une tâche
+- [x] API: PATCH /projects/{id}/tasks/{task_id} - Toggle statut
+- [x] API: DELETE /projects/{id}/tasks/{task_id} - Supprimer
+- [x] UI: Liste de tâches avec checkboxes
+- [x] UI: Modal "Ajouter une tâche"
+
+#### Barre de Progression Interactive
+- [x] Calcul automatique basé sur % de tâches complétées
+- [x] Barre visuelle avec gradient doré
+- [x] Affichage "X/Y tâches"
+- [x] Mise à jour automatique du statut projet (pending → in_progress → completed)
+
+#### Mode Édition de Projet
+- [x] Bouton "Modifier" fonctionnel
+- [x] Édition inline: titre, date, statut, description, notes
+- [x] Boutons "Annuler" / "Enregistrer"
+
+#### Timeline / Historique
+- [x] Modèle d'événements (task_added, task_completed, note_added, report_generated)
+- [x] UI: Timeline avec icônes et timestamps
+- [x] Bouton "Note" pour ajouter des notes à l'historique
+
+#### Rapport d'Intervention PDF
+- [x] API: GET /projects/{id}/report - Génère PDF
+- [x] Contenu: Infos projet, client, tâches, historique, notes
+- [x] Téléchargement automatique
 
 #### Portail Client
 - [x] Inscription et connexion client (/client/login)
