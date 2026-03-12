@@ -43,6 +43,7 @@ import AdminNotifications from "@/pages/admin/AdminNotifications";
 
 // ServiceFlow / Client Portal
 import ServiceFlowPricing from "@/pages/ServiceFlowPricing";
+import ServiceFlowPage from "@/pages/ServiceFlowPage";
 import ClientLogin from "@/pages/client/ClientLogin";
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import LoginPage from "@/pages/LoginPage";
@@ -173,6 +174,7 @@ function App() {
             <Route path="/client/invoices" element={<ClientDashboard />} />
             
             {/* ServiceFlow SaaS */}
+            <Route path="/serviceflow" element={<ServiceFlowPage />} />
             <Route path="/serviceflow/pricing" element={<ServiceFlowPricing />} />
             
             {/* Admin Routes */}

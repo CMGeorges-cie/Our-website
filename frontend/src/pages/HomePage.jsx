@@ -9,7 +9,11 @@ import {
   Shield, 
   Clock, 
   CheckCircle,
-  Star
+  Star,
+  Zap,
+  Users,
+  Receipt,
+  Calendar
 } from 'lucide-react';
 
 const services = [
@@ -278,6 +282,119 @@ export default function HomePage() {
                 </div>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ServiceFlow Section */}
+      <section className="section-spacing bg-gradient-to-br from-[#0f0f1a] via-[#1a1a2e] to-[#23153c] relative overflow-hidden" data-testid="serviceflow-section">
+        {/* Background effects */}
+        <div className="absolute w-96 h-96 bg-[#d4af37]/10 rounded-full blur-3xl -top-48 -right-48"></div>
+        <div className="absolute w-64 h-64 bg-[#d4af37]/5 rounded-full blur-3xl bottom-0 left-0"></div>
+        
+        <div className="container-main relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left content */}
+            <div>
+              <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 mb-6 text-sm">
+                <span className="text-white/60">Notre produit interne</span>
+              </span>
+              
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-[#d4af37] rounded-xl flex items-center justify-center shadow-lg shadow-[#d4af37]/30">
+                  <Zap className="w-6 h-6 text-[#1a365d]" fill="currentColor" />
+                </div>
+                <span className="text-3xl font-black text-white tracking-tight font-['Outfit']">
+                  Service<span className="text-[#d4af37]">Flow</span>
+                </span>
+              </div>
+              
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 font-['Outfit']">
+                L'outil que nous utilisons pour gérer nos projets efficacement
+              </h2>
+              
+              <p className="text-white/70 mb-6 leading-relaxed">
+                Nous avons développé une plateforme interne pour gérer nos clients, projets, factures et travaux de maintenance. 
+                Nous la rendons maintenant disponible pour d'autres entreprises de services.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                {[
+                  { icon: Users, label: 'Gestion clients' },
+                  { icon: Receipt, label: 'Facturation' },
+                  { icon: Calendar, label: 'Planification' },
+                  { icon: CheckCircle, label: 'Suivi projets' },
+                ].map((feature, idx) => {
+                  const Icon = feature.icon;
+                  return (
+                    <div key={idx} className="flex items-center gap-3 text-white/80">
+                      <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-[#d4af37]" />
+                      </div>
+                      <span className="text-sm">{feature.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <Link to="/serviceflow">
+                <Button size="lg" className="bg-[#d4af37] hover:bg-[#c9a432] text-[#1a365d] font-bold">
+                  Découvrir ServiceFlow
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+            
+            {/* Right - Preview card */}
+            <div className="relative">
+              <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 shadow-2xl">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                  <div className="w-8 h-8 bg-[#d4af37] rounded-lg flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-[#1a365d]" fill="currentColor" />
+                  </div>
+                  <span className="text-lg font-bold text-white font-['Outfit']">
+                    Service<span className="text-[#d4af37]">Flow</span>
+                  </span>
+                  <span className="ml-auto text-xs text-white/40">Dashboard</span>
+                </div>
+                
+                {/* Mock stats */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  {[
+                    { label: 'Clients', value: '156' },
+                    { label: 'Projets', value: '43' },
+                    { label: 'Revenus', value: '$89K' },
+                  ].map((stat, idx) => (
+                    <div key={idx} className="bg-white/5 rounded-xl p-4 text-center">
+                      <div className="text-2xl font-bold text-[#d4af37]">{stat.value}</div>
+                      <div className="text-xs text-white/50">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Mock list */}
+                <div className="space-y-3">
+                  {['Nouveau lead - Marie T.', 'Facture #1234 payée', 'Projet Réno terminé'].map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
+                      <div className="w-2 h-2 rounded-full bg-[#d4af37]"></div>
+                      <span className="text-sm text-white/70">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Built by badge */}
+              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-3 shadow-xl flex items-center gap-2">
+                <img 
+                  src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+                  alt="CMGeorges"
+                  className="h-6 w-auto"
+                />
+                <div className="text-xs">
+                  <div className="font-bold text-[#1a365d]">Built by CMGeorges</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

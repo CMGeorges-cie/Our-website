@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, Mail, MapPin, Zap } from 'lucide-react';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
 export default function Footer() {
   return (
     <footer className="bg-[#1a365d] text-white no-print" data-testid="footer">
       <div className="container-main py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           {/* Brand */}
-          <div className="md:col-span-1">
+          <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-4">
               <img 
                 src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
@@ -39,6 +39,29 @@ export default function Footer() {
               <li>
                 <Link to="/services" className="text-white/70 hover:text-white transition-colors">
                   CMGeorges Tech
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Products - ServiceFlow */}
+          <div>
+            <h4 className="font-semibold text-[#d4af37] mb-4 font-['Outfit']">Produits</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/serviceflow" className="text-white/70 hover:text-white transition-colors flex items-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-[#d4af37]" />
+                  ServiceFlow
+                </Link>
+              </li>
+              <li>
+                <Link to="/serviceflow/pricing" className="text-white/70 hover:text-white transition-colors pl-5">
+                  Tarifs
+                </Link>
+              </li>
+              <li>
+                <Link to="/connexion" className="text-white/70 hover:text-white transition-colors pl-5">
+                  Connexion
                 </Link>
               </li>
             </ul>

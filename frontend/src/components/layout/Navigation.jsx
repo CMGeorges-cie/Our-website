@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, LogIn } from 'lucide-react';
+import { Menu, X, Phone, LogIn, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
@@ -34,7 +34,7 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -49,10 +49,23 @@ export default function Navigation() {
                 {link.label}
               </Link>
             ))}
+            {/* ServiceFlow Link - Highlighted */}
+            <Link
+              to="/serviceflow"
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors px-3 py-1.5 rounded-full ${
+                location.pathname.startsWith('/serviceflow')
+                  ? 'bg-[#1a365d] text-white'
+                  : 'bg-[#1a365d]/5 text-[#1a365d] hover:bg-[#1a365d]/10'
+              }`}
+              data-testid="nav-link-serviceflow"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              ServiceFlow
+            </Link>
           </div>
 
           {/* CTA Buttons */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3">
             <a 
               href={CMGEORGES_PHONE_LINK}
               className="flex items-center gap-2 text-[#1a365d] hover:text-[#d4af37] transition-colors"
@@ -62,14 +75,15 @@ export default function Navigation() {
               <span className="text-sm font-medium">{CMGEORGES_PHONE}</span>
             </a>
             <Link to="/connexion" data-testid="nav-login-btn">
-              <Button variant="outline" className="border-[#1a365d] text-[#1a365d] hover:bg-[#1a365d] hover:text-white">
-                <LogIn className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" className="border-[#1a365d] text-[#1a365d] hover:bg-[#1a365d] hover:text-white">
+                <LogIn className="h-4 w-4 mr-1.5" />
                 Connexion
               </Button>
             </Link>
             <Link to="/soumission">
               <Button 
                 className="btn-accent"
+                size="sm"
                 data-testid="nav-soumission-btn"
               >
                 Soumission gratuite
@@ -79,7 +93,7 @@ export default function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className="lg:hidden p-2"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
             data-testid="mobile-menu-toggle"
@@ -94,7 +108,7 @@ export default function Navigation() {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 animate-fade-in" data-testid="mobile-menu">
+          <div className="lg:hidden py-4 border-t border-gray-100 animate-fade-in" data-testid="mobile-menu">
             <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
@@ -111,25 +125,38 @@ export default function Navigation() {
                   {link.label}
                 </Link>
               ))}
+              {/* ServiceFlow - Mobile */}
               <Link
-                to="/connexion"
-                className="mx-4 mt-2"
+                to="/serviceflow"
+                className="px-4 py-3 rounded-lg text-sm font-medium bg-[#1a365d]/5 text-[#1a365d] flex items-center gap-2"
                 onClick={() => setIsOpen(false)}
               >
-                <Button variant="outline" className="w-full border-[#1a365d] text-[#1a365d]" data-testid="mobile-login-btn">
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Connexion
-                </Button>
+                <Zap className="w-4 h-4" />
+                ServiceFlow
+                <span className="text-xs bg-[#d4af37] text-[#1a365d] px-2 py-0.5 rounded-full ml-auto">CRM</span>
               </Link>
-              <Link
-                to="/soumission"
-                className="mx-4 mt-2"
-                onClick={() => setIsOpen(false)}
-              >
-                <Button className="btn-accent w-full" data-testid="mobile-soumission-btn">
-                  Soumission gratuite
-                </Button>
-              </Link>
+              
+              <div className="border-t border-gray-100 mt-2 pt-2">
+                <Link
+                  to="/connexion"
+                  className="mx-4 mt-2 block"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Button variant="outline" className="w-full border-[#1a365d] text-[#1a365d]" data-testid="mobile-login-btn">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Connexion
+                  </Button>
+                </Link>
+                <Link
+                  to="/soumission"
+                  className="mx-4 mt-2 block"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Button className="btn-accent w-full" data-testid="mobile-soumission-btn">
+                    Soumission gratuite
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         )}
