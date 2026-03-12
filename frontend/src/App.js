@@ -45,6 +45,7 @@ import AdminNotifications from "@/pages/admin/AdminNotifications";
 import ServiceFlowPricing from "@/pages/ServiceFlowPricing";
 import ClientLogin from "@/pages/client/ClientLogin";
 import ClientDashboard from "@/pages/client/ClientDashboard";
+import LoginPage from "@/pages/LoginPage";
 
 // Layout
 import PublicLayout from "@/components/layout/PublicLayout";
@@ -159,6 +160,10 @@ function App() {
             
             {/* Client Portal - No layout */}
             <Route path="/portail-client" element={<ClientPortalPage />} />
+            
+            {/* Unified Login Page */}
+            <Route path="/connexion" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
             
             {/* Client Portal - New */}
             <Route path="/client/login" element={<ClientLogin />} />

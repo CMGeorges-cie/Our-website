@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone } from 'lucide-react';
+import { Menu, X, Phone, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
@@ -61,6 +61,12 @@ export default function Navigation() {
               <Phone className="h-4 w-4" />
               <span className="text-sm font-medium">{CMGEORGES_PHONE}</span>
             </a>
+            <Link to="/connexion" data-testid="nav-login-btn">
+              <Button variant="outline" className="border-[#1a365d] text-[#1a365d] hover:bg-[#1a365d] hover:text-white">
+                <LogIn className="h-4 w-4 mr-2" />
+                Connexion
+              </Button>
+            </Link>
             <Link to="/soumission">
               <Button 
                 className="btn-accent"
@@ -106,8 +112,18 @@ export default function Navigation() {
                 </Link>
               ))}
               <Link
+                to="/connexion"
+                className="mx-4 mt-2"
+                onClick={() => setIsOpen(false)}
+              >
+                <Button variant="outline" className="w-full border-[#1a365d] text-[#1a365d]" data-testid="mobile-login-btn">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Connexion
+                </Button>
+              </Link>
+              <Link
                 to="/soumission"
-                className="mx-4 mt-4"
+                className="mx-4 mt-2"
                 onClick={() => setIsOpen(false)}
               >
                 <Button className="btn-accent w-full" data-testid="mobile-soumission-btn">
