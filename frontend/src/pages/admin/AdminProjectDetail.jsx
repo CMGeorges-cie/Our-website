@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { 
   ArrowLeft, Download, Printer, User, Calendar, Briefcase, MapPin,
   CheckCircle, Clock, AlertCircle, Plus, Trash2, Edit2, Save, X,
-  FileText, MessageSquare, Camera, History
+  FileText, MessageSquare, Camera, History, Send
 } from 'lucide-react';
 
 const statusOptions = [
@@ -42,6 +42,7 @@ const timelineIcons = {
   note_added: MessageSquare,
   photo_added: Camera,
   report_generated: FileText,
+  message_sent: Send,
 };
 
 export default function AdminProjectDetail() {
@@ -63,10 +64,21 @@ export default function AdminProjectDetail() {
   // Note modal
   const [showAddNote, setShowAddNote] = useState(false);
   const [newNote, setNewNote] = useState('');
+  
+  // Messaging
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    // Scroll to bottom when messages change
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const fetchData = async () => {
     try {
@@ -83,6 +95,17 @@ export default function AdminProjectDetail() {
       if (projectRes.data.client_id) {
         const clientRes = await adminApi.getClient(projectRes.data.client_id);
         setClient(clientRes.data);
+      }
+      
+      // Fetch messages
+      try {
+        const messagesRes = await adminApi.getProjectMessages(id);
+        setMessages(messagesRes.data);
+        // Mark messages as read
+        await adminApi.markProjectMessagesRead(id);
+      } catch (e) {
+        // Messages might not exist yet
+        setMessages([]);
       }
     } catch (error) {
       console.error('Error fetching project:', error);
@@ -157,6 +180,24 @@ export default function AdminProjectDetail() {
       toast.error('Erreur');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim()) return;
+    setSendingMessage(true);
+    try {
+      await adminApi.sendProjectMessage(id, newMessage);
+      setNewMessage('');
+      // Refresh messages
+      const messagesRes = await adminApi.getProjectMessages(id);
+      setMessages(messagesRes.data);
+      fetchData(); // Refresh timeline too
+    } catch (e) {
+      toast.error('Erreur lors de l\'envoi');
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -459,6 +500,83 @@ export default function AdminProjectDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Messaging Section */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-white text-lg flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-gold-500" />
+            Messages avec le client
+          </CardTitle>
+          {messages.filter(m => m.sender_type === 'client' && !m.is_read).length > 0 && (
+            <span className="px-2 py-1 bg-gold-500/20 text-gold-500 text-xs rounded-full">
+              {messages.filter(m => m.sender_type === 'client' && !m.is_read).length} nouveau(x)
+            </span>
+          )}
+        </CardHeader>
+        <CardContent>
+          {!client ? (
+            <p className="text-gray-500 text-sm text-center py-8">
+              Aucun client associé à ce projet. Associez un client pour activer la messagerie.
+            </p>
+          ) : (
+            <>
+              {/* Messages List */}
+              <div className="h-[300px] overflow-y-auto mb-4 space-y-3 p-3 bg-gray-800/30 rounded-lg" data-testid="messages-container">
+                {messages.length === 0 ? (
+                  <p className="text-gray-500 text-sm text-center py-8">
+                    Aucun message. Envoyez le premier message au client.
+                  </p>
+                ) : (
+                  messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[70%] rounded-lg p-3 ${
+                          msg.sender_type === 'admin'
+                            ? 'bg-gold-500/20 text-white border border-gold-500/30'
+                            : 'bg-gray-700 text-white'
+                        }`}
+                      >
+                        <p className="text-xs text-gray-400 mb-1">
+                          {msg.sender_name} • {formatDateShort(msg.created_at)}
+                        </p>
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Send Message Form */}
+              <form onSubmit={handleSendMessage} className="flex gap-2">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Écrire un message..."
+                  className="bg-gray-800 border-gray-700 text-white flex-1"
+                  data-testid="message-input"
+                />
+                <Button
+                  type="submit"
+                  disabled={sendingMessage || !newMessage.trim()}
+                  className="bg-gold-500 hover:bg-gold-600 text-black"
+                  data-testid="send-message-btn"
+                >
+                  {sendingMessage ? (
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </form>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Description & Notes */}
       <Card className="bg-gray-900 border-gray-800">

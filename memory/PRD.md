@@ -115,6 +115,17 @@
 - [x] Contenu: Infos projet, client, tâches, historique, notes
 - [x] Téléchargement automatique
 
+#### Messagerie Interne ✅ (Mars 2026)
+- [x] Modèle ProjectMessage (sender_type, sender_name, content, is_read)
+- [x] API Admin: GET/POST messages, mark-read, unread-count
+- [x] API Client: GET/POST messages (avec auth client)
+- [x] UI: Section "Messages avec le client" dans détail projet
+- [x] UI: Zone de conversation avec bulles alignées (admin=droite, client=gauche)
+- [x] UI: Champ d'envoi avec bouton icône avion
+- [x] Notifications email au client quand l'admin envoie
+- [x] Notifications email à l'admin quand le client répond
+- [x] Timeline: événement "message_sent"
+
 #### Portail Client
 - [x] Inscription et connexion client (/client/login)
 - [x] Dashboard client (projets, factures, statuts)

@@ -95,6 +95,12 @@ export const adminApi = {
   // Project Report
   getProjectReport: (projectId) => api.get(`/admin/projects/${projectId}/report`, { responseType: 'blob' }),
   
+  // Project Messaging
+  getProjectMessages: (projectId) => api.get(`/admin/projects/${projectId}/messages`),
+  sendProjectMessage: (projectId, content) => api.post(`/admin/projects/${projectId}/messages`, { content }),
+  markProjectMessagesRead: (projectId) => api.patch(`/admin/projects/${projectId}/messages/mark-read`),
+  getUnreadMessagesCount: () => api.get('/admin/messages/unread-count'),
+  
   // Blog
   getBlogPosts: (params = {}) => api.get('/admin/blog', { params }),
   createBlogPost: (data) => api.post('/admin/blog', data),

@@ -491,6 +491,22 @@ class ProjectUpdate(BaseModel):
     notes: Optional[str] = None
     address: Optional[str] = None
 
+# Project Messages
+class ProjectMessage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    project_id: str
+    sender_type: str  # admin, client
+    sender_id: str
+    sender_name: str
+    content: str
+    attachments: list = []
+    is_read: bool = False
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class ProjectMessageCreate(BaseModel):
+    content: str
+    attachments: list = []
+
 # Audit Log
 class AuditLog(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -765,6 +781,31 @@ async def require_admin(user: dict = Depends(get_current_user)) -> dict:
     if user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
+
+async def get_current_client(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    """Get the current client from JWT token and return their client record"""
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "access":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+        
+        user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        # Get the client record linked to this user
+        client = await db.clients.find_one({"portal_user_id": user["id"]}, {"_id": 0})
+        if not client:
+            client = await db.clients.find_one({"email": user["email"]}, {"_id": 0})
+        
+        if not client:
+            raise HTTPException(status_code=404, detail="Client profile not found")
+        
+        return client
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 # ==================== EMAIL HELPERS ====================
 async def send_email(to: str, subject: str, html_content: str):
@@ -2083,6 +2124,96 @@ async def generate_project_report(project_id: str, user: dict = Depends(get_curr
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename=rapport_{project_id[:8]}.pdf"}
     )
+
+
+# ==================== PROJECT MESSAGING ====================
+@admin_router.get("/projects/{project_id}/messages")
+async def get_project_messages(project_id: str, user: dict = Depends(get_current_user)):
+    """Get all messages for a project"""
+    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    messages = await db.project_messages.find(
+        {"project_id": project_id}, 
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(500)
+    
+    return messages
+
+
+@admin_router.post("/projects/{project_id}/messages")
+async def send_project_message(
+    project_id: str, 
+    message: ProjectMessageCreate, 
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(get_current_user)
+):
+    """Send a message in a project (admin side)"""
+    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    msg = ProjectMessage(
+        project_id=project_id,
+        sender_type="admin",
+        sender_id=user.get("id", ""),
+        sender_name=user.get("full_name", user.get("email", "Admin")),
+        content=message.content,
+        attachments=message.attachments
+    )
+    
+    await db.project_messages.insert_one(msg.model_dump())
+    
+    # Add timeline event
+    timeline = project.get("timeline", [])
+    timeline.append({
+        "id": str(uuid.uuid4()),
+        "event_type": "message_sent",
+        "description": f"Message envoyé par {msg.sender_name}",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": msg.sender_name,
+        "metadata": {"message_id": msg.id}
+    })
+    await db.projects.update_one({"id": project_id}, {"$set": {"timeline": timeline}})
+    
+    # Notify client if they exist
+    if project.get("client_id"):
+        client = await db.clients.find_one({"id": project["client_id"]}, {"_id": 0})
+        if client and client.get("email"):
+            # Send email notification
+            email_html = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #1a365d;">Nouveau message - {project.get('title', 'Projet')}</h2>
+                <p>Bonjour {client.get('full_name', '')},</p>
+                <p>Vous avez reçu un nouveau message concernant votre projet:</p>
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p style="margin: 0; white-space: pre-wrap;">{message.content}</p>
+                </div>
+                <p>Connectez-vous au portail client pour répondre.</p>
+                <p style="color: #666;">L'équipe CMGeorges</p>
+            </div>
+            """
+            background_tasks.add_task(send_email, client["email"], f"CMGeorges - Nouveau message: {project.get('title', 'Projet')}", email_html)
+    
+    return {"id": msg.id, "message": "Message sent successfully"}
+
+
+@admin_router.patch("/projects/{project_id}/messages/mark-read")
+async def mark_project_messages_read(project_id: str, user: dict = Depends(get_current_user)):
+    """Mark all messages from client as read"""
+    result = await db.project_messages.update_many(
+        {"project_id": project_id, "sender_type": "client", "is_read": False},
+        {"$set": {"is_read": True}}
+    )
+    return {"marked_read": result.modified_count}
+
+
+@admin_router.get("/messages/unread-count")
+async def get_unread_messages_count(user: dict = Depends(get_current_user)):
+    """Get total unread messages across all projects"""
+    count = await db.project_messages.count_documents({"sender_type": "client", "is_read": False})
+    return {"count": count}
 
 
 # ==================== ADMIN STATS & DASHBOARD ====================
@@ -3668,6 +3799,78 @@ async def client_invoices(user: dict = Depends(get_current_user)):
     if not client:
         return []
     return await db.invoices.find({"client_id": client["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
+
+
+# Client portal messaging endpoints
+@client_router.get("/projects/{project_id}/messages")
+async def get_client_project_messages(project_id: str, client = Depends(get_current_client)):
+    """Get all messages for a project (client side)"""
+    # Verify client owns this project
+    project = await db.projects.find_one({"id": project_id, "client_id": client["id"]}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    messages = await db.project_messages.find(
+        {"project_id": project_id}, 
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(500)
+    
+    # Mark admin messages as read
+    await db.project_messages.update_many(
+        {"project_id": project_id, "sender_type": "admin", "is_read": False},
+        {"$set": {"is_read": True}}
+    )
+    
+    return messages
+
+
+@client_router.post("/projects/{project_id}/messages")
+async def send_client_message(
+    project_id: str, 
+    message: ProjectMessageCreate, 
+    background_tasks: BackgroundTasks,
+    client = Depends(get_current_client)
+):
+    """Send a message in a project (client side)"""
+    project = await db.projects.find_one({"id": project_id, "client_id": client["id"]}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    msg = ProjectMessage(
+        project_id=project_id,
+        sender_type="client",
+        sender_id=client.get("id", ""),
+        sender_name=client.get("full_name", client.get("email", "Client")),
+        content=message.content,
+        attachments=message.attachments
+    )
+    
+    await db.project_messages.insert_one(msg.model_dump())
+    
+    # Create notification for admin
+    await create_notification(
+        notification_type="new_message",
+        title=f"Nouveau message de {msg.sender_name}",
+        body=f"Projet: {project.get('title', 'Sans titre')} - {message.content[:100]}...",
+        entity_type="project",
+        entity_id=project_id
+    )
+    
+    # Email admin
+    email_html = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #d4af37;">📬 Nouveau message client</h2>
+        <p><strong>Client:</strong> {client.get('full_name', 'N/A')}</p>
+        <p><strong>Projet:</strong> {project.get('title', 'Sans titre')}</p>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <p style="margin: 0; white-space: pre-wrap;">{message.content}</p>
+        </div>
+        <p>Connectez-vous à ServiceFlow pour répondre.</p>
+    </div>
+    """
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"Message client: {client.get('full_name', 'N/A')} - {project.get('title', 'Projet')}", email_html)
+    
+    return {"id": msg.id, "message": "Message sent successfully"}
 
 
 # ===================== STRIPE SAAS SUBSCRIPTIONS =====================
