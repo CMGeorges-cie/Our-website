@@ -16,12 +16,15 @@ import {
   DollarSign,
   Shield,
   UserCog,
-  Bell
+  Bell,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import LoadingLion from '@/components/LoadingLion';
 import { adminApi } from '@/lib/api';
+import { useTheme } from '@/components/ThemeProvider';
 
 const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
 
@@ -49,6 +52,7 @@ export default function AdminLayout() {
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -215,6 +219,20 @@ export default function AdminLayout() {
                (location.pathname.includes('notifications') ? 'Notifications' : 'Administration')}
             </h1>
             <div className="flex items-center gap-3">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-gray-400 hover:text-gold-500 hover:bg-gold-500/10 transition-colors"
+                data-testid="theme-toggle"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
+              </button>
+              
               {/* Notification Bell */}
               <Link
                 to="/admin/notifications"

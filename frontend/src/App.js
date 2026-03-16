@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 // Pages
 import HomePage from "@/pages/HomePage";
@@ -128,6 +129,7 @@ function App() {
 
   return (
     <HelmetProvider>
+    <ThemeProvider defaultTheme="dark">
       <div className="App">
         <BrowserRouter>
           <Routes>
@@ -203,6 +205,7 @@ function App() {
         </BrowserRouter>
         <Toaster position="top-right" richColors />
       </div>
+    </ThemeProvider>
     </HelmetProvider>
   );
 }
