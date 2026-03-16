@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { adminLogin, dismissToasts, removeEmergentBadge } from '../fixtures/helpers';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://flow-preview-6.preview.emergentagent.com';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://tech-workflow-app.preview.emergentagent.com';
 
 test.describe('Notification System Frontend', () => {
   

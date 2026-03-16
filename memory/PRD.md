@@ -1,6 +1,6 @@
 # CMGeorges / ServiceFlow — Product Requirements Document
 
-**Dernière mise à jour:** 12 Mars 2026  
+**Dernière mise à jour:** 16 Mars 2026  
 **Stack:** React + FastAPI + MongoDB  
 **Langue:** Français
 
@@ -18,27 +18,34 @@
 ```
 /app
 ├── backend/
-│   ├── server.py       # FastAPI app (3600+ lignes, à découper en Phase 4)
-│   ├── models.py
-│   ├── features.py
-│   ├── tests/          # Tests pytest
-│   │   └── test_notifications.py
+│   ├── server.py          # FastAPI app principale (4200+ lignes)
+│   ├── routers/           # [NEW] Routeurs modulaires v2
+│   │   ├── auth.py        # Authentification mobile-ready
+│   │   ├── projects.py    # Projets avec multi-tenant
+│   │   └── mobile.py      # API mobile optimisée
+│   ├── services/
+│   │   └── database.py    # [NEW] Repository multi-tenant
+│   ├── middleware/
+│   │   └── tenant.py      # [NEW] Isolation multi-tenant
+│   ├── schemas/
+│   │   └── base.py        # [NEW] Modèles Pydantic partagés
 │   └── .env
-└── frontend/
+├── frontend/
+│   ├── src/
+│   │   ├── App.js
+│   │   ├── components/layout/AdminLayout.jsx
+│   │   ├── lib/api.js
+│   │   └── pages/
+│   │       ├── admin/
+│   │       └── client/
+│   └── tests/e2e/
+└── mobile/                 # [NEW] Structure app React Native
     ├── src/
-    │   ├── App.js
-    │   ├── components/layout/AdminLayout.jsx   # Sidebar + notification bell
-    │   ├── lib/api.js                          # Toutes les requêtes API
-    │   ├── lib/utils.js
-    │   └── pages/
-    │       ├── admin/          # Panel admin (thème noir/or)
-    │       │   └── AdminNotifications.jsx  # Centre de notifications
-    │       ├── client/         # Portail client
-    │       │   ├── ClientLogin.jsx
-    │       │   └── ClientDashboard.jsx
-    │       └── ServiceFlowPricing.jsx  # /serviceflow/pricing
-    └── tests/e2e/
-        └── notifications.spec.ts
+    │   ├── screens/
+    │   ├── components/
+    │   ├── services/api.ts  # Client API mobile
+    │   └── navigation/
+    └── README.md
 ```
 
 ---
@@ -52,6 +59,7 @@
 - [x] Branding ServiceFlow sur login + sidebar admin
 - [x] Badge "CMGeorges Workspace" dans sidebar
 - [x] Logo lion couronné ServiceFlow sur toutes les pages
+- [x] Thème dark/light avec toggle
 
 #### CRM Admin (CRUD complet)
 - [x] Leads (liste + détail + suppression)
@@ -63,88 +71,71 @@
 - [x] Codes Promo (CRUD complet)
 - [x] Tarification (CRUD complet)
 - [x] Politiques (CRUD complet)
-- [x] Gestion Utilisateurs (CRUD + rôles + reset mdp + activer/désactiver)
+- [x] Gestion Utilisateurs (CRUD + rôles + reset mdp)
 
-#### Système de Notifications ✅ (Mars 2026)
-- [x] Icône cloche dans le header admin avec badge compteur non-lus
+#### Système de Notifications ✅
+- [x] Icône cloche dans le header admin avec badge compteur
 - [x] Page /admin/notifications - Centre de notifications
-- [x] API endpoints: GET list, GET unread-count, PATCH mark-read, DELETE
-- [x] Notifications automatiques: nouveaux leads, factures créées, paiements reçus, changements statut projet
-- [x] Emails envoyés via Resend + notifications in-app stockées en DB
+- [x] API endpoints: GET list, GET unread-count, PATCH mark-read
+- [x] Notifications automatiques: nouveaux leads, factures, paiements
 
-#### Stratégie de Marque ServiceFlow ✅ (Mars 2026)
-- [x] Navigation avec lien "ServiceFlow" + logo lion
-- [x] Section ServiceFlow sur page d'accueil
-- [x] Page /serviceflow dédiée (Hero, Problem, Solution, For Who, CTA)
-- [x] Footer avec section "Produits"
-- [x] "Built by CMGeorges" sur toutes les pages ServiceFlow
-
-#### Page de Connexion Unifiée ✅ (Mars 2026)
-- [x] Route /connexion avec choix Admin ou Client
-- [x] Redirection automatique selon le rôle après login
-- [x] Animation Vanta.js
-
-### Phase 2 ✅ (Projets Améliorés - Mars 2026)
+### Phase 2 ✅ (Projets Améliorés)
 
 #### Gestion des Tâches de Projet
 - [x] Modèle de tâches (title, description, status, due_date)
-- [x] API: POST /projects/{id}/tasks - Créer une tâche
-- [x] API: PATCH /projects/{id}/tasks/{task_id} - Toggle statut
-- [x] API: DELETE /projects/{id}/tasks/{task_id} - Supprimer
+- [x] API: CRUD tâches de projet
 - [x] UI: Liste de tâches avec checkboxes
-- [x] UI: Modal "Ajouter une tâche"
+- [x] Barre de progression interactive
 
-#### Barre de Progression Interactive
-- [x] Calcul automatique basé sur % de tâches complétées
-- [x] Barre visuelle avec gradient doré
-- [x] Affichage "X/Y tâches"
-- [x] Mise à jour automatique du statut projet (pending → in_progress → completed)
+#### Messagerie Interne ✅
+- [x] Messages par projet (admin/client)
+- [x] Notifications email
+- [x] Timeline des événements
 
-#### Mode Édition de Projet
-- [x] Bouton "Modifier" fonctionnel
-- [x] Édition inline: titre, date, statut, description, notes
-- [x] Boutons "Annuler" / "Enregistrer"
+### Phase 3 🚧 (En Cours - Mars 2026)
 
-#### Timeline / Historique
-- [x] Modèle d'événements (task_added, task_completed, note_added, report_generated)
-- [x] UI: Timeline avec icônes et timestamps
-- [x] Bouton "Note" pour ajouter des notes à l'historique
+#### Architecture Multi-Tenant ✅
+- [x] Middleware d'extraction tenant_id depuis JWT
+- [x] TenantContext pour isolation des requêtes
+- [x] TenantRepository avec filtres automatiques
+- [x] Routeurs v2 avec isolation complète
 
-#### Rapport d'Intervention PDF
-- [x] API: GET /projects/{id}/report - Génère PDF
-- [x] Contenu: Infos projet, client, tâches, historique, notes
-- [x] Téléchargement automatique
+#### API Mobile v2 ✅
+- [x] Endpoints optimisés pour React Native
+- [x] Check-in/Check-out avec GPS
+- [x] Upload photos (base64)
+- [x] Dashboard mobile
+- [x] Sync offline
+- [x] Tracking temps et matériaux
 
-#### Messagerie Interne ✅ (Mars 2026)
-- [x] Modèle ProjectMessage (sender_type, sender_name, content, is_read)
-- [x] API Admin: GET/POST messages, mark-read, unread-count
-- [x] API Client: GET/POST messages (avec auth client)
-- [x] UI: Section "Messages avec le client" dans détail projet
-- [x] UI: Zone de conversation avec bulles alignées (admin=droite, client=gauche)
-- [x] UI: Champ d'envoi avec bouton icône avion
-- [x] Notifications email au client quand l'admin envoie
-- [x] Notifications email à l'admin quand le client répond
-- [x] Timeline: événement "message_sent"
+#### Structure Mobile ✅
+- [x] Architecture projet React Native
+- [x] Client API TypeScript
+- [x] Documentation endpoints
 
-#### Portail Client
-- [x] Inscription et connexion client (/client/login)
-- [x] Dashboard client (projets, factures, statuts)
-- [x] Paiement facture en ligne via Stripe
+---
 
-#### ServiceFlow SaaS
-- [x] Page tarification publique (/serviceflow/pricing)
-- [x] Plans: Starter 29$/mois, Pro 79$/mois, Business 149$/mois
-- [x] Stripe checkout pour abonnements SaaS
-- [x] Stripe checkout pour paiements factures
-- [x] Webhooks Stripe
+## API Endpoints v2 (Mobile)
 
-#### Backend
-- [x] Multi-tenant foundation (tenant_id field, client router isolation)
-- [x] Endpoints gestion utilisateurs admin
-- [x] Client portal auth (register, login, dashboard, projects, invoices)
-- [x] SaaS subscription endpoints
-- [x] Invoice payment endpoints
-- [x] Notification endpoints (list, unread-count, mark-read, delete)
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/v2/auth/login` | POST | Connexion (8h token) |
+| `/api/v2/auth/refresh` | POST | Refresh token |
+| `/api/v2/auth/me` | GET | Info utilisateur |
+| `/api/v2/auth/mobile/device-token` | POST | Push notifications |
+| `/api/v2/mobile/dashboard` | GET | Stats dashboard |
+| `/api/v2/mobile/sync/projects` | GET | Sync projets |
+| `/api/v2/mobile/sync/today` | GET | Projets du jour |
+| `/api/v2/mobile/checkin` | POST | Arrivée sur site |
+| `/api/v2/mobile/checkout` | POST | Départ + signature |
+| `/api/v2/mobile/photos` | POST | Upload photo |
+| `/api/v2/mobile/projects/{id}/status` | PATCH | Statut rapide |
+| `/api/v2/mobile/materials` | POST | Log matériaux |
+| `/api/v2/mobile/time` | POST | Log temps |
+| `/api/v2/projects` | GET/POST | CRUD projets |
+| `/api/v2/projects/my-assignments` | GET | Mes assignations |
+| `/api/v2/projects/{id}/tasks` | GET/POST | Tâches |
+| `/api/v2/projects/{id}/messages` | GET/POST | Messages |
 
 ---
 
@@ -155,7 +146,6 @@
 | Admin | admin@cmgeorges.com | strongpassword123 |
 | Test | test@cmgeorges.com | testpassword |
 | Staff | staff@cmgeorges.com | staffpassword123 |
-| Client test | testclient@email.com | password123 |
 
 ---
 
@@ -166,8 +156,6 @@
 | Resend | ✅ | Email devis + factures + notifications |
 | Stripe | ✅ | Abonnements SaaS + paiements factures |
 | Google reCAPTCHA | ⛔ Désactivé | Attente clé v2 Checkbox |
-| Google Analytics 4 | ✅ | Setup de base |
-| Meta Pixel | ✅ | Setup de base |
 | Vanta.js | ✅ | Animation NET sur login |
 | fpdf/pyfpdf | ✅ | PDF quotes + invoices |
 
@@ -175,35 +163,33 @@
 
 ## Backlog Priorisé
 
-### P0 (Critique)
-- [ ] reCAPTCHA: clé "v2 Checkbox" requise
+### P0 (Critique) - En Cours
+- [x] Architecture multi-tenant (backend)
+- [x] API Mobile v2
+- [ ] Initialisation projet React Native complet
+- [ ] Tests E2E API v2
 
-### P1 — Phase 2 (Prochaine)
-- [ ] Projects: barre de progression interactive + tâches + timeline + photos
-- [ ] Projects: bouton "Modifier" opérationnel + rapport d'intervention
-- [ ] Messagerie interne par projet (fil de discussion client/admin)
-- [ ] Work Orders (interventions terrain + check-in/out + signature)
-- [ ] Calendrier de planification + assignation techniciens
+### P1 — Prochaine Phase
+- [ ] App mobile technicien (React Native)
+  - [ ] Écran de login
+  - [ ] Liste des projets
+  - [ ] Détail projet + tâches
+  - [ ] Check-in/Check-out
+  - [ ] Upload photos
+- [ ] Portail client mobile
+- [ ] Push notifications (Firebase)
 
-### P2 — Phase 3
-- [ ] Gestion des dépenses (matériaux, carburant, déplacements)
-- [ ] Gestion immeubles (Buildings, Units, Tenants, Maintenance Requests)
-- [ ] Inventaire (outils, pièces, stock)
-- [ ] Tableaux de bord avancés + export CSV/PDF
-- [ ] Suivi des heures par projet
+### P2 — Phase 4
+- [ ] Catalogue de services
+- [ ] Système Produits + Installation
+- [ ] Gestion inventaire
+- [ ] Contrats de maintenance
+- [ ] Dashboard Analytics avancé
 
-### P3 — Phase 4
-- [ ] App mobile React Native (client + technicien)
-- [ ] Firebase Push Notifications
-- [ ] Architecture multi-tenant complète (isolation par tenantId dans TOUTES les collections)
-- [ ] Refactoring server.py en modules (routers/, models/, services/)
-- [ ] Migration PostgreSQL (à confirmer)
-
-### P4 — Futur
-- [ ] CRM avancé (segmentation, campagnes marketing, relances auto)
-- [ ] Contrats et abonnements récurrents pour clients
+### P3 — Futur
+- [ ] Migration PostgreSQL
 - [ ] API publique ServiceFlow
-- [ ] Tableau de bord super-admin (multi-tenant view)
+- [ ] Marketplace de services
 
 ---
 
@@ -212,31 +198,21 @@
 | Route | Description |
 |-------|-------------|
 | / | Site public CMGeorges |
-| /serviceflow/pricing | Page tarification ServiceFlow |
-| /client/login | Portail client connexion/inscription |
-| /client/dashboard | Tableau de bord client |
-| /admin/login | Connexion admin ServiceFlow |
+| /serviceflow | Landing page ServiceFlow |
+| /serviceflow/pricing | Tarification SaaS |
+| /connexion | Choix connexion (Admin/Client) |
+| /admin/login | Connexion admin |
 | /admin/dashboard | Dashboard CRM |
-| /admin/notifications | Centre de notifications |
-| /admin/users | Gestion utilisateurs et rôles |
-| /admin/leads | Gestion des leads |
-| /admin/clients | Gestion des clients |
-| /admin/projects | Gestion des projets |
-| /admin/invoices | Gestion des factures |
-| /admin/revenue | Analytics revenus |
-| /admin/blog | Blog admin |
-| /admin/discounts | Codes promo |
-| /admin/pricing | Grille tarifaire |
-| /admin/policies | Politiques |
+| /admin/projects | Gestion projets |
+| /client/login | Portail client |
+| /client/dashboard | Dashboard client |
 
 ---
 
 ## Notes Techniques
 
-- Bcrypt pour les mots de passe (sel valide requis)
-- JWT auth pour admin + client (tokens séparés en localStorage)
-- MongoDB `_id` exclu de toutes les réponses API
-- Stripe via `emergentintegrations` library (clé `sk_test_emergent`)
-- Vanta.js via npm (`yarn add vanta three`)
-- Thème admin: gold-500 = #d4af37, fond = #0f0f1a
-- Notifications stockées dans collection `notifications` MongoDB
+- JWT auth avec tenant_id intégré
+- MongoDB avec exclusion `_id` systématique
+- API v1 (legacy) + v2 (mobile-optimized)
+- Thème: gold-500 = #d4af37, fond = #0f0f1a
+- Hot reload frontend/backend activé

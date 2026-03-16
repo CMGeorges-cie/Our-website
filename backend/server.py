@@ -2993,7 +2993,7 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
     await db.client_portal_access.insert_one(doc)
     
     # Build portal URL
-    portal_url = f"https://flow-preview-6.preview.emergentagent.com/portail-client?token={access_token}"
+    portal_url = f"https://tech-workflow-app.preview.emergentagent.com/portail-client?token={access_token}"
     
     # Send email to client
     email_html = f"""
@@ -4155,12 +4155,24 @@ async def delete_notification(notification_id: str, user: dict = Depends(get_cur
     return {"success": True}
 
 
-# Include routers
+# Include v1 routers (legacy)
 v1_router.include_router(admin_router)
 v1_router.include_router(client_router)
 v1_router.include_router(saas_router)
 v1_router.include_router(invoice_pay_router)
+
+# V2 API - Mobile optimized with full multi-tenant isolation
+from routers.mobile import router as mobile_router
+from routers.projects import router as projects_v2_router
+from routers.auth import router as auth_v2_router
+
+v2_router = APIRouter(prefix="/v2")
+v2_router.include_router(auth_v2_router)
+v2_router.include_router(projects_v2_router)
+v2_router.include_router(mobile_router)
+
 api_router.include_router(v1_router)
+api_router.include_router(v2_router)
 app.include_router(api_router)
 
 app.add_middleware(

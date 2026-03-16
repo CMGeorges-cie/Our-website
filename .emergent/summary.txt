@@ -1,186 +1,171 @@
 <analysis>**original_problem_statement:**
-The user initially requested a production-ready website for their company, CMGeorges, with a React, FastAPI, and MongoDB stack. This included a full CRM, a quoting system, SEO, and various content pages.
+The user initially requested a production-ready website for their company, CMGeorges. The project then pivoted to building **ServiceFlow**, a complete, multi-tenant SaaS platform for service-based businesses.
 
-However, the project's scope underwent a massive pivot. The new goal is to build **ServiceFlow**, a complete, multi-tenant SaaS platform for service-based businesses (handymen, contractors, property managers). The platform should be sold via a subscription model (managed by Stripe).
+The user has recently provided a massive expansion of this vision (in message #335), outlining a full service management ecosystem. The goal is to surpass local competitors by building a hybrid system combining a CRM, Job Management, Maintenance Contracts, Inventory, a Customer Portal, a Technician Workflow, and an Analytics Dashboard, with plans for a future service marketplace.
 
-**PRODUCT REQUIREMENTS (Post-Pivot):**
-1.  **Multi-Tenant SaaS Architecture:** The entire platform must be built to support multiple companies (tenants), with complete data isolation for each workspace.
-2.  **SaaS Subscription Management:** Integrate Stripe to handle monthly/annual subscription plans (e.g., Starter, Pro, Business), including checkout, webhooks, and billing management.
-3.  **Complete CRM & Operations Suite:**
-    *   **Core Modules:** Stabilize and enhance existing modules (Clients, Projects, Invoices, Leads) within the new multi-tenant structure.
-    *   **New Modules:** Implement new modules for Scheduling, Work Orders, Expense Management, Inventory, and Property Management.
-    *   **Project Management:** Make the project progress bar interactive, add internal tasks, and a Rapport (report) button.
-4.  **Client Portal:** A dedicated portal for clients to log in, view their projects/invoices, communicate via an internal messaging system, and make payments.
-5.  **User & Role Management:** An admin section to manage users (technicians, managers, clients) and define granular permissions (RBAC).
-6.  **Notifications:** Implement a full notification system for both email (Resend) and an in-app notification center (bell icon) for key events (new leads, project updates, invoices sent, payments received).
-7.  **Native Mobile App (Future Goal):** A React Native application for both clients and technicians.
-8.  **Branding:** The public service business remains CMGeorges. The SaaS product is branded ServiceFlow. The login page should feature a Vanta.js animated background.
+**PRODUCT REQUIREMENTS (Post-Pivot & Expansion):**
+1.  **Core SaaS Architecture:** Multi-tenant, secure, and scalable. The user has specified a future move to **PostgreSQL**.
+2.  **SaaS Subscription Management:** Full Stripe integration for monthly/annual plans, including webhooks and billing management.
+3.  **Complete Service Ecosystem:**
+    *   **Customer CRM:** Advanced profiles with properties, tags, and full history.
+    *   **Property Management Module:** Track buildings, units, maintenance schedules, and inspection reports.
+    *   **Service Catalog:** Create predefined service packages (e.g., Handyman Visit, Drywall Repair).
+    *   **Product + Installation System:** Sell products with an installation option, including inventory and margin tracking.
+    *   **Job Management:** Full workflow from quote to payment, including technician assignments and photo documentation.
+    *   **Project Enhancements:** Interactive progress bar, internal tasks, PDF reports, and internal messaging (partially complete).
+4.  **Client Portal:** A portal for clients to manage their services, see history, and make payments.
+5.  **Technician Mobile Interface:** The user has requested to begin migration towards a React Native mobile app for technicians to manage jobs on-site.
+6.  **UI/UX:** A premium, clean, black-and-gold interface with **dark and light modes**. The design should be mobile-first and feel more classy than competitors like TaskRabbit.
 
 **User's preferred language**: français
 
 **what currently exists?**
-The application has been significantly refactored from a simple internal CRM into the foundational structure for the ServiceFlow SaaS platform.
--   **Frontend (React):** The login page has been rebranded to ServiceFlow and features a Vanta.js animated background. The admin dashboard is also rebranded and includes sidebar links for the new SaaS management pages (Billing, Users & Roles, Settings) and a client portal. Full CRUD functionality for the original CRM modules (Leads, Clients, Invoices, Projects, etc.) has been implemented and placed within the new layout. A public pricing page for ServiceFlow has been created at .
--   **Backend (FastAPI):** The backend has been partially refactored for multi-tenancy. It includes new Pydantic models and API endpoints for , Stripe , and fetching client portal data. Stripe keys are configured. A  helper module has been created to centralize sending emails via Resend and creating database notification records.
--   **Database (MongoDB):** The schema is being expanded to support the new multi-tenant models (, , etc.) as specified by the user.
+The application is a React (frontend) and FastAPI (backend) stack with a MongoDB database. It has been significantly refactored into the ServiceFlow SaaS platform.
+-   **Frontend:** The UI has been completely overhauled with a premium **black-and-gold design system**, including a **dark/light theme toggle**. The admin dashboard, login pages, and all new components follow this new aesthetic. A comprehensive branding strategy has been implemented, with a dedicated  landing page, updated navigation, and the new golden lion logo integrated throughout the app. A unified login page () correctly routes users to the admin or client portal.
+-   **Backend:** The monolithic  now includes endpoints for a fully functional **Notification System**, enhanced **Project Management** (tasks, progress tracking, PDF reports), and **Internal Project Messaging**. The backend uses  for emails and  for PDF generation. The multi-tenancy foundation exists but is not yet fully enforced across all data models.
+-   **Database (MongoDB):** The schema has been expanded with models for  and .
 
 **Last working item**:
--   Last item agent was working: Implementing a comprehensive notification system. The agent created a  helper for creating DB records and sending emails, added a  endpoint, and started integrating notification triggers into existing business logic endpoints (like lead creation).
--   Status: **IN PROGRESS**
--   Agent Testing Done: N
--   Which testing method agent to use? backend testing agent
+-   Last item agent was working: The user requested a classier design and to continue migrate in mobile app. The agent successfully implemented the complete UI redesign (dark/light theme, black/gold palette) and was about to start on the mobile app preparation.
+-   Status: **NOT STARTED** (on the mobile app migration)
+-   Agent Testing Done: Y (for the previous UI work, via screenshots)
+-   Which testing method agent to use? This is a major architectural task. The agent should start with planning, then backend API refactoring and potentially setting up a new React Native project structure. It will require both  and  upon completion of milestones.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   Issue 1: Incomplete Notification System (P0)
+-   Issue 1: Incomplete Multi-Tenant Data Isolation (P0)
 
 Issues Detail:
 -   Issue 1:
-    -   **Description:** The notification system is partially built. The backend helper exists, but it hasn't been integrated into all the required business logic endpoints (, , , etc.). The frontend UI for the notification center (bell icon and notifications page) has not been created.
-    -   **Attempted fixes:** A  module and a  endpoint were created. The  endpoint was modified to trigger a notification.
+    -   **Description:** The backend logic in  is not yet fully data-isolated. Database queries do not consistently include a  filter, creating a critical security risk for a SaaS platform. The monolithic  file is also becoming unmaintainable.
+    -   **Attempted fixes:** Foundational models for tenants exist.
     -   **Next debug checklist**:
-        1.  **Backend:** In , continue integrating the  function into all relevant endpoints: , , etc.
-        2.  **Frontend:** In , add a bell icon to the header with a badge for unread notifications.
-        3.  **Frontend:** Create a new page  to display a history of all notifications.
-        4.  **Frontend:** Wire up the bell icon and the new page to the  endpoint.
-    -   **Why fix this issue and what will be achieved with the fix?** This will complete a core communication feature of the SaaS, keeping users informed of important events.
+        1.  Refactor  by breaking it down into modular routers (e.g., , ).
+        2.  Implement a dependency or middleware that extracts the  from the authenticated user's token.
+        3.  Audit and rewrite **every single database query** across all services to enforce  scoping.
+    -   **Why fix this issue and what will be achieved with the fix?** This is the single most critical task to create a true, secure multi-tenant SaaS product. Without this, the app is not viable as a commercial product.
     -   **Status:** **IN PROGRESS**
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue:** No
+    -   **Blocked on other issue:** No. This issue blocks the safe implementation of all other features.
 
 **In progress Task List**:
--   Task 1: Full Multi-Tenant SaaS Implementation (P0)
-
-Task Detail:
--   Task 1:
-    -   **Where to resume:** The backend has foundational tenant models and endpoints, but the business logic in  is not yet fully data-isolated. The work to break down the monolithic  into modular files (e.g., , ) needs to continue. Every database query must be rewritten to include a  clause, using a middleware to extract the  from the authenticated user's session.
-    -   **What will be achieved with this?** A true, secure multi-tenant architecture where one company cannot access another's data. This is the absolute core of the SaaS product.
-    -   **Status:** **IN PROGRESS**
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on something:** No
+-   The Incomplete Multi-Tenant Data Isolation issue is the primary in-progress task.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks (Phase 1):**
-    -   **(P0) Finalize Stripe Subscription Integration:** Implement Stripe webhooks to handle subscription status changes (e.g., , ). Build the UI in  for a tenant to manage their subscription.
-    -   **(P1) Build Full Client Portal:** Develop the frontend for the client portal, including authentication, a dashboard to view projects and invoices, and the UI to pay invoices online.
-    -   **(P1) Implement User & Role Management (RBAC):** Build the UI in  to invite, create, and assign roles to users. Implement a middleware on the backend to enforce permissions based on user roles for all API endpoints.
-    -   **(P1) Stabilize Core CRM Modules:** Ensure the CRUD functionality for Projects, Clients, Invoices, etc., is robust within the new multi-tenant context. Implement the interactive project progress bar.
+-   **Upcoming Tasks (Next Phases):**
+    -   **(P0) Architect for Mobile App:** The user's latest request is to migrate in mobile app. This involves architecting the backend APIs to be mobile-friendly and planning the structure for a future React Native application.
+    -   **(P1) Service Catalog Module:** Implement backend models, endpoints, and a frontend UI for creating and managing a catalog of services.
+    -   **(P2) Product + Installation System:** Build out the inventory management, product sales logic, and associated UI.
+    -   **(P2) Finalize Stripe Subscription Integration:** Implement Stripe webhooks to handle the full subscription lifecycle (, , etc.) and build the UI for tenants to manage their plan.
+    -   **(P3) Build Full Client Portal & RBAC:** Enhance the client portal with the newly requested features and build the UI for User & Role management.
 
--   **Future Tasks (Phases 2 & 3):**
-    -   Integrate Stripe for end-client invoice payments.
-    -   Build the Scheduling and Work Orders module.
-    -   Build the Expense Management and advanced Analytics modules.
-    -   Build the Inventory and Property Management modules.
-    -   Develop the React Native mobile application for clients and technicians.
-    -   Re-evaluate migrating the database from MongoDB to PostgreSQL once the platform matures.
+-   **Future Tasks:**
+    -   Implement the Maintenance Contract system.
+    -   Develop the Analytics Dashboard.
+    -   Build the Property Management module.
+    -   Design the architecture for a future service marketplace.
+    -   **Migrate the database from MongoDB to PostgreSQL** as specified by the user.
+    -   Develop the full React Native mobile application.
 
 **Completed work in this session**
--   **Architecture Pivot:** Refactored the entire application from a single-user CRM to a multi-tenant SaaS architecture foundation (ServiceFlow).
--   **Branding & UI:** Rebranded the login and admin areas for ServiceFlow and added a Vanta.js animated background to the login page.
--   **Stripe Integration:** Integrated Stripe SDK and created a backend endpoint to initiate SaaS subscription checkout sessions.
--   **Full Admin CRUD:** Implemented complete Create, Read, Update, and Delete functionality for all core CRM modules (Leads, Clients, Projects, Invoices, Blog, Discounts, Pricing, Policies).
--   **SaaS Pages:** Created placeholder frontend pages for Billing, User Management, Settings, a Client Portal, and a public pricing page.
--   **Bug Fixes:** Resolved a critical admin login failure by correctly hashing user passwords in the database.
--   **Testing:** Successfully used the testing agent on two separate occasions to validate major features and fix minor bugs reported in the test results.
+-   **Premium UI Redesign:** Implemented a full dark/light theme system with a premium black-and-gold aesthetic.
+-   **ServiceFlow Branding:** Executed a complete branding strategy with a new logo, a dedicated  landing page, and updated navigation.
+-   **Unified Login Flow:** Created a login selection page that correctly redirects users based on their role (Admin vs. Client).
+-   **Notification System:** Fully implemented and tested a comprehensive notification system (backend triggers, DB storage, and frontend UI with a notification center).
+-   **Project Management V2:** Delivered an enhanced project detail page with an interactive progress bar, sub-tasks, PDF report generation, and an edit mode.
+-   **Internal Project Messaging:** Implemented a real-time chat feature within each project for communication between admins and clients.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: reCAPTCHA on the public lead form is still disabled.** The original Invalid key type error was bypassed by commenting out the feature and never revisited after the SaaS pivot.
--   **Issue 2: The Print and Send document feature is incomplete.** The backend can generate PDFs, but the full frontend workflow (including sending via email with Resend) is not wired up.
--   **Issue 3: The quote simplification (removing market price) was never implemented.**
+-   **Issue 1:** reCAPTCHA on the public lead form is still disabled.
+-   **Issue 2:** The Print and Send document feature is incomplete (frontend is not wired to the email-sending backend).
+-   **Issue 3:** The quote simplification (removing market price) was never implemented.
+
+**Known issue recurrence from previous fork**
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React, React Router, Tailwind CSS, Vanta.js
--   **Backend:** FastAPI, Pydantic, Motor (MongoDB), Resend
--   **Database:** MongoDB
--   **Architecture:** Multi-tenant SaaS
--   **Integrations:** Stripe (SaaS Subscriptions), Resend (Email), Google Analytics, Meta Pixel
+-   **Frontend:** React, React Router, Tailwind CSS, **Context API for Theming (Dark/Light Mode)**.
+-   **Backend:** FastAPI, Pydantic, Motor (MongoDB), Resend, **fpdf2**.
+-   **Database:** MongoDB (with a user-specified future migration to PostgreSQL).
+-   **Architecture:** Multi-tenant SaaS (In Progress).
+-   **Integrations:** Stripe, Resend.
 
 **key DB schema**
-The user has provided a comprehensive 20-collection schema for the full SaaS platform. The implementation has only begun, with initial models for  and . The next agent must refer to the user's detailed schema specification in **message #122** for all future data modeling.
+-   **Existing:** ,  have been added to support new features.
+-   **Future:** The user has provided a comprehensive new vision for the schema in **message #335**. This prompt is now the source of truth for all future data modeling, including , , , , etc.
 
 **changes in tech stack**
--   **Stripe** has been added for payment processing.
--   **Vanta.js** (with Three.js) has been added for UI animation.
+-   **fpdf2:** Added to the backend for PDF report generation.
+-   **sonner:** Added to the frontend for toast notifications.
+-   A complete, context-based **theming system** has been implemented on the frontend.
 
 **All files of reference**
--   **User Vision & Schema:** Messages #116, #119, and especially #122 contain the new product definition and database schema.
--   **Backend Logic:** , , 
--   **Frontend Routing:** 
--   **Frontend Layout:** 
--   **New SaaS Pages:** All new files under  and the  pages.
--   **Login UI:** , 
+-   **New Product Vision & Schema:** **Message #335** is the new critical source of truth for the entire project direction.
+-   **New Design Guidelines:** **Message #338** defines the black/gold, dark/light theme.
+-   **Backend Logic:** , .
+-   **Frontend Implementation:**
+    -   Theming: , , .
+    -   Layouts & Pages: , , , .
 
 **Areas that need refactoring**:
--   The monolithic  file is extremely large and contains logic for many different domains (auth, clients, projects, invoices, tenants, stripe). It must be aggressively broken down into a modular structure with separate files/routers for each feature (e.g., , , etc.) to be maintainable.
+-   **:** This monolithic file is now critically oversized. It MUST be broken down into a modular structure with separate routers for each domain (projects, clients, auth, etc.) to ensure maintainability.
+-   **Database Migration:** A plan needs to be formulated for the future migration from MongoDB to PostgreSQL, as requested by the user.
 
 **key api endpoints**
--   : Creates a Stripe checkout session for a SaaS subscription.
--   : (Stub) For fetching tenant data.
--   : (Stub) For fetching data for the client portal.
--   : For fetching user notifications.
--   All core CRUD endpoints: 
+-   **Notifications:** , , .
+-   **Project V2:** , , .
+-   **Project Messaging:** .
 
 **Critical Info for New Agent**
--   **Major Pivot:** The project is no longer an internal tool. It is a multi-tenant SaaS platform named **ServiceFlow**. Your primary source of truth is the user's detailed specifications in messages #116, #119, and #122.
--   **Language:** You MUST respond to the user in **French**.
--   **Immediate Task:** Your first priority is to complete the **notification system** (both backend triggers and frontend UI).
--   **Core Architecture Task:** Your next priority is to continue the **multi-tenant refactoring**. All backend logic must be strictly scoped by . Continue breaking down .
--   **Roadmap:** Follow the 12-week roadmap provided by the user. After notifications, focus on the remaining Phase 1 items: Stripe webhooks, the Client Portal, and User/Role Management.
+-   **Language:** You MUST respond to the user in **français**.
+-   **New Master Plan:** The prompt in **message #335** has massively expanded the project's scope. It is the new product definition and must be followed for all future development. This includes the plan to eventually migrate to **PostgreSQL**.
+-   **Mobile App First:** The user's last instruction was to Continue migrate in mobile app. Your first task should be to plan and begin the architectural work needed to support a future React Native app.
+-   **CRITICAL - Multi-Tenancy:** The task of fully isolating tenant data is still in progress and is a **P0 security requirement**. This must be advanced alongside new feature development.
+-   **New Design System:** All new UI must adhere to the established premium black-and-gold design system with support for both dark and light themes.
 
 **documents and test reports created in this job**
 -   
--   
--    (updated with completed CRUD tasks, but needs a major rewrite to reflect the new ServiceFlow vision).
+-    (updated for Messaging and Project V2)
 
 **Last 10 User Messages and any pending HUMAN messages**
--   10. : Confirms the plan to start implementing the notification system. (Status: **In Progress**)
--   9. : User asks to pull from git again. (Status: **Addressed** - Agent explained it's a managed environment).
--   8. : User confirms the plan to integrate Stripe, Vanta.js, and build the pricing page. (Status: **Completed**).
--   7. : User specifies the route for the SaaS pricing page. (Status: **Completed**).
--   6. : A long, detailed message outlining the new SaaS vision, tech choices (stick with Mongo for now), branding (CMGeorges vs. ServiceFlow), and priorities (SaaS subscriptions first). (Status: **Completed/In Progress**).
--   5. : A massive prompt detailing the full SaaS product vision, architecture, feature set, and modules. **This is a critical source of truth.** (Status: **Acknowledged**).
--   4. : A long list of future features, which became the basis for the full SaaS pivot. (Status: **Acknowledged**).
--   3. : Initial confirmation to start work and a request to pull code. (Status: **Addressed**).
+-   : User approves the classy design and asks to start migrating/preparing for a mobile app. **(PENDING)**
+-   : User provides detailed instructions for a premium, black-and-gold, dark/light theme UI. **(Completed)**
+-   **(PROMPT) You are a senior SaaS architect...P1now continue next phasele logo n'est pas partout ou il droit etre: User provided the new golden lion logo. **(Completed)**
+-   : User provided a detailed branding and site structure strategy to separate the CMGeorges service company from the ServiceFlow SaaS product. **(Completed)**
+-   : User requested a login button on the public site and role-based redirection after login. **(Completed)**
+-   : User asks to start P2-P3 and provides the massive new scope prompt. **(Addressed)**
 
 **Project Health Check:**
--   **Broken:**
-    -   No strictly broken features, but the application is in a transitional state between a simple CRM and a full SaaS product.
--   **Mocked:**
-    -   The SaaS management pages (Billing, Users, Settings) are UI stubs with no backend logic.
-    -   The Client Portal is a placeholder.
+-   **Broken:** No features are strictly broken, but the lack of full multi-tenant data isolation is a critical architectural flaw.
+-   **Mocked:** SaaS management pages (Billing, Users, Settings); most Client Portal features.
 -   **Partially Implemented:**
-    -   **Multi-tenancy:** Backend models exist, but data access is not yet fully isolated across the application.
-    -   **Stripe Integration:** Can create checkout sessions, but full subscription lifecycle management (webhooks, cancellations) is missing.
-    -   **Notification System:** Backend helpers are created, but triggers are not fully integrated, and the frontend UI is non-existent.
+    -   **Multi-tenancy:** The foundational models exist, but data access is not yet securely isolated across the application. This is the highest-priority technical debt.
+    -   **Stripe Integration:** Checkout sessions can be created, but full subscription lifecycle management (webhooks, etc.) is missing.
 
 **3rd Party Integrations**
 -   **Stripe** (SaaS Subscriptions): Partially integrated. Requires User API Key.
--   **Resend** (Email): Configured and being used for the new notification system. Requires User API Key.
--   **Google reCAPTCHA v2**: Configured in  but **disabled** in the code due to an unresolved key type error.
--   **Google Analytics 4**: Basic setup complete.
--   **Meta Pixel**: Basic setup complete.
+-   **Resend** (Email): Integrated for notifications. Requires User API Key.
+-   **fpdf2** (PDF Generation): New dependency, integrated for project reports.
+-   **Google reCAPTCHA v2**: Configured but **disabled** in the code.
 -   **Vanta.js / Three.js** (UI Animation): Implemented on the login page.
 
 **Testing status**
--   Testing agent used after significant changes: **YES** (twice, successfully)
+-   Testing agent used after significant changes: **YES** (for the notification system, all tests passed).
 -   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None
--   Known regressions: None
+-   Test files created:  was generated by the testing agent. The agent would have also created spec files in  and test files in .
+-   Known regressions: None.
 
 **Credentials to test flow:**
 -   **Admin Login:**
     -   Email: 
     -   Password: 
--   **Test User:**
-    -   Email: 
-    -   Password: 
 
 **What agent forgot to execute**
-During the major pivot to the ServiceFlow SaaS model, the following smaller tasks from the original scope were overlooked and never implemented:
--   Re-enabling and fixing the Google **reCAPTCHA** on public forms.
--   Simplifying the quote creation form by removing the market price field.
--   Fully wiring up the Print/Send document feature on the frontend.</analysis>
+The following tasks from the original scope were deprioritized and never implemented after the major SaaS pivot:
+-   Re-enabling and fixing Google **reCAPTCHA**.
+-   Fully wiring up the Print/Send document feature on the frontend.
+-   Simplifying the quote creation form by removing the market price field.</analysis>
