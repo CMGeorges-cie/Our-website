@@ -7,98 +7,128 @@
 
 ## Ce qui est implémenté
 
-### CRM Admin ✅
+### CRM Admin
 - Leads, Clients, Projets (CRUD complet)
 - Notifications système
 - Thème dark/light premium noir/or
 
-### Projets V2 ✅
+### Projets V2
 - Tâches avec progression
 - Messagerie interne
 - Timeline des événements
 
-### Multi-Tenant & Mobile ✅
+### Multi-Tenant & Mobile
 - API v2 mobile-ready
-- TenantContext isolation
+- TenantContext isolation (partielle)
 - Structure React Native complète
 
-### Catalogue de Services ✅
+### Catalogue de Services
 - CRUD services avec catégories
 - 12 services CMGeorges
 
-### Facturation Style Joist ✅
+### Facturation Style Joist
 - Page liste avec stats
 - Modal création avec intégration catalogue
 - Calcul TPS/TVQ automatique
 - Remises et acomptes
 - Page détail professionnelle
 
-### Signature Électronique ✅ [NOUVEAU]
-- **Composant SignaturePad** avec react-signature-canvas
-- **Dialog de signature** complet:
-  - Texte légal (valeur légale signature électronique)
-  - Info signataire et date/heure
-  - Zone de signature interactive avec canvas
-  - Boutons Effacer/Confirmer
-- **Backend endpoints**:
-  - `POST /api/v1/admin/invoices/{id}/signature`
-  - `DELETE /api/v1/admin/invoices/{id}/signature`
-  - `POST /api/v1/admin/quotes/{id}/signature`
-- **Affichage signature** sauvegardée sur facture/devis
-- **SignatureDisplay** component pour afficher signatures existantes
+### Signature Électronique (In-App)
+- Composant SignaturePad avec react-signature-canvas
+- Dialog de signature complet (texte légal, info signataire)
+- Backend endpoints pour factures et devis
+- Affichage signature sauvegardée
+
+### Lien de Signature Publique (DocuSign style)
+- **Page publique** `/sign/:type/:token` avec aperçu document complet
+- **Backend API** `GET/POST /api/public/sign/invoice/{token}` et `/api/public/sign/quote/{token}`
+- **Envoi lien par email** `POST /api/v1/admin/invoices/{id}/send-signature-link`
+- **Token sécurisé** SHA256 avec expiration 72h
+- **Routage corrigé** sous `/api` prefix pour Kubernetes
+
+### Emails & Notifications
+- Templates email professionnels ServiceFlow
+- Liens email corrigés avec FRONTEND_URL
+- Notifications pour leads, factures, paiements, projets
 
 ---
 
-## Structure Fichiers
+## Architecture Fichiers
 
 ```
 /app
 ├── backend/
-│   └── server.py              # + SignatureData model, signature endpoints
+│   ├── .env                    # FRONTEND_URL ajouté
+│   ├── server.py               # Monolithique (à refactorer)
+│   ├── routers/
+│   │   ├── auth.py
+│   │   ├── catalog.py
+│   │   ├── mobile.py
+│   │   ├── projects.py
+│   │   └── public_signature.py # Prefix /api/public/sign
+│   ├── middleware/
+│   │   └── tenant.py
+│   ├── services/
+│   │   └── database.py
+│   └── tests/
+│       └── test_public_signature.py
 ├── frontend/
 │   └── src/
 │       ├── components/ui/
-│       │   └── signature-pad.jsx   # [NEW] SignaturePad, SignatureDialog, SignatureDisplay
-│       ├── lib/api.js              # + addInvoiceSignature, addQuoteSignature
-│       └── pages/admin/
-│           ├── AdminInvoices.jsx
-│           └── AdminInvoiceDetail.jsx  # + signature integration
+│       │   └── signature-pad.jsx
+│       ├── lib/api.js
+│       └── pages/
+│           ├── PublicSignaturePage.jsx  # Appelle /api/public/sign/...
+│           └── admin/
+│               ├── AdminInvoices.jsx
+│               └── AdminInvoiceDetail.jsx
 └── mobile/
     └── src/...
 ```
 
 ---
 
-## API Signature
+## API Clés
 
-| Endpoint | Description |
-|----------|-------------|
-| `POST /invoices/{id}/signature` | Ajouter signature client à facture |
-| `DELETE /invoices/{id}/signature` | Supprimer signature |
-| `POST /quotes/{id}/signature` | Signer devis (change status → accepted) |
+| Endpoint | Auth | Description |
+|----------|------|-------------|
+| `GET /api/public/sign/invoice/{token}` | Non | Récupérer facture pour signature publique |
+| `POST /api/public/sign/invoice/{token}` | Non | Soumettre signature publique |
+| `GET /api/public/sign/quote/{token}` | Non | Récupérer devis pour signature publique |
+| `POST /api/public/sign/quote/{token}` | Non | Soumettre signature publique devis |
+| `POST /api/v1/admin/invoices/{id}/send-signature-link` | Oui | Envoyer lien signature par email |
+| `POST /api/v1/admin/quotes/{id}/send-signature-link` | Oui | Envoyer lien signature devis |
+| `POST /api/v1/admin/invoices/{id}/signature` | Oui | Ajouter signature in-app |
+| `DELETE /api/v1/admin/invoices/{id}/signature` | Oui | Supprimer signature |
 
-**Payload SignatureData:**
-```json
-{
-  "signature_base64": "data:image/png;base64,...",
-  "signer_name": "Client Name",
-  "signer_email": "client@email.com"
-}
-```
+---
+
+## Bugs Corrigés (24 Mars 2026)
+
+- **URLs email cassées** : `http:///admin/invoices/...` → `https://serviceflow-preview.preview.emergentagent.com/admin/invoices/...`
+- **Routage signature publique** : Endpoints déplacés sous `/api` pour compatibilité Kubernetes ingress
+- **`.env` corrompu** : STRIPE_API_KEY et FRONTEND_URL concaténés sur même ligne
 
 ---
 
 ## Backlog
 
-### P1 - Prochaine
-- [ ] Ajouter signature aux devis (frontend)
+### P0 - Critique
+- [ ] Isolation multi-tenant complète (audit toutes les requêtes DB)
+- [ ] Déployer première version utilisable
+
+### P1 - Priorité
 - [ ] Inclure signature dans PDF
-- [ ] App React Native sur stores
+- [ ] Système Produits + Installation + Inventaire
+- [ ] Intégration Stripe complète (webhooks cycle de vie)
 
 ### P2
-- [ ] Envoi devis par email avec lien signature
-- [ ] Système Produits + Inventaire
+- [ ] Portail client complet avec RBAC
+- [ ] App React Native sur stores
+- [ ] Réactiver reCAPTCHA formulaire public
+- [ ] Connecter "Imprimer et Envoyer" au backend email
 
 ### P3
 - [ ] Dashboard Analytics
 - [ ] Migration PostgreSQL
+- [ ] Simplifier formulaire devis (retirer "market price")
