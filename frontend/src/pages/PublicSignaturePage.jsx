@@ -32,7 +32,7 @@ export default function PublicSignaturePage() {
 
   const fetchDocument = async () => {
     try {
-      const response = await axios.get(`${BACKEND_URL}/sign/${type}/${token}`);
+      const response = await axios.get(`${BACKEND_URL}/api/public/sign/${type}/${token}`);
       setData(response.data);
       if (response.data.client) {
         setSignerName(response.data.client.full_name || '');
@@ -57,7 +57,7 @@ export default function PublicSignaturePage() {
 
     setSubmitting(true);
     try {
-      await axios.post(`${BACKEND_URL}/sign/${type}/${token}`, {
+      await axios.post(`${BACKEND_URL}/api/public/sign/${type}/${token}`, {
         signature_base64: signature,
         signer_name: signerName,
         signer_email: signerEmail

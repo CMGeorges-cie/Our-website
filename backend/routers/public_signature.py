@@ -10,7 +10,7 @@ import uuid
 import hashlib
 import os
 
-router = APIRouter(prefix="/sign", tags=["Public Signature"])
+router = APIRouter(prefix="/public/sign", tags=["Public Signature"])
 
 # Get database from main app
 def get_db():

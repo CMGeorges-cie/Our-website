@@ -55,6 +55,9 @@ RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', '')
 # Stripe Configuration
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', '')
 
+# Frontend URL for email links
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://serviceflow-preview.preview.emergentagent.com')
+
 # ServiceFlow SaaS Plans (backend-defined, never from frontend)
 SERVICEFLOW_PLANS = {
     "starter": {"name": "Starter", "price": 29.00, "currency": "usd", "users": 2, "projects": 50},
@@ -1021,7 +1024,7 @@ async def notify_new_lead(lead: dict, background_tasks: BackgroundTasks):
         {f"<p><span class='label'>Description:</span> {lead.get('description','')[:200]}</p>" if lead.get('description') else ''}
     </div>
     """
-    html = _notif_html(f"Nouveau lead : {lead.get('full_name','')}", body_html, "Voir dans l'admin", f"{os.environ.get('FRONTEND_URL','')}/admin/leads")
+    html = _notif_html(f"Nouveau lead : {lead.get('full_name','')}", body_html, "Voir dans l'admin", f"{FRONTEND_URL}/admin/leads")
     background_tasks.add_task(send_email, ADMIN_EMAIL, f"🔔 Nouveau lead: {lead.get('full_name','')} — ServiceFlow", html)
     background_tasks.add_task(create_notification, f"Nouveau lead: {lead.get('full_name','')}", f"Service: {service} — Urgence: {urgence}", "new_lead", "lead", lead.get("id"))
 
@@ -1036,7 +1039,7 @@ async def notify_invoice_created(invoice: dict, client: dict, background_tasks: 
         <p><span class="label">Échéance:</span> {str(invoice.get('due_date','À réception'))[:10]}</p>
     </div>
     """
-    html_admin = _notif_html(f"Facture {invoice.get('invoice_number','')} créée", body_html, "Voir la facture", f"{os.environ.get('FRONTEND_URL','')}/admin/invoices/{invoice.get('id','')}")
+    html_admin = _notif_html(f"Facture {invoice.get('invoice_number','')} créée", body_html, "Voir la facture", f"{FRONTEND_URL}/admin/invoices/{invoice.get('id','')}")
     background_tasks.add_task(send_email, ADMIN_EMAIL, f"📄 Facture {invoice.get('invoice_number','')} créée — ServiceFlow", html_admin)
     # Email to client
     if client.get("email"):
@@ -1050,7 +1053,7 @@ async def notify_invoice_created(invoice: dict, client: dict, background_tasks: 
         </div>
         <p>Vous pouvez consulter et payer cette facture via votre portail client.</p>
         """
-        html_client = _notif_html(f"Votre facture {invoice.get('invoice_number','')}", client_body, "Accéder au portail client", f"{os.environ.get('FRONTEND_URL','')}/client/login")
+        html_client = _notif_html(f"Votre facture {invoice.get('invoice_number','')}", client_body, "Accéder au portail client", f"{FRONTEND_URL}/client/login")
         background_tasks.add_task(send_email, client["email"], f"Votre facture {invoice.get('invoice_number','')} — CMGeorges", html_client)
     background_tasks.add_task(create_notification, f"Facture {invoice.get('invoice_number','')} créée", f"Client: {client.get('full_name','')} — {invoice.get('total',0):.2f}$", "invoice_created", "invoice", invoice.get("id"))
 
@@ -1065,7 +1068,7 @@ async def notify_payment_received(invoice: dict, client: dict, amount: float, ba
         <p><span class="label">Statut:</span> {'✅ Payée en totalité' if invoice.get('status') == 'paid' else '⚠️ Paiement partiel'}</p>
     </div>
     """
-    html = _notif_html(f"Paiement reçu — {invoice.get('invoice_number','')}", body_html, "Voir la facture", f"{os.environ.get('FRONTEND_URL','')}/admin/invoices/{invoice.get('id','')}")
+    html = _notif_html(f"Paiement reçu — {invoice.get('invoice_number','')}", body_html, "Voir la facture", f"{FRONTEND_URL}/admin/invoices/{invoice.get('id','')}")
     background_tasks.add_task(send_email, ADMIN_EMAIL, f"💰 Paiement reçu: {amount:.2f}$ — {invoice.get('invoice_number','')} — ServiceFlow", html)
     background_tasks.add_task(create_notification, f"Paiement de {amount:.2f}$ reçu", f"Facture {invoice.get('invoice_number','')} — Solde: {invoice.get('balance_due',0):.2f}$", "payment_received", "invoice", invoice.get("id"))
 
@@ -1083,7 +1086,7 @@ async def notify_project_status(project: dict, old_status: str, new_status: str,
         <p><span class="label">Nouveau statut:</span> {new_lbl}</p>
     </div>
     """
-    html_admin = _notif_html(f"Projet mis à jour: {project.get('title','')}", body_html, "Voir le projet", f"{os.environ.get('FRONTEND_URL','')}/admin/projects/{project.get('id','')}")
+    html_admin = _notif_html(f"Projet mis à jour: {project.get('title','')}", body_html, "Voir le projet", f"{FRONTEND_URL}/admin/projects/{project.get('id','')}")
     background_tasks.add_task(send_email, ADMIN_EMAIL, f"🔄 Projet {new_lbl}: {project.get('title','')} — ServiceFlow", html_admin)
     if client and client.get("email"):
         client_body = f"""
@@ -1095,7 +1098,7 @@ async def notify_project_status(project: dict, old_status: str, new_status: str,
         </div>
         <p>Connectez-vous au portail client pour plus de détails.</p>
         """
-        html_client = _notif_html(f"Mise à jour de votre projet", client_body, "Voir mon projet", f"{os.environ.get('FRONTEND_URL','')}/client/dashboard")
+        html_client = _notif_html(f"Mise à jour de votre projet", client_body, "Voir mon projet", f"{FRONTEND_URL}/client/dashboard")
         background_tasks.add_task(send_email, client["email"], f"Mise à jour: {project.get('title','')} — CMGeorges", html_client)
     background_tasks.add_task(create_notification, f"Projet: {new_lbl}", f"{project.get('title','')} — {old_lbl} → {new_lbl}", "project_status", "project", project.get("id"))
 
@@ -3643,7 +3646,7 @@ async def send_invoice_signature_link(invoice_id: str, request: Request, user: d
     )
 
     # Build signature URL
-    base_url = os.environ.get("FRONTEND_URL", "https://serviceflow-preview.preview.emergentagent.com")
+    base_url = FRONTEND_URL
     signature_url = f"{base_url}/sign/invoice/{token}"
 
     due_date_str = invoice.get("due_date", "À réception")
@@ -3752,7 +3755,7 @@ async def send_quote_signature_link(quote_id: str, request: Request, user: dict 
         {"$set": {"signature_token": token, "signature_token_expires": expires_at, "status": "sent"}}
     )
 
-    base_url = os.environ.get("FRONTEND_URL", "https://serviceflow-preview.preview.emergentagent.com")
+    base_url = FRONTEND_URL
     signature_url = f"{base_url}/sign/quote/{token}"
 
     html_content = f"""
@@ -4458,8 +4461,8 @@ v2_router.include_router(catalog_router)
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)
 
-# Public signature routes (no /api prefix, no auth)
-app.include_router(public_signature_router)
+# Public signature routes (under /api prefix for proper routing)
+api_router.include_router(public_signature_router)
 
 app.include_router(api_router)
 
