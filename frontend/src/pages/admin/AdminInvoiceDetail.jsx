@@ -135,6 +135,20 @@ export default function AdminInvoiceDetail() {
     }
   };
 
+  const sendSignatureLink = async () => {
+    try {
+      const res = await adminApi.sendInvoiceSignatureLink(id);
+      toast.success(res.data.message);
+      if (res.data.signature_url) {
+        // Copy to clipboard
+        navigator.clipboard.writeText(res.data.signature_url);
+        toast.info('Lien copié dans le presse-papier');
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Erreur lors de l\'envoi');
+    }
+  };
+
   const getStatusInfo = (status) => {
     const info = {
       paid: { label: 'Payée', class: 'bg-green-500/20 text-green-400 border-green-500/30', icon: CheckCircle },
@@ -235,6 +249,16 @@ export default function AdminInvoiceDetail() {
             >
               <PenTool className="h-4 w-4 mr-2" />
               Signature
+            </Button>
+          )}
+          {!invoice.signature && (
+            <Button 
+              onClick={sendSignatureLink}
+              variant="outline"
+              className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Lien signature
             </Button>
           )}
         </div>

@@ -49,6 +49,7 @@ import ServiceFlowPage from "@/pages/ServiceFlowPage";
 import ClientLogin from "@/pages/client/ClientLogin";
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import LoginPage from "@/pages/LoginPage";
+import PublicSignaturePage from "@/pages/PublicSignaturePage";
 
 // Layout
 import PublicLayout from "@/components/layout/PublicLayout";
@@ -161,6 +162,9 @@ function App() {
               <Route path="/services-peinture-laval" element={<SEOCityPage city="laval" />} />
               <Route path="/services-saint-laurent" element={<SEOCityPage city="ville-saint-laurent" />} />
             </Route>
+            
+            {/* Public Signature Page (DocuSign style - no layout) */}
+            <Route path="/sign/:type/:token" element={<PublicSignaturePage />} />
             
             {/* Client Portal - No layout */}
             <Route path="/portail-client" element={<ClientPortalPage />} />

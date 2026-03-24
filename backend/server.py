@@ -3613,6 +3613,201 @@ async def send_invoice_by_email(invoice_id: str, request: Request, user: dict = 
         logger.error(f"Failed to send invoice email: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erreur d'envoi: {str(e)}")
 
+
+# ==================== SEND SIGNATURE LINK BY EMAIL ====================
+@admin_router.post("/invoices/{invoice_id}/send-signature-link")
+async def send_invoice_signature_link(invoice_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Send invoice signature link by email to client (DocuSign style)"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+
+    if invoice.get("signature"):
+        raise HTTPException(status_code=400, detail="Cette facture a déjà été signée")
+
+    client = await db.clients.find_one({"id": invoice["client_id"]}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client non trouvé")
+
+    # Generate signature token
+    import hashlib
+    timestamp = datetime.now(timezone.utc).isoformat()
+    raw = f"{invoice_id}:invoice:{timestamp}:{os.environ.get('JWT_SECRET', 'secret')}"
+    token = hashlib.sha256(raw.encode()).hexdigest()[:32]
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=72)).isoformat()
+
+    # Save token to invoice
+    await db.invoices.update_one(
+        {"id": invoice_id},
+        {"$set": {"signature_token": token, "signature_token_expires": expires_at}}
+    )
+
+    # Build signature URL
+    base_url = os.environ.get("FRONTEND_URL", "https://tech-workflow-app.preview.emergentagent.com")
+    signature_url = f"{base_url}/sign/invoice/{token}"
+
+    due_date_str = invoice.get("due_date", "À réception")
+    if isinstance(due_date_str, str) and "T" in str(due_date_str):
+        try:
+            due_date_str = datetime.fromisoformat(str(due_date_str)).strftime("%d/%m/%Y")
+        except Exception:
+            pass
+
+    html_content = f"""
+    <!DOCTYPE html><html><head><style>
+    body{{font-family:Arial,sans-serif;color:#333;line-height:1.6;}}
+    .header{{background:#0f0f1a;color:white;padding:30px;text-align:center;}}
+    .header h1{{color:#d4af37;margin:0;font-size:28px;}}
+    .content{{padding:40px;max-width:600px;margin:0 auto;}}
+    .document-box{{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin:24px 0;}}
+    .document-box h3{{color:#0f0f1a;margin-top:0;}}
+    .btn{{display:inline-block;background:#d4af37;color:#0f0f1a;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;margin:20px 0;}}
+    .btn:hover{{background:#b8962e;}}
+    .footer{{background:#0f0f1a;color:#888;padding:20px;text-align:center;font-size:12px;}}
+    .expires{{color:#888;font-size:12px;margin-top:16px;}}
+    </style></head><body>
+    <div class="header">
+        <img src="https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png" alt="CMGeorges" style="width:60px;height:60px;border-radius:12px;margin-bottom:10px;">
+        <h1>CMGeorges</h1>
+        <p style="color:#888;margin:0;">Services de rénovation & design</p>
+    </div>
+    <div class="content">
+        <h2>Bonjour {client['full_name']},</h2>
+        <p>Vous avez reçu une facture qui nécessite votre signature.</p>
+        
+        <div class="document-box">
+            <h3>📄 Facture {invoice['invoice_number']}</h3>
+            <p><strong>Montant total:</strong> {invoice['total']:.2f}$</p>
+            <p><strong>Date d'échéance:</strong> {due_date_str}</p>
+        </div>
+        
+        <p style="text-align:center;">
+            <a href="{signature_url}" class="btn">✍️ Signer la facture</a>
+        </p>
+        
+        <p class="expires">⏱️ Ce lien expire dans 72 heures.</p>
+        
+        <p>En signant ce document, vous confirmez avoir lu et accepté les termes et conditions.</p>
+        
+        <p>Pour toute question, contactez-nous:</p>
+        <ul>
+            <li>📞 514-386-1743</li>
+            <li>✉️ info@cmgeorges.com</li>
+        </ul>
+    </div>
+    <div class="footer">
+        <p>CMGeorges | Montréal & Rive-Sud</p>
+        <p>Ce lien est unique et sécurisé. Ne le partagez pas.</p>
+    </div>
+    </body></html>
+    """
+
+    if not resend.api_key:
+        return {"message": "Lien de signature généré", "signature_url": signature_url, "expires_at": expires_at}
+
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [client["email"]],
+            "subject": f"✍️ Signature requise - Facture {invoice['invoice_number']} - CMGeorges",
+            "html": html_content
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        await create_audit_log("invoice_signature_link_sent", "invoice", invoice_id, user=user, details={"email": client["email"]}, request=request)
+        return {"message": f"Lien de signature envoyé à {client['email']}", "signature_url": signature_url}
+    except Exception as e:
+        logger.error(f"Failed to send signature link email: {str(e)}")
+        return {"message": "Lien de signature généré (email non envoyé)", "signature_url": signature_url, "expires_at": expires_at}
+
+
+@admin_router.post("/quotes/{quote_id}/send-signature-link")
+async def send_quote_signature_link(quote_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Send quote signature link by email for client approval"""
+    quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Devis non trouvé")
+
+    if quote.get("signature"):
+        raise HTTPException(status_code=400, detail="Ce devis a déjà été signé")
+
+    # Get client or lead
+    client = None
+    if quote.get("client_id"):
+        client = await db.clients.find_one({"id": quote["client_id"]}, {"_id": 0})
+    elif quote.get("lead_id"):
+        client = await db.leads.find_one({"id": quote["lead_id"]}, {"_id": 0})
+    
+    if not client or not client.get("email"):
+        raise HTTPException(status_code=400, detail="Email du client non disponible")
+
+    # Generate signature token
+    import hashlib
+    timestamp = datetime.now(timezone.utc).isoformat()
+    raw = f"{quote_id}:quote:{timestamp}:{os.environ.get('JWT_SECRET', 'secret')}"
+    token = hashlib.sha256(raw.encode()).hexdigest()[:32]
+    expires_at = (datetime.now(timezone.utc) + timedelta(hours=72)).isoformat()
+
+    await db.quotes.update_one(
+        {"id": quote_id},
+        {"$set": {"signature_token": token, "signature_token_expires": expires_at, "status": "sent"}}
+    )
+
+    base_url = os.environ.get("FRONTEND_URL", "https://tech-workflow-app.preview.emergentagent.com")
+    signature_url = f"{base_url}/sign/quote/{token}"
+
+    html_content = f"""
+    <!DOCTYPE html><html><head><style>
+    body{{font-family:Arial,sans-serif;color:#333;line-height:1.6;}}
+    .header{{background:#0f0f1a;color:white;padding:30px;text-align:center;}}
+    .header h1{{color:#d4af37;margin:0;font-size:28px;}}
+    .content{{padding:40px;max-width:600px;margin:0 auto;}}
+    .document-box{{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin:24px 0;}}
+    .btn{{display:inline-block;background:#d4af37;color:#0f0f1a;padding:16px 32px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;margin:20px 0;}}
+    .footer{{background:#0f0f1a;color:#888;padding:20px;text-align:center;font-size:12px;}}
+    .expires{{color:#888;font-size:12px;margin-top:16px;}}
+    </style></head><body>
+    <div class="header">
+        <img src="https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png" alt="CMGeorges" style="width:60px;height:60px;border-radius:12px;margin-bottom:10px;">
+        <h1>CMGeorges</h1>
+    </div>
+    <div class="content">
+        <h2>Bonjour {client.get('full_name', 'Client')},</h2>
+        <p>Votre devis est prêt! Veuillez le consulter et le signer pour confirmer votre accord.</p>
+        
+        <div class="document-box">
+            <h3>📋 Devis {quote.get('quote_number', quote['id'][:8])}</h3>
+            <p><strong>Montant total:</strong> {quote.get('total', 0):.2f}$</p>
+        </div>
+        
+        <p style="text-align:center;">
+            <a href="{signature_url}" class="btn">✍️ Consulter et signer le devis</a>
+        </p>
+        
+        <p class="expires">⏱️ Ce lien expire dans 72 heures.</p>
+    </div>
+    <div class="footer">
+        <p>CMGeorges | 514-386-1743 | info@cmgeorges.com</p>
+    </div>
+    </body></html>
+    """
+
+    if not resend.api_key:
+        return {"message": "Lien de signature généré", "signature_url": signature_url}
+
+    try:
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [client["email"]],
+            "subject": f"✍️ Devis à signer - {quote.get('quote_number', 'CMGeorges')}",
+            "html": html_content
+        }
+        await asyncio.to_thread(resend.Emails.send, params)
+        await create_audit_log("quote_signature_link_sent", "quote", quote_id, user=user, details={"email": client["email"]}, request=request)
+        return {"message": f"Lien de signature envoyé à {client['email']}", "signature_url": signature_url}
+    except Exception as e:
+        logger.error(f"Failed to send quote signature link: {str(e)}")
+        return {"message": "Lien généré (email non envoyé)", "signature_url": signature_url}
+
 # ==================== SEND QUOTE BY EMAIL ====================
 @admin_router.post("/quotes/{quote_id}/send-email")
 async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depends(get_current_user)):
@@ -4252,6 +4447,7 @@ from routers.mobile import router as mobile_router
 from routers.projects import router as projects_v2_router
 from routers.auth import router as auth_v2_router
 from routers.catalog import router as catalog_router
+from routers.public_signature import router as public_signature_router
 
 v2_router = APIRouter(prefix="/v2")
 v2_router.include_router(auth_v2_router)
@@ -4261,6 +4457,10 @@ v2_router.include_router(catalog_router)
 
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)
+
+# Public signature routes (no /api prefix, no auth)
+app.include_router(public_signature_router)
+
 app.include_router(api_router)
 
 app.add_middleware(

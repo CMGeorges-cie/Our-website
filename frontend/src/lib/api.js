@@ -142,6 +142,10 @@ export const adminApi = {
   removeInvoiceSignature: (invoiceId) => api.delete(`/admin/invoices/${invoiceId}/signature`),
   addQuoteSignature: (quoteId, data) => api.post(`/admin/quotes/${quoteId}/signature`, data),
   
+  // Send signature link by email (DocuSign style)
+  sendInvoiceSignatureLink: (invoiceId) => api.post(`/admin/invoices/${invoiceId}/send-signature-link`),
+  sendQuoteSignatureLink: (quoteId) => api.post(`/admin/quotes/${quoteId}/send-signature-link`),
+  
   // Stats & Dashboard
   getStats: () => api.get('/admin/stats'),
   getCeoDashboard: () => api.get('/admin/ceo-dashboard'),
