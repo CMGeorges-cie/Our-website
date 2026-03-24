@@ -4,7 +4,7 @@
 
 // API Configuration
 export const API_BASE_URL = __DEV__ 
-  ? 'https://tech-workflow-app.preview.emergentagent.com/api/v2'
+  ? 'https://serviceflow-preview.preview.emergentagent.com/api/v2'
   : 'https://your-production-url.com/api/v2';
 
 // App Theme Colors (matches web app)

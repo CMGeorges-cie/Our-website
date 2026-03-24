@@ -3079,7 +3079,7 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
     await db.client_portal_access.insert_one(doc)
     
     # Build portal URL
-    portal_url = f"https://tech-workflow-app.preview.emergentagent.com/portail-client?token={access_token}"
+    portal_url = f"https://serviceflow-preview.preview.emergentagent.com/portail-client?token={access_token}"
     
     # Send email to client
     email_html = f"""
@@ -3643,7 +3643,7 @@ async def send_invoice_signature_link(invoice_id: str, request: Request, user: d
     )
 
     # Build signature URL
-    base_url = os.environ.get("FRONTEND_URL", "https://tech-workflow-app.preview.emergentagent.com")
+    base_url = os.environ.get("FRONTEND_URL", "https://serviceflow-preview.preview.emergentagent.com")
     signature_url = f"{base_url}/sign/invoice/{token}"
 
     due_date_str = invoice.get("due_date", "À réception")
@@ -3752,7 +3752,7 @@ async def send_quote_signature_link(quote_id: str, request: Request, user: dict 
         {"$set": {"signature_token": token, "signature_token_expires": expires_at, "status": "sent"}}
     )
 
-    base_url = os.environ.get("FRONTEND_URL", "https://tech-workflow-app.preview.emergentagent.com")
+    base_url = os.environ.get("FRONTEND_URL", "https://serviceflow-preview.preview.emergentagent.com")
     signature_url = f"{base_url}/sign/quote/{token}"
 
     html_content = f"""

@@ -4,7 +4,7 @@
  */
 
 // Configuration - Replace with your actual backend URL
-const API_BASE_URL = process.env.API_BASE_URL || 'https://tech-workflow-app.preview.emergentagent.com/api/v2';
+const API_BASE_URL = process.env.API_BASE_URL || 'https://serviceflow-preview.preview.emergentagent.com/api/v2';
 
 // Token storage interface (implement with AsyncStorage in React Native)
 interface TokenStorage {

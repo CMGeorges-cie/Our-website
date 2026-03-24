@@ -31,7 +31,7 @@
       "description": "POST /api/v2/catalog returns 500 Internal Server Error due to MongoDB ObjectId serialization issue. The insert_one method in TenantRepository returns the document with _id field added by MongoDB, which cannot be JSON serialized.",
       "endpoint_or_component": "POST /api/v2/catalog",
       "surfaces": ["backend"],
-      "reproduction": "curl -X POST https://tech-workflow-app.preview.emergentagent.com/api/v2/catalog -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' -d '{\"name\":\"Test\",\"category\":\"maintenance\",\"pricing_type\":\"fixed\",\"base_price\":100}'",
+      "reproduction": "curl -X POST https://serviceflow-preview.preview.emergentagent.com/api/v2/catalog -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' -d '{\"name\":\"Test\",\"category\":\"maintenance\",\"pricing_type\":\"fixed\",\"base_price\":100}'",
       "affected_test": "test_catalog_api.py::TestCatalogCRUD::test_create_service_returns_error (marked as xfail)",
       "fix_suggestion": "In /app/backend/services/database.py TenantRepository.insert_one(), remove _id from returned document: tenant_doc.pop('_id', None) before return"
     }

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'https://tech-workflow-app.preview.emergentagent.com';
+const BASE_URL = 'https://serviceflow-preview.preview.emergentagent.com';
 const ADMIN_EMAIL = 'admin@cmgeorges.com';
 const ADMIN_PASSWORD = 'strongpassword123';
 
