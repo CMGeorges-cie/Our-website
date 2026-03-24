@@ -1,176 +1,117 @@
-# CMGeorges / ServiceFlow — Product Requirements Document
+# CMGeorges / ServiceFlow — PRD
 
-**Dernière mise à jour:** 24 Mars 2026  
-**Stack:** React + FastAPI + MongoDB  
-**Langue:** Français
-
----
-
-## Vision Produit
-
-**CMGeorges** = Entreprise de services (déco, rénovation) — Montréal & Rive-Sud  
-**ServiceFlow** = Plateforme SaaS CRM pour entreprises de services
+**Mise à jour:** 24 Mars 2026  
+**Stack:** React + FastAPI + MongoDB
 
 ---
 
-## Architecture
+## Vision
 
-```
-/app
-├── backend/
-│   ├── server.py          # FastAPI app principale
-│   ├── routers/           # Routeurs modulaires v2
-│   │   ├── auth.py        # Authentification mobile-ready
-│   │   ├── projects.py    # Projets avec multi-tenant
-│   │   ├── mobile.py      # API mobile optimisée
-│   │   └── catalog.py     # Catalogue de services [NEW]
-│   ├── services/
-│   │   └── database.py    # Repository multi-tenant
-│   ├── middleware/
-│   │   └── tenant.py      # Isolation multi-tenant
-│   └── schemas/base.py    # Modèles Pydantic partagés
-├── frontend/
-│   ├── src/
-│   │   ├── lib/api.js     # Client API (v1 + v2)
-│   │   └── pages/admin/
-│   │       └── AdminCatalog.jsx [NEW]
-│   └── tests/e2e/
-└── mobile/                 # App React Native
-    ├── App.tsx
-    ├── package.json
-    └── src/
-        ├── screens/
-        │   ├── auth/LoginScreen.tsx
-        │   └── technician/
-        │       ├── HomeScreen.tsx
-        │       ├── ProjectsScreen.tsx
-        │       └── ProjectDetailScreen.tsx
-        ├── services/api.ts
-        ├── hooks/useAuth.tsx
-        ├── navigation/RootNavigator.tsx
-        └── utils/constants.ts
-```
+**CMGeorges** = Entreprise de services (Montréal)  
+**ServiceFlow** = Plateforme SaaS CRM multi-tenant
 
 ---
 
-## Ce Qui est Implémenté
+## Implémenté
 
-### Phase 1 ✅ (CRM Admin)
-- [x] Leads, Clients, Factures, Projets (CRUD complet)
-- [x] Devis, Blog, Codes Promo, Tarification, Politiques
-- [x] Système de Notifications complet
-- [x] Thème dark/light premium noir/or
-- [x] Branding ServiceFlow avec logo lion
+### CRM Admin ✅
+- Leads, Clients, Projets (CRUD)
+- Notifications système
+- Thème dark/light premium noir/or
 
-### Phase 2 ✅ (Projets Améliorés)
-- [x] Gestion des tâches de projet avec progression
-- [x] Messagerie interne par projet
-- [x] Timeline des événements
+### Projets V2 ✅
+- Tâches avec progression
+- Messagerie interne
+- Timeline des événements
 
-### Phase 3 ✅ (Architecture Multi-Tenant & Mobile)
-- [x] Middleware d'isolation multi-tenant (TenantContext)
-- [x] TenantRepository avec filtres automatiques
-- [x] API v2 mobile-ready avec endpoints optimisés
-- [x] Structure React Native complète
-- [x] Écrans: Login, Home, Projects, ProjectDetail
+### Multi-Tenant & Mobile ✅
+- API v2 mobile-ready
+- TenantContext isolation
+- Structure React Native complète
 
-### Phase 4 ✅ (Catalogue de Services)
-- [x] API CRUD /api/v2/catalog
-- [x] Catégories: peinture, mobilier, tech, entretien, installation
-- [x] Types de prix: fixe, horaire, par unité, sur devis
-- [x] Services en vedette
-- [x] Interface admin complète avec recherche et filtres
-- [x] Endpoint seed-defaults avec 9 services CMGeorges
+### Catalogue de Services ✅
+- CRUD services avec catégories
+- Prix fixe/horaire/unité/devis
+- 12 services CMGeorges
+
+### Facturation Style Joist/Invoice Fly ✅ [NOUVEAU]
+- **Page liste factures** avec stats (total, en attente, payé, en retard)
+- **Modal création** professionnelle:
+  - Sélection client + date échéance
+  - Intégration catalogue de services (bouton Catalogue)
+  - Lignes avec Description, Qté, Prix unit., Total
+  - Remise (%, fixe)
+  - Modalités de paiement (immédiat, net15, net30, acompte, personnalisé)
+  - Option acompte avec pourcentage
+  - Calcul automatique TPS (5%) + TVQ (9.975%)
+  - Notes/Conditions
+- **Page détail** professionnelle:
+  - En-tête avec logo et info entreprise
+  - Info client avec avatar
+  - Tableau des lignes
+  - Calcul complet (sous-total, remise, taxes, total)
+  - Badge PAYÉE si soldé
+  - Historique des paiements
+- **Actions**: PDF, Imprimer, Envoyer par email, Enregistrer paiement
+- **Conversion devis → facture**
 
 ---
 
 ## API Endpoints
 
-### V1 (Legacy Web)
-| Route | Description |
-|-------|-------------|
-| `/api/v1/auth/*` | Authentification |
-| `/api/v1/admin/*` | CRUD CRM |
-| `/api/v1/client/*` | Portail client |
+### V1 (Web)
+- `/api/v1/auth/*`, `/api/v1/admin/*`, `/api/v1/client/*`
 
-### V2 (Mobile-Ready)
-| Route | Description |
-|-------|-------------|
-| `/api/v2/auth/login` | Login (8h token) |
-| `/api/v2/auth/refresh` | Refresh token |
-| `/api/v2/auth/me` | Info utilisateur |
-| `/api/v2/mobile/dashboard` | Stats technicien |
-| `/api/v2/mobile/sync/*` | Sync offline |
-| `/api/v2/mobile/checkin` | Check-in GPS |
-| `/api/v2/mobile/checkout` | Check-out + signature |
-| `/api/v2/mobile/photos` | Upload photos |
-| `/api/v2/projects/*` | CRUD projets |
-| `/api/v2/catalog` | **Catalogue services** |
-| `/api/v2/catalog/public` | Services publics |
-| `/api/v2/catalog/packages/*` | Forfaits |
+### V2 (Mobile)
+- `/api/v2/auth/*`, `/api/v2/mobile/*`, `/api/v2/projects/*`, `/api/v2/catalog/*`
 
 ---
 
-## Identifiants de Test
+## Identifiants
 
-| Role | Email | Mot de passe |
-|------|-------|-------------|
+| Role | Email | Password |
+|------|-------|----------|
 | Admin | admin@cmgeorges.com | strongpassword123 |
 
 ---
 
-## Tests
+## Backlog
 
-- **Iteration 8:** 35 tests (34 passed, 1 xfail corrigé)
-- Backend: 18 tests API
-- Frontend: 16 tests E2E
+### P1 - Prochaine
+- [ ] App React Native sur stores
+- [ ] Push notifications
+- [ ] Mode offline
 
----
-
-## Backlog Priorisé
-
-### P0 ✅ Complété
-- [x] Architecture multi-tenant
-- [x] API Mobile v2
-- [x] Catalogue de services
-- [x] Fix logo /connexion
-
-### P1 — Prochaine Phase
-- [ ] Publier app React Native sur TestFlight/Play Store
-- [ ] Push notifications (Firebase)
-- [ ] Mode offline avec sync
-
-### P2 — Phase 5
-- [ ] Système Produits + Installation (inventaire)
+### P2
+- [ ] Intégrer catalogue dans création devis
+- [ ] Système Produits + Inventaire
 - [ ] Contrats de maintenance
-- [ ] Intégration catalogue dans création de devis
 
-### P3 — Futur
+### P3
+- [ ] Dashboard Analytics
 - [ ] Migration PostgreSQL
-- [ ] Dashboard Analytics avancé
-- [ ] Marketplace de services
+- [ ] Marketplace
 
 ---
 
-## Routes Frontend
+## Structure
 
-| Route | Description |
-|-------|-------------|
-| `/` | Site public CMGeorges |
-| `/serviceflow` | Landing page SaaS |
-| `/connexion` | Choix connexion |
-| `/admin/catalog` | **Catalogue services** |
-| `/admin/*` | Dashboard CRM |
-| `/client/*` | Portail client |
-
----
-
-## Intégrations
-
-| Service | Statut |
-|---------|--------|
-| Resend | ✅ Email |
-| Stripe | ✅ Paiements |
-| Vanta.js | ✅ Animation |
-| fpdf2 | ✅ PDF |
-| reCAPTCHA | ⛔ Désactivé |
+```
+/app
+├── backend/
+│   ├── server.py
+│   ├── routers/
+│   │   ├── auth.py
+│   │   ├── projects.py
+│   │   ├── mobile.py
+│   │   └── catalog.py
+│   ├── services/database.py
+│   └── middleware/tenant.py
+├── frontend/
+│   └── src/pages/admin/
+│       ├── AdminInvoices.jsx    [REFAIT - Style Joist]
+│       ├── AdminInvoiceDetail.jsx [REFAIT - Pro layout]
+│       └── AdminCatalog.jsx
+└── mobile/
+    └── src/screens/...
+```

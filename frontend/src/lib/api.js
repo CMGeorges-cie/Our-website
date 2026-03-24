@@ -134,6 +134,9 @@ export const adminApi = {
   sendInvoiceByEmail: (id) => api.post(`/admin/invoices/${id}/send-email`),
   sendQuoteByEmail: (id) => api.post(`/admin/quotes/${id}/send-email`),
   
+  // Record payment
+  recordPayment: (invoiceId, data) => api.post(`/admin/invoices/${invoiceId}/payments`, data),
+  
   // Stats & Dashboard
   getStats: () => api.get('/admin/stats'),
   getCeoDashboard: () => api.get('/admin/ceo-dashboard'),
