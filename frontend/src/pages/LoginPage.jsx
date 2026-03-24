@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { LogIn, Users, Briefcase, ArrowLeft } from 'lucide-react';
 
 const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
+const CMGEORGES_LOGO = SERVICEFLOW_LOGO; // Use same logo for consistency
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -124,9 +125,9 @@ export default function LoginPage() {
           <div className="text-center mb-10">
             <Link to="/" className="inline-flex items-center gap-3 mb-4">
               <img 
-                src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+                src={SERVICEFLOW_LOGO}
                 alt="CMGeorges"
-                className="h-14 w-auto brightness-0 invert"
+                className="h-14 w-14 rounded-xl shadow-lg shadow-[#d4af37]/30"
               />
               <span className="text-3xl font-bold text-white font-['Outfit']">CMGeorges</span>
             </Link>
@@ -200,9 +201,9 @@ export default function LoginPage() {
             <>
               <Link to="/" className="inline-flex items-center gap-3 mb-3">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+                  src={SERVICEFLOW_LOGO}
                   alt="CMGeorges"
-                  className="h-12 w-auto brightness-0 invert"
+                  className="h-12 w-12 rounded-xl shadow-lg shadow-[#d4af37]/30"
                 />
                 <span className="text-2xl font-bold text-white font-['Outfit']">CMGeorges</span>
               </Link>

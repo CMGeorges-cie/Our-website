@@ -182,4 +182,38 @@ export const saasApi = {
 // Seed API (dev)
 export const seedDatabase = () => axios.post(`${BACKEND_URL}/api/seed`);
 
+// V2 API instance (mobile-ready endpoints)
+const apiV2 = axios.create({
+  baseURL: `${BACKEND_URL}/api/v2`,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add auth token to v2 requests
+apiV2.interceptors.request.use((config) => {
+  const token = localStorage.getItem('cmgeorges_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle auth errors for v2
+apiV2.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('cmgeorges_token');
+      localStorage.removeItem('cmgeorges_user');
+      if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+        window.location.href = '/admin/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export { apiV2 };
+
 export default api;

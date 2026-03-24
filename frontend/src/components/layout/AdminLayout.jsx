@@ -18,7 +18,8 @@ import {
   UserCog,
   Bell,
   Sun,
-  Moon
+  Moon,
+  Package
 } from 'lucide-react';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const sidebarLinks = [
   { href: '/admin/leads', label: 'Leads', icon: Users },
   { href: '/admin/clients', label: 'Clients', icon: UserCheck },
   { href: '/admin/projects', label: 'Projets', icon: Briefcase },
+  { href: '/admin/catalog', label: 'Catalogue', icon: Package },
   { href: '/admin/invoices', label: 'Factures', icon: Receipt },
   { href: '/admin/revenue', label: 'Revenus', icon: TrendingUp },
 ];

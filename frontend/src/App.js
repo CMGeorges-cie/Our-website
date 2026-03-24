@@ -41,6 +41,7 @@ import AdminPricing from "@/pages/admin/AdminPricing";
 import AdminPolicies from "@/pages/admin/AdminPolicies";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminNotifications from "@/pages/admin/AdminNotifications";
+import AdminCatalog from "@/pages/admin/AdminCatalog";
 
 // ServiceFlow / Client Portal
 import ServiceFlowPricing from "@/pages/ServiceFlowPricing";
@@ -200,6 +201,7 @@ function App() {
               <Route path="/admin/policies" element={<AdminPolicies />} />
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/notifications" element={<AdminNotifications />} />
+              <Route path="/admin/catalog" element={<AdminCatalog />} />
             </Route>
           </Routes>
         </BrowserRouter>

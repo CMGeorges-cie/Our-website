@@ -4165,11 +4165,13 @@ v1_router.include_router(invoice_pay_router)
 from routers.mobile import router as mobile_router
 from routers.projects import router as projects_v2_router
 from routers.auth import router as auth_v2_router
+from routers.catalog import router as catalog_router
 
 v2_router = APIRouter(prefix="/v2")
 v2_router.include_router(auth_v2_router)
 v2_router.include_router(projects_v2_router)
 v2_router.include_router(mobile_router)
+v2_router.include_router(catalog_router)
 
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)

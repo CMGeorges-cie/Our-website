@@ -25,12 +25,16 @@ export async function checkForErrors(page: Page): Promise<string[]> {
 }
 
 export async function adminLogin(page: Page, email: string = 'admin@cmgeorges.com', password: string = 'strongpassword123') {
-  await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
-  await page.getByPlaceholder('admin@cmgeorges.com').fill(email);
-  await page.locator('input[type="password"]').fill(password);
-  await page.getByRole('button', { name: /se connecter/i }).click();
-  // Wait for redirect to dashboard
-  await page.waitForURL(/\/admin\/dashboard/, { timeout: 15000 });
+  await page.goto('/connexion', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('[data-testid="select-admin-login"]');
+  await page.getByTestId('select-admin-login').click();
+  await page.waitForSelector('input[type="email"]');
+  await page.fill('input[type="email"]', email);
+  await page.fill('input[type="password"]', password);
+  await page.click('button[type="submit"]');
+  // Wait for redirect to admin area
+  await page.waitForURL('**/admin/**');
+  await page.waitForSelector('[data-testid="admin-layout"]');
 }
 
 export async function removeEmergentBadge(page: Page) {
