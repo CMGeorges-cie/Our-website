@@ -12,8 +12,9 @@ import { toast } from 'sonner';
 import { 
   ArrowLeft, Download, Printer, Send, User, Calendar, Receipt, 
   CheckCircle, AlertCircle, Clock, CreditCard, DollarSign,
-  Building, Phone, Mail, MapPin, FileText, Plus, Banknote
+  Building, Phone, Mail, MapPin, FileText, Plus, Banknote, PenTool
 } from 'lucide-react';
+import { SignatureDialog, SignatureDisplay } from '@/components/ui/signature-pad';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
@@ -33,6 +34,7 @@ export default function AdminInvoiceDetail() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
   const [paymentForm, setPaymentForm] = useState({
     amount: '',
     method: 'etransfer',
@@ -104,6 +106,32 @@ export default function AdminInvoiceDetail() {
       toast.error(e.response?.data?.detail || 'Erreur lors de l\'enregistrement');
     } finally {
       setSavingPayment(false);
+    }
+  };
+
+  const handleSignature = async (signatureBase64) => {
+    try {
+      await adminApi.addInvoiceSignature(id, {
+        signature_base64: signatureBase64,
+        signer_name: client?.full_name || 'Client',
+        signer_email: client?.email
+      });
+      toast.success('Signature enregistrée!');
+      setShowSignature(false);
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Erreur lors de l\'enregistrement de la signature');
+    }
+  };
+
+  const removeSignature = async () => {
+    if (!confirm('Supprimer la signature?')) return;
+    try {
+      await adminApi.removeInvoiceSignature(id);
+      toast.success('Signature supprimée');
+      fetchData();
+    } catch (e) {
+      toast.error('Erreur lors de la suppression');
     }
   };
 
@@ -197,6 +225,16 @@ export default function AdminInvoiceDetail() {
             >
               <Plus className="h-4 w-4 mr-2" />
               Paiement
+            </Button>
+          )}
+          {!invoice.signature && (
+            <Button 
+              onClick={() => setShowSignature(true)}
+              variant="outline"
+              className="border-gold-500/30 text-gold-500 hover:bg-gold-500/10"
+            >
+              <PenTool className="h-4 w-4 mr-2" />
+              Signature
             </Button>
           )}
         </div>
@@ -328,6 +366,25 @@ export default function AdminInvoiceDetail() {
               <p className="text-sm text-muted-foreground">{invoice.notes}</p>
             </div>
           )}
+
+          {/* Signature Section */}
+          {invoice.signature && (
+            <div className="mt-8">
+              <SignatureDisplay 
+                signature={invoice.signature.signature_base64}
+                signerName={invoice.signature.signer_name}
+                signedAt={invoice.signature.signed_at}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={removeSignature}
+                className="mt-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              >
+                Supprimer la signature
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -454,6 +511,17 @@ export default function AdminInvoiceDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Signature Dialog */}
+      <SignatureDialog
+        open={showSignature}
+        onOpenChange={setShowSignature}
+        onSignatureComplete={handleSignature}
+        title="Signature du client"
+        description="Le client signe pour confirmer l'acceptation de cette facture et des conditions."
+        signerName={client?.full_name}
+        documentType="facture"
+      />
     </div>
   );
 }

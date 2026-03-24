@@ -5,17 +5,10 @@
 
 ---
 
-## Vision
-
-**CMGeorges** = Entreprise de services (Montréal)  
-**ServiceFlow** = Plateforme SaaS CRM multi-tenant
-
----
-
-## Implémenté
+## Ce qui est implémenté
 
 ### CRM Admin ✅
-- Leads, Clients, Projets (CRUD)
+- Leads, Clients, Projets (CRUD complet)
 - Notifications système
 - Thème dark/light premium noir/or
 
@@ -31,87 +24,81 @@
 
 ### Catalogue de Services ✅
 - CRUD services avec catégories
-- Prix fixe/horaire/unité/devis
 - 12 services CMGeorges
 
-### Facturation Style Joist/Invoice Fly ✅ [NOUVEAU]
-- **Page liste factures** avec stats (total, en attente, payé, en retard)
-- **Modal création** professionnelle:
-  - Sélection client + date échéance
-  - Intégration catalogue de services (bouton Catalogue)
-  - Lignes avec Description, Qté, Prix unit., Total
-  - Remise (%, fixe)
-  - Modalités de paiement (immédiat, net15, net30, acompte, personnalisé)
-  - Option acompte avec pourcentage
-  - Calcul automatique TPS (5%) + TVQ (9.975%)
-  - Notes/Conditions
-- **Page détail** professionnelle:
-  - En-tête avec logo et info entreprise
-  - Info client avec avatar
-  - Tableau des lignes
-  - Calcul complet (sous-total, remise, taxes, total)
-  - Badge PAYÉE si soldé
-  - Historique des paiements
-- **Actions**: PDF, Imprimer, Envoyer par email, Enregistrer paiement
-- **Conversion devis → facture**
+### Facturation Style Joist ✅
+- Page liste avec stats
+- Modal création avec intégration catalogue
+- Calcul TPS/TVQ automatique
+- Remises et acomptes
+- Page détail professionnelle
+
+### Signature Électronique ✅ [NOUVEAU]
+- **Composant SignaturePad** avec react-signature-canvas
+- **Dialog de signature** complet:
+  - Texte légal (valeur légale signature électronique)
+  - Info signataire et date/heure
+  - Zone de signature interactive avec canvas
+  - Boutons Effacer/Confirmer
+- **Backend endpoints**:
+  - `POST /api/v1/admin/invoices/{id}/signature`
+  - `DELETE /api/v1/admin/invoices/{id}/signature`
+  - `POST /api/v1/admin/quotes/{id}/signature`
+- **Affichage signature** sauvegardée sur facture/devis
+- **SignatureDisplay** component pour afficher signatures existantes
 
 ---
 
-## API Endpoints
+## Structure Fichiers
 
-### V1 (Web)
-- `/api/v1/auth/*`, `/api/v1/admin/*`, `/api/v1/client/*`
-
-### V2 (Mobile)
-- `/api/v2/auth/*`, `/api/v2/mobile/*`, `/api/v2/projects/*`, `/api/v2/catalog/*`
+```
+/app
+├── backend/
+│   └── server.py              # + SignatureData model, signature endpoints
+├── frontend/
+│   └── src/
+│       ├── components/ui/
+│       │   └── signature-pad.jsx   # [NEW] SignaturePad, SignatureDialog, SignatureDisplay
+│       ├── lib/api.js              # + addInvoiceSignature, addQuoteSignature
+│       └── pages/admin/
+│           ├── AdminInvoices.jsx
+│           └── AdminInvoiceDetail.jsx  # + signature integration
+└── mobile/
+    └── src/...
+```
 
 ---
 
-## Identifiants
+## API Signature
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@cmgeorges.com | strongpassword123 |
+| Endpoint | Description |
+|----------|-------------|
+| `POST /invoices/{id}/signature` | Ajouter signature client à facture |
+| `DELETE /invoices/{id}/signature` | Supprimer signature |
+| `POST /quotes/{id}/signature` | Signer devis (change status → accepted) |
+
+**Payload SignatureData:**
+```json
+{
+  "signature_base64": "data:image/png;base64,...",
+  "signer_name": "Client Name",
+  "signer_email": "client@email.com"
+}
+```
 
 ---
 
 ## Backlog
 
 ### P1 - Prochaine
+- [ ] Ajouter signature aux devis (frontend)
+- [ ] Inclure signature dans PDF
 - [ ] App React Native sur stores
-- [ ] Push notifications
-- [ ] Mode offline
 
 ### P2
-- [ ] Intégrer catalogue dans création devis
+- [ ] Envoi devis par email avec lien signature
 - [ ] Système Produits + Inventaire
-- [ ] Contrats de maintenance
 
 ### P3
 - [ ] Dashboard Analytics
 - [ ] Migration PostgreSQL
-- [ ] Marketplace
-
----
-
-## Structure
-
-```
-/app
-├── backend/
-│   ├── server.py
-│   ├── routers/
-│   │   ├── auth.py
-│   │   ├── projects.py
-│   │   ├── mobile.py
-│   │   └── catalog.py
-│   ├── services/database.py
-│   └── middleware/tenant.py
-├── frontend/
-│   └── src/pages/admin/
-│       ├── AdminInvoices.jsx    [REFAIT - Style Joist]
-│       ├── AdminInvoiceDetail.jsx [REFAIT - Pro layout]
-│       └── AdminCatalog.jsx
-└── mobile/
-    └── src/screens/...
-```

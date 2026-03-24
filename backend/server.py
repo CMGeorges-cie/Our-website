@@ -373,6 +373,14 @@ class InvoiceLineBase(BaseModel):
     unit_price: float
     line_type: str = "service"
 
+
+# Signature model for invoices and quotes
+class SignatureData(BaseModel):
+    signature_base64: str
+    signer_name: Optional[str] = None
+    signer_email: Optional[str] = None
+
+
 class InvoiceLine(InvoiceLineBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     line_total: float = 0
@@ -1579,6 +1587,40 @@ async def get_quote(quote_id: str, user: dict = Depends(get_current_user)):
     
     return quote
 
+
+@admin_router.post("/quotes/{quote_id}/signature")
+async def add_quote_signature(quote_id: str, sig_data: SignatureData, request: Request, user: dict = Depends(get_current_user)):
+    """Add client signature to a quote for acceptance"""
+    quote = await db.quotes.find_one({"id": quote_id}, {"_id": 0})
+    if not quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    
+    signature_doc = {
+        "signature_base64": sig_data.signature_base64,
+        "signer_name": sig_data.signer_name,
+        "signer_email": sig_data.signer_email,
+        "signed_at": datetime.now(timezone.utc).isoformat(),
+        "ip_address": request.client.host if request.client else None,
+        "signed_by_user_id": user["id"]
+    }
+    
+    # Mark quote as accepted when signed
+    await db.quotes.update_one(
+        {"id": quote_id},
+        {
+            "$set": {
+                "signature": signature_doc,
+                "signed_at": signature_doc["signed_at"],
+                "status": "accepted"
+            }
+        }
+    )
+    
+    await create_audit_log("quote_signed", "quote", quote_id, user=user, details={"signer_name": sig_data.signer_name}, request=request)
+    
+    return {"message": "Devis signé et accepté", "signed_at": signature_doc["signed_at"]}
+
+
 # ==================== ADMIN INVOICES ENDPOINTS ====================
 @admin_router.post("/invoices", response_model=Invoice)
 async def create_invoice(invoice_data: InvoiceCreate, request: Request, user: dict = Depends(get_current_user)):
@@ -1751,6 +1793,50 @@ async def add_payment(invoice_id: str, payment: PaymentCreate, request: Request,
     await notify_payment_received(updated_invoice, client, payment.amount, background_tasks)
     
     return await get_invoice(invoice_id, user)
+
+
+@admin_router.post("/invoices/{invoice_id}/signature")
+async def add_invoice_signature(invoice_id: str, sig_data: SignatureData, request: Request, user: dict = Depends(get_current_user)):
+    """Add client signature to an invoice"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    signature_doc = {
+        "signature_base64": sig_data.signature_base64,
+        "signer_name": sig_data.signer_name,
+        "signer_email": sig_data.signer_email,
+        "signed_at": datetime.now(timezone.utc).isoformat(),
+        "ip_address": request.client.host if request.client else None,
+        "signed_by_user_id": user["id"]
+    }
+    
+    await db.invoices.update_one(
+        {"id": invoice_id},
+        {"$set": {"signature": signature_doc, "signed_at": signature_doc["signed_at"]}}
+    )
+    
+    await create_audit_log("invoice_signed", "invoice", invoice_id, user=user, details={"signer_name": sig_data.signer_name}, request=request)
+    
+    return {"message": "Signature enregistrée", "signed_at": signature_doc["signed_at"]}
+
+
+@admin_router.delete("/invoices/{invoice_id}/signature")
+async def remove_invoice_signature(invoice_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Remove signature from invoice (admin only)"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    await db.invoices.update_one(
+        {"id": invoice_id},
+        {"$unset": {"signature": "", "signed_at": ""}}
+    )
+    
+    await create_audit_log("invoice_signature_removed", "invoice", invoice_id, user=user, request=request)
+    
+    return {"message": "Signature supprimée"}
+
 
 # ==================== ADMIN PROJECTS ENDPOINTS ====================
 @admin_router.post("/projects", response_model=Project)

@@ -137,6 +137,11 @@ export const adminApi = {
   // Record payment
   recordPayment: (invoiceId, data) => api.post(`/admin/invoices/${invoiceId}/payments`, data),
   
+  // Signatures
+  addInvoiceSignature: (invoiceId, data) => api.post(`/admin/invoices/${invoiceId}/signature`, data),
+  removeInvoiceSignature: (invoiceId) => api.delete(`/admin/invoices/${invoiceId}/signature`),
+  addQuoteSignature: (quoteId, data) => api.post(`/admin/quotes/${quoteId}/signature`, data),
+  
   // Stats & Dashboard
   getStats: () => api.get('/admin/stats'),
   getCeoDashboard: () => api.get('/admin/ceo-dashboard'),
