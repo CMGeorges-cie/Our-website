@@ -1,6 +1,6 @@
 # CMGeorges / ServiceFlow — Product Requirements Document
 
-**Dernière mise à jour:** 16 Mars 2026  
+**Dernière mise à jour:** 24 Mars 2026  
 **Stack:** React + FastAPI + MongoDB  
 **Langue:** Français
 
@@ -9,7 +9,7 @@
 ## Vision Produit
 
 **CMGeorges** = Entreprise de services (déco, rénovation) — Montréal & Rive-Sud  
-**ServiceFlow** = Plateforme SaaS CRM pour entreprises de services (vendable à d'autres entreprises)
+**ServiceFlow** = Plateforme SaaS CRM pour entreprises de services
 
 ---
 
@@ -18,124 +18,96 @@
 ```
 /app
 ├── backend/
-│   ├── server.py          # FastAPI app principale (4200+ lignes)
-│   ├── routers/           # [NEW] Routeurs modulaires v2
+│   ├── server.py          # FastAPI app principale
+│   ├── routers/           # Routeurs modulaires v2
 │   │   ├── auth.py        # Authentification mobile-ready
 │   │   ├── projects.py    # Projets avec multi-tenant
-│   │   └── mobile.py      # API mobile optimisée
+│   │   ├── mobile.py      # API mobile optimisée
+│   │   └── catalog.py     # Catalogue de services [NEW]
 │   ├── services/
-│   │   └── database.py    # [NEW] Repository multi-tenant
+│   │   └── database.py    # Repository multi-tenant
 │   ├── middleware/
-│   │   └── tenant.py      # [NEW] Isolation multi-tenant
-│   ├── schemas/
-│   │   └── base.py        # [NEW] Modèles Pydantic partagés
-│   └── .env
+│   │   └── tenant.py      # Isolation multi-tenant
+│   └── schemas/base.py    # Modèles Pydantic partagés
 ├── frontend/
 │   ├── src/
-│   │   ├── App.js
-│   │   ├── components/layout/AdminLayout.jsx
-│   │   ├── lib/api.js
-│   │   └── pages/
-│   │       ├── admin/
-│   │       └── client/
+│   │   ├── lib/api.js     # Client API (v1 + v2)
+│   │   └── pages/admin/
+│   │       └── AdminCatalog.jsx [NEW]
 │   └── tests/e2e/
-└── mobile/                 # [NEW] Structure app React Native
-    ├── src/
-    │   ├── screens/
-    │   ├── components/
-    │   ├── services/api.ts  # Client API mobile
-    │   └── navigation/
-    └── README.md
+└── mobile/                 # App React Native
+    ├── App.tsx
+    ├── package.json
+    └── src/
+        ├── screens/
+        │   ├── auth/LoginScreen.tsx
+        │   └── technician/
+        │       ├── HomeScreen.tsx
+        │       ├── ProjectsScreen.tsx
+        │       └── ProjectDetailScreen.tsx
+        ├── services/api.ts
+        ├── hooks/useAuth.tsx
+        ├── navigation/RootNavigator.tsx
+        └── utils/constants.ts
 ```
 
 ---
 
 ## Ce Qui est Implémenté
 
-### Phase 1 ✅ (Complétée)
-
-#### Branding & Visual
-- [x] Animation Vanta.js NET sur page login (fond violet/or)
-- [x] Branding ServiceFlow sur login + sidebar admin
-- [x] Badge "CMGeorges Workspace" dans sidebar
-- [x] Logo lion couronné ServiceFlow sur toutes les pages
-- [x] Thème dark/light avec toggle
-
-#### CRM Admin (CRUD complet)
-- [x] Leads (liste + détail + suppression)
-- [x] Clients (liste + créer + modifier + supprimer + détail)
-- [x] Factures (liste + créer + supprimer + PDF + email)
-- [x] Projets (liste + créer + supprimer + détail)
-- [x] Soumissions/Devis (vue + PDF + email)
-- [x] Blog (CRUD complet)
-- [x] Codes Promo (CRUD complet)
-- [x] Tarification (CRUD complet)
-- [x] Politiques (CRUD complet)
-- [x] Gestion Utilisateurs (CRUD + rôles + reset mdp)
-
-#### Système de Notifications ✅
-- [x] Icône cloche dans le header admin avec badge compteur
-- [x] Page /admin/notifications - Centre de notifications
-- [x] API endpoints: GET list, GET unread-count, PATCH mark-read
-- [x] Notifications automatiques: nouveaux leads, factures, paiements
+### Phase 1 ✅ (CRM Admin)
+- [x] Leads, Clients, Factures, Projets (CRUD complet)
+- [x] Devis, Blog, Codes Promo, Tarification, Politiques
+- [x] Système de Notifications complet
+- [x] Thème dark/light premium noir/or
+- [x] Branding ServiceFlow avec logo lion
 
 ### Phase 2 ✅ (Projets Améliorés)
-
-#### Gestion des Tâches de Projet
-- [x] Modèle de tâches (title, description, status, due_date)
-- [x] API: CRUD tâches de projet
-- [x] UI: Liste de tâches avec checkboxes
-- [x] Barre de progression interactive
-
-#### Messagerie Interne ✅
-- [x] Messages par projet (admin/client)
-- [x] Notifications email
+- [x] Gestion des tâches de projet avec progression
+- [x] Messagerie interne par projet
 - [x] Timeline des événements
 
-### Phase 3 🚧 (En Cours - Mars 2026)
-
-#### Architecture Multi-Tenant ✅
-- [x] Middleware d'extraction tenant_id depuis JWT
-- [x] TenantContext pour isolation des requêtes
+### Phase 3 ✅ (Architecture Multi-Tenant & Mobile)
+- [x] Middleware d'isolation multi-tenant (TenantContext)
 - [x] TenantRepository avec filtres automatiques
-- [x] Routeurs v2 avec isolation complète
+- [x] API v2 mobile-ready avec endpoints optimisés
+- [x] Structure React Native complète
+- [x] Écrans: Login, Home, Projects, ProjectDetail
 
-#### API Mobile v2 ✅
-- [x] Endpoints optimisés pour React Native
-- [x] Check-in/Check-out avec GPS
-- [x] Upload photos (base64)
-- [x] Dashboard mobile
-- [x] Sync offline
-- [x] Tracking temps et matériaux
-
-#### Structure Mobile ✅
-- [x] Architecture projet React Native
-- [x] Client API TypeScript
-- [x] Documentation endpoints
+### Phase 4 ✅ (Catalogue de Services)
+- [x] API CRUD /api/v2/catalog
+- [x] Catégories: peinture, mobilier, tech, entretien, installation
+- [x] Types de prix: fixe, horaire, par unité, sur devis
+- [x] Services en vedette
+- [x] Interface admin complète avec recherche et filtres
+- [x] Endpoint seed-defaults avec 9 services CMGeorges
 
 ---
 
-## API Endpoints v2 (Mobile)
+## API Endpoints
 
-| Endpoint | Méthode | Description |
-|----------|---------|-------------|
-| `/api/v2/auth/login` | POST | Connexion (8h token) |
-| `/api/v2/auth/refresh` | POST | Refresh token |
-| `/api/v2/auth/me` | GET | Info utilisateur |
-| `/api/v2/auth/mobile/device-token` | POST | Push notifications |
-| `/api/v2/mobile/dashboard` | GET | Stats dashboard |
-| `/api/v2/mobile/sync/projects` | GET | Sync projets |
-| `/api/v2/mobile/sync/today` | GET | Projets du jour |
-| `/api/v2/mobile/checkin` | POST | Arrivée sur site |
-| `/api/v2/mobile/checkout` | POST | Départ + signature |
-| `/api/v2/mobile/photos` | POST | Upload photo |
-| `/api/v2/mobile/projects/{id}/status` | PATCH | Statut rapide |
-| `/api/v2/mobile/materials` | POST | Log matériaux |
-| `/api/v2/mobile/time` | POST | Log temps |
-| `/api/v2/projects` | GET/POST | CRUD projets |
-| `/api/v2/projects/my-assignments` | GET | Mes assignations |
-| `/api/v2/projects/{id}/tasks` | GET/POST | Tâches |
-| `/api/v2/projects/{id}/messages` | GET/POST | Messages |
+### V1 (Legacy Web)
+| Route | Description |
+|-------|-------------|
+| `/api/v1/auth/*` | Authentification |
+| `/api/v1/admin/*` | CRUD CRM |
+| `/api/v1/client/*` | Portail client |
+
+### V2 (Mobile-Ready)
+| Route | Description |
+|-------|-------------|
+| `/api/v2/auth/login` | Login (8h token) |
+| `/api/v2/auth/refresh` | Refresh token |
+| `/api/v2/auth/me` | Info utilisateur |
+| `/api/v2/mobile/dashboard` | Stats technicien |
+| `/api/v2/mobile/sync/*` | Sync offline |
+| `/api/v2/mobile/checkin` | Check-in GPS |
+| `/api/v2/mobile/checkout` | Check-out + signature |
+| `/api/v2/mobile/photos` | Upload photos |
+| `/api/v2/projects/*` | CRUD projets |
+| `/api/v2/catalog` | **Catalogue services** |
+| `/api/v2/catalog/public` | Services publics |
+| `/api/v2/catalog/packages/*` | Forfaits |
 
 ---
 
@@ -144,75 +116,61 @@
 | Role | Email | Mot de passe |
 |------|-------|-------------|
 | Admin | admin@cmgeorges.com | strongpassword123 |
-| Test | test@cmgeorges.com | testpassword |
-| Staff | staff@cmgeorges.com | staffpassword123 |
 
 ---
 
-## Intégrations
+## Tests
 
-| Service | Statut | Notes |
-|---------|--------|-------|
-| Resend | ✅ | Email devis + factures + notifications |
-| Stripe | ✅ | Abonnements SaaS + paiements factures |
-| Google reCAPTCHA | ⛔ Désactivé | Attente clé v2 Checkbox |
-| Vanta.js | ✅ | Animation NET sur login |
-| fpdf/pyfpdf | ✅ | PDF quotes + invoices |
+- **Iteration 8:** 35 tests (34 passed, 1 xfail corrigé)
+- Backend: 18 tests API
+- Frontend: 16 tests E2E
 
 ---
 
 ## Backlog Priorisé
 
-### P0 (Critique) - En Cours
-- [x] Architecture multi-tenant (backend)
+### P0 ✅ Complété
+- [x] Architecture multi-tenant
 - [x] API Mobile v2
-- [ ] Initialisation projet React Native complet
-- [ ] Tests E2E API v2
+- [x] Catalogue de services
+- [x] Fix logo /connexion
 
 ### P1 — Prochaine Phase
-- [ ] App mobile technicien (React Native)
-  - [ ] Écran de login
-  - [ ] Liste des projets
-  - [ ] Détail projet + tâches
-  - [ ] Check-in/Check-out
-  - [ ] Upload photos
-- [ ] Portail client mobile
+- [ ] Publier app React Native sur TestFlight/Play Store
 - [ ] Push notifications (Firebase)
+- [ ] Mode offline avec sync
 
-### P2 — Phase 4
-- [ ] Catalogue de services
-- [ ] Système Produits + Installation
-- [ ] Gestion inventaire
+### P2 — Phase 5
+- [ ] Système Produits + Installation (inventaire)
 - [ ] Contrats de maintenance
-- [ ] Dashboard Analytics avancé
+- [ ] Intégration catalogue dans création de devis
 
 ### P3 — Futur
 - [ ] Migration PostgreSQL
-- [ ] API publique ServiceFlow
+- [ ] Dashboard Analytics avancé
 - [ ] Marketplace de services
 
 ---
 
-## Routes de l'Application
+## Routes Frontend
 
 | Route | Description |
 |-------|-------------|
-| / | Site public CMGeorges |
-| /serviceflow | Landing page ServiceFlow |
-| /serviceflow/pricing | Tarification SaaS |
-| /connexion | Choix connexion (Admin/Client) |
-| /admin/login | Connexion admin |
-| /admin/dashboard | Dashboard CRM |
-| /admin/projects | Gestion projets |
-| /client/login | Portail client |
-| /client/dashboard | Dashboard client |
+| `/` | Site public CMGeorges |
+| `/serviceflow` | Landing page SaaS |
+| `/connexion` | Choix connexion |
+| `/admin/catalog` | **Catalogue services** |
+| `/admin/*` | Dashboard CRM |
+| `/client/*` | Portail client |
 
 ---
 
-## Notes Techniques
+## Intégrations
 
-- JWT auth avec tenant_id intégré
-- MongoDB avec exclusion `_id` systématique
-- API v1 (legacy) + v2 (mobile-optimized)
-- Thème: gold-500 = #d4af37, fond = #0f0f1a
-- Hot reload frontend/backend activé
+| Service | Statut |
+|---------|--------|
+| Resend | ✅ Email |
+| Stripe | ✅ Paiements |
+| Vanta.js | ✅ Animation |
+| fpdf2 | ✅ PDF |
+| reCAPTCHA | ⛔ Désactivé |

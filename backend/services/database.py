@@ -76,6 +76,8 @@ class TenantRepository:
         """Insert one document with tenant_id"""
         tenant_doc = self._apply_tenant_to_doc(doc)
         await self.collection.insert_one(tenant_doc)
+        # Remove MongoDB _id to avoid JSON serialization issues
+        tenant_doc.pop('_id', None)
         return tenant_doc
     
     async def update_one(self, query: dict, update: dict) -> bool:
@@ -132,6 +134,8 @@ class GlobalRepository:
     
     async def insert_one(self, doc: dict) -> dict:
         await self.collection.insert_one(doc)
+        # Remove MongoDB _id to avoid JSON serialization issues
+        doc.pop('_id', None)
         return doc
     
     async def update_one(self, query: dict, update: dict) -> bool:
