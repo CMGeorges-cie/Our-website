@@ -46,6 +46,15 @@ export const publicApi = {
   getServices: () => api.get('/services'),
   getPortfolio: () => api.get('/portfolio'),
   createLead: (data) => api.post('/leads', data),
+  getFurnitureProcessSteps: () => api.get('/furniture/process-steps'),
+  getFurniturePricing: () => api.get('/furniture/pricing'),
+  getFAQs: (category) => api.get(`/faqs?category=${encodeURIComponent(category)}`),
+  getTestimonials: (serviceType, featuredOnly) => {
+    const params = new URLSearchParams();
+    if (serviceType) params.append('service_type', serviceType);
+    if (featuredOnly !== undefined) params.append('featured_only', featuredOnly);
+    return api.get(`/testimonials?${params.toString()}`);
+  },
 };
 
 // Admin API

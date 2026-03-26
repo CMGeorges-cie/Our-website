@@ -15,44 +15,32 @@ import {
   Star
 } from 'lucide-react';
 
-const testimonials = [
-  {
-    name: 'Marie T.',
-    location: 'Montréal',
-    text: 'Service impeccable! L\'équipe a transformé notre salon en un temps record.',
-    rating: 5
-  },
-  {
-    name: 'Jean-Pierre L.',
-    location: 'Longueuil',
-    text: 'Assemblage de tous nos meubles IKEA en une journée. Professionnel et soigné.',
-    rating: 5
-  },
-  {
-    name: 'Sophie M.',
-    location: 'Brossard',
-    text: 'Notre nouveau site web a doublé nos demandes de clients. Excellent travail!',
-    rating: 5
-  }
-];
-
 export default function HomePage() {
   usePageTitle('Accueil - Rénovation, Mobilier & Tech à Montréal');
   const [services, setServices] = useState([]);
+  const [testimonialsData, setTestimonialsData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchData = async () => {
       try {
-        const response = await publicApi.getServices();
-        setServices(response.data);
+        const [servicesResponse, testimonialsResponse] = await Promise.all([
+          publicApi.getServices(),
+          publicApi.getTestimonials(null, true) // Get featured testimonials
+        ]);
+        
+        setServices(servicesResponse.data);
+        setTestimonialsData(testimonialsResponse.data);
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching data:', error);
+        // Fallback to hardcoded data if API fails
+        setTestimonialsData(testimonials);
       } finally {
         setLoading(false);
       }
     };
-    fetchServices();
+    
+    fetchData();
   }, []);
 
   const getServiceIcon = (serviceName) => {
@@ -332,25 +320,46 @@ export default function HomePage() {
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, idx) => (
-              <Card key={idx} className="p-6 hover-lift" data-testid={`testimonial-${idx}`}>
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-[#d4af37] text-[#d4af37]" />
-                  ))}
-                </div>
-                <p className="text-gray-700 mb-4 italic">"{testimonial.text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#1a365d] flex items-center justify-center text-white font-bold">
-                    {testimonial.name.charAt(0)}
+            {loading ? (
+              // Loading skeleton for testimonials
+              Array.from({ length: 3 }).map((_, idx) => (
+                <Card key={idx} className="p-6">
+                  <div className="flex gap-1 mb-4">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="h-5 w-5 bg-gray-200 rounded animate-pulse"></div>
+                    ))}
                   </div>
-                  <div>
-                    <p className="font-semibold text-[#1a365d]">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.location}</p>
+                  <div className="h-16 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+                    <div>
+                      <div className="h-4 bg-gray-200 rounded w-20 mb-1 animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            ) : (
+              testimonialsData.map((testimonial, idx) => (
+                <Card key={idx} className="p-6 hover-lift" data-testid={`testimonial-${idx}`}>
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-[#d4af37] text-[#d4af37]" />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 mb-4 italic">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#1a365d] flex items-center justify-center text-white font-bold">
+                      {testimonial.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[#1a365d]">{testimonial.name}</p>
+                      <p className="text-sm text-gray-500">{testimonial.location}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>

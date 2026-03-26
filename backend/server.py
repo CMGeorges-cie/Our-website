@@ -147,12 +147,49 @@ class ProjectStatus(str, Enum):
     ON_HOLD = "on_hold"
     CANCELLED = "cancelled"
 
-class PaymentMethod(str, Enum):
-    CASH = "cash"
-    ETRANSFER = "etransfer"
-    CREDIT_CARD = "credit_card"
-    CHEQUE = "cheque"
-    OTHER = "other"
+class ServiceCategory(str, Enum):
+    MANUAL = "manual"
+    FURNITURE = "furniture"
+    TECH = "tech"
+
+class Service(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: ServiceCategory
+    title: str
+    subtitle: str
+    description: str
+    features: List[str]
+    pricing: Optional[Dict[str, Any]] = {}
+    image_url: Optional[str] = None
+    is_featured: bool = False
+    is_active: bool = True
+    sort_order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PricingConfig(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    service_type: str
+    item_key: str
+    base_price: Optional[float] = None
+    market_price: Optional[float] = None
+    hourly_rate: Optional[float] = None
+    rate_per_sqft: Optional[float] = None
+    description: str
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SystemConfig(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    config_key: str
+    config_value: Any
+    config_type: str = "string"  # string, number, boolean, json
+    description: str
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # ==================== PRICING CONFIG ====================
 PRICING_CONFIG = {
@@ -685,6 +722,50 @@ class PolicyUpdate(BaseModel):
     version: Optional[str] = None
     is_active: Optional[bool] = None
 
+# ==================== FURNITURE MODELS ====================
+class ProcessStep(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str
+    icon: str
+    order: int
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class FurniturePricing(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    item_name: str
+    description: str
+    base_price: float
+    time_estimate: str
+    category: str = "general"
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class FAQ(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    category: str
+    question: str
+    answer: str
+    order: int = 0
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Testimonial(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    location: str
+    text: str
+    rating: int
+    service_type: Optional[str] = None
+    is_featured: bool = False
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 # ==================== AUTH HELPERS ====================
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -1025,6 +1106,40 @@ async def get_pricing():
             "maintenance": "150$/mois"
         }
     }
+
+@v1_router.get("/furniture/process-steps", response_model=List[ProcessStep])
+async def get_furniture_process_steps():
+    """Get furniture assembly process steps"""
+    steps = await db.furniture_process_steps.find({}, {"_id": 0}).sort("order", 1).to_list(10)
+    return steps
+
+@v1_router.get("/furniture/pricing", response_model=List[FurniturePricing])
+async def get_furniture_pricing():
+    """Get furniture pricing information"""
+    pricing = await db.furniture_pricing.find({}, {"_id": 0}).sort("order", 1).to_list(20)
+    return pricing
+
+@v1_router.get("/faqs", response_model=List[FAQ])
+async def get_faqs(category: Optional[str] = None):
+    """Get FAQs, optionally filtered by category"""
+    query = {}
+    if category:
+        query["category"] = category
+    
+    faqs = await db.faqs.find(query, {"_id": 0}).sort("order", 1).to_list(50)
+    return faqs
+
+@v1_router.get("/testimonials", response_model=List[Testimonial])
+async def get_testimonials(service_type: Optional[str] = None, featured_only: bool = False):
+    """Get testimonials, optionally filtered by service type or featured only"""
+    query = {"is_active": True}
+    if service_type:
+        query["service_type"] = service_type
+    if featured_only:
+        query["is_featured"] = True
+    
+    testimonials = await db.testimonials.find(query, {"_id": 0}).sort("created_at", -1).to_list(20)
+    return testimonials
 
 # ==================== AUTH ENDPOINTS ====================
 @v1_router.post("/auth/login", response_model=TokenResponse)
@@ -1765,6 +1880,506 @@ async def get_audit_logs(
     
     logs = await db.audit_logs.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
     return logs
+
+# ==================== SERVICES MANAGEMENT ====================
+@api_router.get("/services")
+async def get_services(category: Optional[str] = None, active_only: bool = True):
+    """Get all services"""
+    query = {}
+    if category:
+        query["category"] = category
+    if active_only:
+        query["is_active"] = True
+    
+    services = await db.services.find(query, {"_id": 0}).sort("sort_order", 1).to_list(None)
+    return services
+
+@api_router.get("/services/{service_id}")
+async def get_service(service_id: str):
+    """Get a specific service"""
+    service = await db.services.find_one({"id": service_id, "is_active": True}, {"_id": 0})
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    return service
+
+@api_router.post("/services")
+async def create_service(service: Service, current_user: dict = Depends(get_current_user)):
+    """Create a new service (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if service name already exists
+    existing = await db.services.find_one({"name": service.name})
+    if existing:
+        raise HTTPException(status_code=400, detail="Service name already exists")
+    
+    service_dict = service.model_dump()
+    await db.services.insert_one(service_dict)
+    
+    # Log the action
+    await log_action(
+        db, "create", "service", service.id, 
+        f"Created service: {service.name}", current_user["id"]
+    )
+    
+    return service_dict
+
+@api_router.put("/services/{service_id}")
+async def update_service(service_id: str, service_update: Service, current_user: dict = Depends(get_current_user)):
+    """Update a service (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if another service with same name exists
+    existing = await db.services.find_one({"name": service_update.name, "id": {"$ne": service_id}})
+    if existing:
+        raise HTTPException(status_code=400, detail="Service name already exists")
+    
+    service_update.updated_at = datetime.now(timezone.utc)
+    update_dict = service_update.model_dump()
+    
+    result = await db.services.update_one(
+        {"id": service_id}, 
+        {"$set": update_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    # Log the action
+    await log_action(
+        db, "update", "service", service_id, 
+        f"Updated service: {service_update.name}", current_user["id"]
+    )
+    
+    return update_dict
+
+@api_router.delete("/services/{service_id}")
+async def delete_service(service_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a service (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    result = await db.services.update_one(
+        {"id": service_id}, 
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc)}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    # Log the action
+    await log_action(
+        db, "delete", "service", service_id, 
+        "Deleted service", current_user["id"]
+    )
+    
+    return {"message": "Service deleted successfully"}
+
+# ==================== PRICING MANAGEMENT ====================
+@api_router.get("/pricing")
+async def get_pricing_configs(service_type: Optional[str] = None, active_only: bool = True):
+    """Get pricing configurations"""
+    query = {}
+    if service_type:
+        query["service_type"] = service_type
+    if active_only:
+        query["is_active"] = True
+    
+    pricing = await db.pricing_configs.find(query, {"_id": 0}).sort("service_type", 1).to_list(None)
+    return pricing
+
+@api_router.post("/pricing")
+async def create_pricing_config(pricing: PricingConfig, current_user: dict = Depends(get_current_user)):
+    """Create pricing configuration (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    pricing_dict = pricing.model_dump()
+    await db.pricing_configs.insert_one(pricing_dict)
+    
+    # Log the action
+    await log_action(
+        db, "create", "pricing_config", pricing.id, 
+        f"Created pricing config: {pricing.service_type}.{pricing.item_key}", current_user["id"]
+    )
+    
+    return pricing_dict
+
+@api_router.put("/pricing/{pricing_id}")
+async def update_pricing_config(pricing_id: str, pricing_update: PricingConfig, current_user: dict = Depends(get_current_user)):
+    """Update pricing configuration (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    pricing_update.updated_at = datetime.now(timezone.utc)
+    update_dict = pricing_update.model_dump()
+    
+    result = await db.pricing_configs.update_one(
+        {"id": pricing_id}, 
+        {"$set": update_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Pricing config not found")
+    
+    # Log the action
+    await log_action(
+        db, "update", "pricing_config", pricing_id, 
+        f"Updated pricing config: {pricing_update.service_type}.{pricing_update.item_key}", current_user["id"]
+    )
+    
+    return update_dict
+
+# ==================== DATA MIGRATION ====================
+@api_router.post("/migrate-data")
+async def migrate_static_data_to_db(current_user: dict = Depends(get_current_user)):
+    """Migrate static data to database (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    migrated_data = {
+        "services": [],
+        "pricing_configs": [],
+        "system_configs": []
+    }
+    
+    # Migrate services
+    services_data = [
+        {
+            "name": "deco-touche",
+            "category": "manual",
+            "title": "Déco Touché",
+            "subtitle": "Peinture & Rénovation",
+            "description": "Transformez votre espace de vie avec nos services professionnels de peinture et rénovation légère.",
+            "features": [
+                "Peinture intérieure et extérieure",
+                "Rénovation légère (plâtre, joints)",
+                "Entretien général",
+                "Installation décoration",
+                "Réparation de murs et plafonds",
+                "Finition et retouches"
+            ],
+            "pricing": {"starting_from": 250},
+            "image_url": "https://images.unsplash.com/photo-1652766825080-88818e6509b6?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+            "is_featured": False,
+            "sort_order": 1
+        },
+        {
+            "name": "mobilier",
+            "category": "furniture",
+            "title": "Mobilier & Installation",
+            "subtitle": "Service clé en main",
+            "description": "De la fourniture à l'installation sécuritaire, nous nous occupons de tout votre mobilier.",
+            "features": [
+                "Assemblage IKEA, JYSK, Structube",
+                "Livraison incluse",
+                "Ancrage mural sécuritaire",
+                "Garantie installation",
+                "Fourniture optionnelle",
+                "Prix compétitifs vs marché"
+            ],
+            "pricing": {"starting_from": 75},
+            "image_url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+            "is_featured": True,
+            "sort_order": 2
+        },
+        {
+            "name": "tech-services",
+            "category": "tech",
+            "title": "Services Technologiques",
+            "subtitle": "Développement web professionnel",
+            "description": "Développement web professionnel et solutions numériques.",
+            "features": [
+                "Sites vitrines",
+                "E-commerce complet",
+                "Applications web sur mesure",
+                "Audit DevOps/Cloud",
+                "Maintenance mensuelle"
+            ],
+            "pricing": {"hourly_rate": 70},
+            "image_url": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
+            "is_featured": False,
+            "sort_order": 3
+        }
+    ]
+    
+    for service_data in services_data:
+        service = Service(**service_data)
+        service_dict = service.model_dump()
+        await db.services.insert_one(service_dict)
+        migrated_data["services"].append(service_dict)
+    
+    # Migrate pricing configs
+    pricing_data = []
+    
+    # Manual services pricing
+    for service_type, items in PRICING_CONFIG.items():
+        if isinstance(items, dict):
+            for item_key, config in items.items():
+                if isinstance(config, dict):
+                    pricing_config = PricingConfig(
+                        service_type=service_type,
+                        item_key=item_key,
+                        base_price=config.get("base"),
+                        market_price=config.get("market"),
+                        hourly_rate=config.get("hourly"),
+                        rate_per_sqft=config.get("rate_per_sqft"),
+                        description=config.get("description", "")
+                    )
+                    pricing_dict = pricing_config.model_dump()
+                    await db.pricing_configs.insert_one(pricing_dict)
+                    migrated_data["pricing_configs"].append(pricing_dict)
+    
+    # Migrate system configs
+    system_configs_data = [
+        {"config_key": "tps_rate", "config_value": 0.05, "config_type": "number", "description": "TPS rate"},
+        {"config_key": "tvq_rate", "config_value": 0.09975, "config_type": "number", "description": "TVQ rate"},
+        {"config_key": "manual_margin_target", "config_value": 0.55, "config_type": "number", "description": "Manual services margin target"},
+        {"config_key": "tech_margin_target", "config_value": 0.70, "config_type": "number", "description": "Tech services margin target"},
+        {"config_key": "furniture_margin_target", "config_value": 0.45, "config_type": "number", "description": "Furniture services margin target"},
+        {"config_key": "deposit_percentage", "config_value": 0.30, "config_type": "number", "description": "Deposit percentage"},
+        {"config_key": "milestone_percentage", "config_value": 0.30, "config_type": "number", "description": "Milestone payment percentage"},
+        {"config_key": "final_percentage", "config_value": 0.40, "config_type": "number", "description": "Final payment percentage"}
+    ]
+    
+    for config_data in system_configs_data:
+        config = SystemConfig(**config_data)
+        config_dict = config.model_dump()
+        await db.system_configs.insert_one(config_dict)
+        migrated_data["system_configs"].append(config_dict)
+    
+    # Migrate furniture process steps
+    process_steps_data = [
+        {
+            "title": "Achetez votre mobilier",
+            "description": "Chez IKEA, JYSK, Structube ou ailleurs. Ou laissez-nous vous le fournir à prix compétitif.",
+            "icon": "DollarSign",
+            "order": 1
+        },
+        {
+            "title": "On livre chez vous",
+            "description": "Livraison incluse dans la région de Montréal et Rive-Sud.",
+            "icon": "Truck",
+            "order": 2
+        },
+        {
+            "title": "Assemblage pro",
+            "description": "Installation experte avec ancrage mural sécuritaire si requis.",
+            "icon": "Wrench",
+            "order": 3
+        }
+    ]
+    
+    for step_data in process_steps_data:
+        step_data["id"] = str(uuid.uuid4())
+        step_data["created_at"] = datetime.now(timezone.utc)
+        step_data["updated_at"] = datetime.now(timezone.utc)
+        step_data["is_active"] = True
+        
+        await db.furniture_process_steps.insert_one(step_data)
+        migrated_data["process_steps"] = migrated_data.get("process_steps", [])
+        migrated_data["process_steps"].append(step_data)
+    
+    # Migrate furniture pricing
+    furniture_pricing_data = [
+        {"item_name": "Lit (simple/double)", "description": "Lit simple ou double", "base_price": 75.00, "time_estimate": "1-2h", "category": "bedroom"},
+        {"item_name": "Lit King/Queen avec tiroirs", "description": "Lit King ou Queen avec rangement", "base_price": 95.00, "time_estimate": "2-3h", "category": "bedroom"},
+        {"item_name": "Commode (3-6 tiroirs)", "description": "Commode standard", "base_price": 65.00, "time_estimate": "1h", "category": "storage"},
+        {"item_name": "Garde-robe PAX (1 section)", "description": "Une section de garde-robe PAX", "base_price": 100.00, "time_estimate": "2h", "category": "storage"},
+        {"item_name": "Garde-robe PAX (2+ sections)", "description": "Garde-robe PAX multi-sections", "base_price": 150.00, "time_estimate": "3-5h", "category": "storage"},
+        {"item_name": "Bureau", "description": "Bureau de travail", "base_price": 50.00, "time_estimate": "45min-1h", "category": "office"},
+        {"item_name": "Table à manger", "description": "Table de salle à manger", "base_price": 50.00, "time_estimate": "1h", "category": "dining"},
+        {"item_name": "Étagère KALLAX/BILLY", "description": "Étagère modulable", "base_price": 40.00, "time_estimate": "30-45min", "category": "storage"},
+        {"item_name": "Ancrage mural (par meuble)", "description": "Sécurisation murale", "base_price": 25.00, "time_estimate": "15min", "category": "safety"}
+    ]
+    
+    for pricing_data in furniture_pricing_data:
+        pricing_data["id"] = str(uuid.uuid4())
+        pricing_data["created_at"] = datetime.now(timezone.utc)
+        pricing_data["updated_at"] = datetime.now(timezone.utc)
+        pricing_data["is_active"] = True
+        
+        await db.furniture_pricing.insert_one(pricing_data)
+        migrated_data["furniture_pricing"] = migrated_data.get("furniture_pricing", [])
+        migrated_data["furniture_pricing"].append(pricing_data)
+    
+    # Migrate FAQs
+    faqs_data = [
+        # General
+        {"category": "Général", "question": "Quelles régions desservez-vous?", "answer": "Nous desservons Montréal, la Rive-Sud (Longueuil, Brossard, Saint-Hubert, Saint-Lambert), Laval et les environs. Des frais de déplacement peuvent s'appliquer pour les zones éloignées.", "order": 1},
+        {"category": "Général", "question": "Quels sont vos horaires d'ouverture?", "answer": "Nous sommes disponibles du lundi au vendredi de 8h à 20h, et le samedi-dimanche de 9h à 18h. Service d'urgence disponible 24/7 avec frais additionnels.", "order": 2},
+        {"category": "Général", "question": "Comment puis-je obtenir une soumission?", "answer": "Vous pouvez demander une soumission gratuite via notre formulaire en ligne, par téléphone au 514-386-1743, ou par courriel à cmgeorges.cie@gmail.com. Nous vous répondrons sous 24h.", "order": 3},
+        
+        # Manual services
+        {"category": "Déco Touché (Services manuels)", "question": "Quels types de peinture offrez-vous?", "answer": "Nous offrons la peinture intérieure et extérieure, incluant murs, plafonds, boiseries et portes. Nous utilisons des peintures de qualité professionnelle.", "order": 1},
+        {"category": "Déco Touché (Services manuels)", "question": "Fournissez-vous la peinture et le matériel?", "answer": "Oui, nous pouvons fournir la peinture et tout le matériel nécessaire. Vous pouvez aussi fournir votre propre peinture si vous le préférez.", "order": 2},
+        {"category": "Déco Touché (Services manuels)", "question": "Combien de temps prend la peinture d'un appartement?", "answer": "En moyenne, un 4½ prend 2-3 jours, un 5½ prend 3-4 jours. Cela dépend de l'état des murs et des travaux préparatoires nécessaires.", "order": 3},
+        
+        # Furniture
+        {"category": "Mobilier & Installation", "question": "Quelles marques de meubles assemblez-vous?", "answer": "Nous assemblons toutes les grandes marques: IKEA, JYSK, Structube, Wayfair, Amazon, Costco, et plus. Si ça s'assemble, on le fait!", "order": 1},
+        {"category": "Mobilier & Installation", "question": "L'ancrage mural est-il obligatoire?", "answer": "Non, mais nous le recommandons fortement pour les commodes, étagères et garde-robes, surtout si vous avez des enfants. C'est une question de sécurité.", "order": 2},
+        {"category": "Mobilier & Installation", "question": "Pouvez-vous acheter et livrer les meubles?", "answer": "Oui! Nous offrons un service clé en main: achat, livraison, assemblage et installation. Demandez une soumission pour voir nos prix compétitifs vs le marché.", "order": 3},
+        {"category": "Mobilier & Installation", "question": "Quelle est votre garantie sur l'assemblage?", "answer": "Nous garantissons notre travail à 100%. Si quelque chose n'est pas correct, nous revenons gratuitement pour corriger dans les 30 jours.", "order": 4},
+        
+        # Tech
+        {"category": "CMGeorges Tech", "question": "Quels types de sites web créez-vous?", "answer": "Sites vitrine, e-commerce, applications web, portails clients. Nous utilisons les technologies modernes (React, Next.js, Node.js, Python).", "order": 1},
+        {"category": "CMGeorges Tech", "question": "Offrez-vous la maintenance après création?", "answer": "Oui, nous offrons des forfaits de maintenance mensuelle incluant mises à jour, sécurité, sauvegardes et support technique.", "order": 2},
+        {"category": "CMGeorges Tech", "question": "Combien coûte un site web?", "answer": "Un site vitrine commence à 1500$, un e-commerce à 3500$. Le prix final dépend de vos besoins spécifiques. Demandez une soumission gratuite!", "order": 3},
+        
+        # Payment
+        {"category": "Paiement & Facturation", "question": "Quels modes de paiement acceptez-vous?", "answer": "Nous acceptons les virements Interac, cartes de crédit, chèques et argent comptant.", "order": 1},
+        {"category": "Paiement & Facturation", "question": "Comment fonctionne le paiement?", "answer": "Typiquement: 30% à la signature, 30% à mi-projet, 40% à la complétion. Pour les petits projets, paiement à la fin des travaux.", "order": 2},
+        {"category": "Paiement & Facturation", "question": "Émettez-vous des factures avec TPS/TVQ?", "answer": "Oui, toutes nos factures incluent les taxes applicables (TPS 5% et TVQ 9.975%) détaillées séparément.", "order": 3}
+    ]
+    
+    for faq_data in faqs_data:
+        faq_data["id"] = str(uuid.uuid4())
+        faq_data["created_at"] = datetime.now(timezone.utc)
+        faq_data["updated_at"] = datetime.now(timezone.utc)
+        faq_data["is_active"] = True
+        
+        await db.faqs.insert_one(faq_data)
+        migrated_data["faqs"] = migrated_data.get("faqs", [])
+        migrated_data["faqs"].append(faq_data)
+    
+    # Migrate testimonials
+    testimonials_data = [
+        {
+            "name": "Marie T.",
+            "location": "Montréal",
+            "text": "Service impeccable! L'équipe a transformé notre salon en un temps record.",
+            "rating": 5,
+            "service_type": "manual",
+            "is_featured": True
+        },
+        {
+            "name": "Jean-Pierre L.",
+            "location": "Longueuil",
+            "text": "Assemblage de tous nos meubles IKEA en une journée. Professionnel et soigné.",
+            "rating": 5,
+            "service_type": "furniture",
+            "is_featured": True
+        },
+        {
+            "name": "Sophie M.",
+            "location": "Brossard",
+            "text": "Notre nouveau site web a doublé nos demandes de clients. Excellent travail!",
+            "rating": 5,
+            "service_type": "tech",
+            "is_featured": True
+        }
+    ]
+    
+    for testimonial_data in testimonials_data:
+        testimonial_data["id"] = str(uuid.uuid4())
+        testimonial_data["created_at"] = datetime.now(timezone.utc)
+        testimonial_data["updated_at"] = datetime.now(timezone.utc)
+        testimonial_data["is_active"] = True
+        
+        await db.testimonials.insert_one(testimonial_data)
+        migrated_data["testimonials"] = migrated_data.get("testimonials", [])
+        migrated_data["testimonials"].append(testimonial_data)
+    
+    # Log the migration
+    await log_action(
+        db, "create", "data_migration", "migration_001", 
+        "Migrated static data to database", current_user["id"]
+    )
+    
+    return {
+        "message": "Data migration completed successfully",
+        "migrated": migrated_data
+    }
+
+# ==================== SYSTEM CONFIG MANAGEMENT ====================
+@api_router.get("/config/{config_key}")
+async def get_system_config(config_key: str):
+    """Get system configuration value"""
+    config = await db.system_configs.find_one({"config_key": config_key, "is_active": True}, {"_id": 0})
+    if not config:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    
+    # Parse the value based on type
+    if config["config_type"] == "number":
+        config["config_value"] = float(config["config_value"])
+    elif config["config_type"] == "boolean":
+        config["config_value"] = bool(config["config_value"])
+    elif config["config_type"] == "json":
+        import json
+        config["config_value"] = json.loads(config["config_value"])
+    
+    return config
+
+@api_router.post("/config")
+async def create_system_config(config: SystemConfig, current_user: dict = Depends(get_current_user)):
+    """Create system configuration (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if config key already exists
+    existing = await db.system_configs.find_one({"config_key": config.config_key})
+    if existing:
+        raise HTTPException(status_code=400, detail="Configuration key already exists")
+    
+    config_dict = config.model_dump()
+    await db.system_configs.insert_one(config_dict)
+    
+    # Log the action
+    await log_action(
+        db, "create", "system_config", config.id, 
+        f"Created system config: {config.config_key}", current_user["id"]
+    )
+    
+    return config_dict
+
+@api_router.put("/config/{config_key}")
+async def update_system_config(config_key: str, config_update: SystemConfig, current_user: dict = Depends(get_current_user)):
+    """Update system configuration (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    config_update.updated_at = datetime.now(timezone.utc)
+    update_dict = config_update.model_dump()
+    
+    result = await db.system_configs.update_one(
+        {"config_key": config_key}, 
+        {"$set": update_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    
+    # Log the action
+    await log_action(
+        db, "update", "system_config", config_key, 
+        f"Updated system config: {config_key}", current_user["id"]
+    )
+    
+    return update_dict
+
+# ==================== FURNITURE DATA MANAGEMENT ====================
+@api_router.get("/furniture/process-steps")
+async def get_furniture_process_steps():
+    """Get furniture assembly process steps"""
+    steps = await db.furniture_process_steps.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(None)
+    return steps
+
+@api_router.get("/furniture/pricing")
+async def get_furniture_pricing():
+    """Get furniture pricing information"""
+    pricing = await db.furniture_pricing.find({"is_active": True}, {"_id": 0}).sort("category", 1).to_list(None)
+    return pricing
+
+@api_router.get("/faqs")
+async def get_faqs(category: Optional[str] = None):
+    """Get FAQs, optionally filtered by category"""
+    query = {"is_active": True}
+    if category:
+        query["category"] = category
+    
+    faqs = await db.faqs.find(query, {"_id": 0}).sort("order", 1).to_list(None)
+    return faqs
 
 # ==================== HEALTH CHECK ====================
 @api_router.get("/healthz")
