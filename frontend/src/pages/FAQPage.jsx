@@ -1,7 +1,43 @@
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { publicApi } from '@/lib/api';
 
 export default function FAQPage() {
-  const faqs = [
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        const response = await publicApi.getFAQs();
+        // Group FAQs by category
+        const groupedFAQs = response.data.reduce((acc, faq) => {
+          if (!acc[faq.category]) {
+            acc[faq.category] = [];
+          }
+          acc[faq.category].push(faq);
+          return acc;
+        }, {});
+        
+        // Convert to array format expected by the component
+        const faqArray = Object.keys(groupedFAQs).map(category => ({
+          category,
+          questions: groupedFAQs[category].map(faq => ({
+            q: faq.question,
+            a: faq.answer
+          }))
+        }));
+        
+        setFaqs(faqArray);
+      } catch (error) {
+        console.error('Error fetching FAQs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchFAQs();
+  }, []);
     {
       category: "Général",
       questions: [
@@ -91,8 +127,6 @@ export default function FAQPage() {
         }
       ]
     }
-  ];
-
   return (
     <div className="min-h-screen" data-testid="faq-page">
       <Helmet>
@@ -115,28 +149,46 @@ export default function FAQPage() {
       {/* FAQ Content */}
       <section className="section-spacing bg-[#F8FAFC]">
         <div className="container-main max-w-4xl">
-          {faqs.map((category, idx) => (
-            <div key={idx} className="mb-12" data-testid={`faq-category-${idx}`}>
-              <h2 className="text-2xl font-bold text-[#1a365d] mb-6 font-['Outfit'] flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-[#1a365d] text-sm font-bold">
-                  {idx + 1}
-                </span>
-                {category.category}
-              </h2>
-              <div className="space-y-4">
-                {category.questions.map((faq, faqIdx) => (
-                  <div 
-                    key={faqIdx} 
-                    className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-                    data-testid={`faq-item-${idx}-${faqIdx}`}
-                  >
-                    <h3 className="font-semibold text-[#1a365d] mb-2">{faq.q}</h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">{faq.a}</p>
-                  </div>
-                ))}
+          {loading ? (
+            // Loading skeleton
+            Array.from({ length: 5 }).map((_, idx) => (
+              <div key={idx} className="mb-12">
+                <div className="h-8 bg-gray-200 rounded mb-6 animate-pulse"></div>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, faqIdx) => (
+                    <div key={faqIdx} className="bg-white rounded-lg shadow-sm p-6">
+                      <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-1 animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            faqs.map((category, idx) => (
+              <div key={idx} className="mb-12" data-testid={`faq-category-${idx}`}>
+                <h2 className="text-2xl font-bold text-[#1a365d] mb-6 font-['Outfit'] flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-full bg-[#d4af37] flex items-center justify-center text-[#1a365d] text-sm font-bold">
+                    {idx + 1}
+                  </span>
+                  {category.category}
+                </h2>
+                <div className="space-y-4">
+                  {category.questions.map((faq, faqIdx) => (
+                    <div 
+                      key={faqIdx} 
+                      className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
+                      data-testid={`faq-item-${idx}-${faqIdx}`}
+                    >
+                      <h3 className="font-semibold text-[#1a365d] mb-2">{faq.q}</h3>
+                      <p className="text-gray-600 text-sm leading-relaxed">{faq.a}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
 
           {/* Contact CTA */}
           <div className="bg-[#1a365d] rounded-xl p-8 text-center mt-12">
