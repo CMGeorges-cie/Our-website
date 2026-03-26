@@ -1,9 +1,28 @@
+import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Shield, CheckCircle, ArrowRight } from 'lucide-react';
+import { publicApi } from '@/lib/api';
 
 export default function GarantiePage() {
+  const [guarantees, setGuarantees] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGuarantees = async () => {
+      try {
+        const response = await publicApi.getGuarantees();
+        setGuarantees(response.data);
+      } catch (error) {
+        console.error('Error fetching guarantees:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchGuarantees();
+  }, []);
   return (
     <div className="min-h-screen" data-testid="garantie-page">
       <Helmet>
@@ -52,83 +71,43 @@ export default function GarantiePage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Déco Touché */}
-            <div className="bg-white rounded-xl p-8 shadow-sm" data-testid="garantie-manual">
-              <div className="w-12 h-12 rounded-lg bg-[#1a365d] flex items-center justify-center mb-6">
-                <span className="text-2xl">🎨</span>
-              </div>
-              <h3 className="text-xl font-bold text-[#1a365d] mb-4 font-['Outfit']">Déco Touché</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Garantie 1 an sur la main-d'œuvre</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Correction gratuite sous 30 jours</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Protection des surfaces et meubles</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Nettoyage complet après travaux</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Mobilier */}
-            <div className="bg-white rounded-xl p-8 shadow-sm" data-testid="garantie-furniture">
-              <div className="w-12 h-12 rounded-lg bg-[#E07A5F] flex items-center justify-center mb-6">
-                <span className="text-2xl">🛋️</span>
-              </div>
-              <h3 className="text-xl font-bold text-[#1a365d] mb-4 font-['Outfit']">Mobilier</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Garantie 30 jours sur l'assemblage</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Ancrage mural sécuritaire certifié</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Remplacement pièces endommagées pendant l'installation</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Récupération des emballages incluse</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Tech */}
-            <div className="bg-white rounded-xl p-8 shadow-sm" data-testid="garantie-tech">
-              <div className="w-12 h-12 rounded-lg bg-[#007AFF] flex items-center justify-center mb-6">
-                <span className="text-2xl">💻</span>
-              </div>
-              <h3 className="text-xl font-bold text-[#1a365d] mb-4 font-['Outfit']">CMGeorges Tech</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Garantie 90 jours sur les bugs</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Support technique inclus</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Code source fourni et documenté</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Formation sur l'utilisation</span>
-                </li>
-              </ul>
-            </div>
+            {loading ? (
+              // Loading skeleton
+              Array.from({ length: 3 }).map((_, idx) => (
+                <div key={idx} className="bg-white rounded-xl p-8 shadow-sm">
+                  <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center mb-6 animate-pulse"></div>
+                  <div className="h-6 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                  <div className="space-y-3">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <div className="h-5 w-5 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 rounded flex-1 animate-pulse"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              guarantees.map((guarantee, idx) => (
+                <div key={idx} className="bg-white rounded-xl p-8 shadow-sm" data-testid={`garantie-${guarantee.service_type}`}>
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-6 ${
+                    guarantee.service_type === 'manual' ? 'bg-[#1a365d]' :
+                    guarantee.service_type === 'furniture' ? 'bg-[#E07A5F]' : 'bg-[#007AFF]'
+                  }`}>
+                    <span className="text-2xl">{guarantee.icon}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-[#1a365d] mb-4 font-['Outfit']">{guarantee.title}</h3>
+                  <ul className="space-y-3">
+                    {guarantee.features.map((feature, featureIdx) => (
+                      <li key={featureIdx} className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-600 text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

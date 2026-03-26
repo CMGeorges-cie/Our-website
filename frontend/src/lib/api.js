@@ -55,6 +55,17 @@ export const publicApi = {
     if (featuredOnly !== undefined) params.append('featured_only', featuredOnly);
     return api.get(`/testimonials?${params.toString()}`);
   },
+  getGuarantees: (serviceType) => {
+    const params = new URLSearchParams();
+    if (serviceType) params.append('service_type', serviceType);
+    return api.get(`/guarantees?${params.toString()}`);
+  },
+  getContentPage: (slug) => api.get(`/content/${slug}`),
+  getContactInfo: () => api.get('/contact-info'),
+  getServiceTypes: () => api.get('/service-types'),
+  getItemTypes: () => api.get('/item-types'),
+  getBrands: () => api.get('/brands'),
+  getSources: () => api.get('/sources'),
 };
 
 // Admin API

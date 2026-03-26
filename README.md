@@ -56,6 +56,7 @@ docker compose up --build
 **Important**: When deploying to production, you must migrate static data to the database.
 
 #### Prerequisites
+
 - MongoDB Atlas cluster configured
 - Production environment variables set:
   ```bash
@@ -65,18 +66,22 @@ docker compose up --build
   ```
 
 #### Migration Steps
+
 1. **Backup production database** (recommended):
+
    ```bash
    mongodump --uri="$MONGO_URL" --db=our_website_prod --out=backup_$(date +%Y%m%d_%H%M%S)
    ```
 
 2. **Run migration script**:
+
    ```bash
    cd backend
    python migrate_production.py
    ```
 
 3. **Verify migration**:
+
    ```bash
    python verify_migration.py
    ```
@@ -87,6 +92,7 @@ docker compose up --build
    ```
 
 #### What gets migrated
+
 - **Services**: 3 core services (Déco Touché, Mobilier, Tech Services)
 - **Pricing Configs**: 17 pricing configurations across all service types
 - **System Configs**: Tax rates, margin targets, payment percentages
@@ -96,6 +102,7 @@ See `PRODUCTION_DEPLOYMENT.md` for detailed instructions.
 ### Environment Variables
 
 #### Development
+
 ```bash
 APP_ENV=development
 MONGO_URL=mongodb://localhost:27017
@@ -104,6 +111,7 @@ JWT_SECRET=your-dev-secret
 ```
 
 #### Production
+
 ```bash
 APP_ENV=production
 MONGO_URL=mongodb+srv://user:pass@cluster.mongodb.net/?retryWrites=true&w=majority

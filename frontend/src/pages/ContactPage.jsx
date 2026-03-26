@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -5,18 +6,43 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { 
-  Phone, 
-  Mail, 
-  MapPin, 
+import {
+  Phone,
+  Mail,
+  MapPin,
   Clock,
   Send
 } from 'lucide-react';
+import { publicApi } from '@/lib/api';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
+
+const iconMap = {
+  phone: Phone,
+  email: Mail,
+  location: MapPin,
+  hours: Clock
+};
 
 export default function ContactPage() {
   usePageTitle('Contactez-nous');
-  
+  const [contactInfo, setContactInfo] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      try {
+        const response = await publicApi.getContactInfo();
+        setContactInfo(response.data);
+      } catch (error) {
+        console.error('Error fetching contact info:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContactInfo();
+  }, []);
+
   return (
     <div className="min-h-screen" data-testid="contact-page">
       {/* Header */}
@@ -26,7 +52,7 @@ export default function ContactPage() {
             Contactez-nous
           </h1>
           <p className="text-white/80 max-w-2xl">
-            Une question? Un projet? N'hésitez pas à nous contacter, 
+            Une question? Un projet? N'hésitez pas à nous contacter,
             nous vous répondrons dans les plus brefs délais.
           </p>
         </div>
@@ -41,82 +67,69 @@ export default function ContactPage() {
               <h2 className="text-2xl font-bold text-[#1a365d] mb-8 font-['Outfit']">
                 Nos coordonnées
               </h2>
-              
+
               <div className="space-y-6">
-                <Card className="p-6 hover-lift" data-testid="contact-phone">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-[#1a365d] flex items-center justify-center flex-shrink-0">
-                      <Phone className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-[#1a365d] mb-1">Téléphone</h3>
-                      <a 
-                        href={CMGEORGES_PHONE_LINK}
-                        className="text-lg text-[#d4af37] font-bold hover:underline"
-                      >
-                        {CMGEORGES_PHONE}
-                      </a>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Disponible 7j/7, 8h à 20h
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="p-6 hover-lift" data-testid="contact-email">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-[#1a365d] flex items-center justify-center flex-shrink-0">
-                      <Mail className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-[#1a365d] mb-1">Courriel</h3>
-                      <a 
-                        href="mailto:cmgeorges.cie@gmail.com"
-                        className="text-lg text-[#d4af37] font-bold hover:underline"
-                      >
-                        cmgeorges.cie@gmail.com
-                      </a>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Réponse sous 24h
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="p-6 hover-lift" data-testid="contact-location">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-[#1a365d] flex items-center justify-center flex-shrink-0">
-                      <MapPin className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-[#1a365d] mb-1">Zone de service</h3>
-                      <p className="text-lg text-gray-700">
-                        Montréal & Rive-Sud
-                      </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Longueuil, Brossard, Saint-Hubert, Laval...
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="p-6 hover-lift" data-testid="contact-hours">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-[#1a365d] flex items-center justify-center flex-shrink-0">
-                      <Clock className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-[#1a365d] mb-1">Heures d'ouverture</h3>
-                      <div className="text-sm text-gray-700 space-y-1">
-                        <p><strong>Lun-Ven:</strong> 8h - 20h</p>
-                        <p><strong>Sam-Dim:</strong> 9h - 18h</p>
+                {loading ? (
+                  // Loading skeletons
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <Card key={i} className="p-6">
+                      <div className="animate-pulse">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded mb-1"></div>
+                            <div className="h-3 bg-gray-200 rounded"></div>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Service d'urgence disponible
-                      </p>
-                    </div>
-                  </div>
-                </Card>
+                    </Card>
+                  ))
+                ) : (
+                  contactInfo.map((info) => {
+                    const IconComponent = iconMap[info.type];
+                    return (
+                      <Card key={info.id} className="p-6 hover-lift" data-testid={`contact-${info.type}`}>
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-lg bg-[#1a365d] flex items-center justify-center flex-shrink-0">
+                            {IconComponent && <IconComponent className="h-6 w-6 text-white" />}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-[#1a365d] mb-1">{info.title}</h3>
+                            {info.value && (
+                              <a
+                                href={info.type === 'phone' ? CMGEORGES_PHONE_LINK : info.type === 'email' ? `mailto:${info.value}` : undefined}
+                                className="text-lg text-[#d4af37] font-bold hover:underline"
+                              >
+                                {info.value}
+                              </a>
+                            )}
+                            {info.subtitle && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                {info.subtitle}
+                              </p>
+                            )}
+                            {info.details && info.details.length > 0 && (
+                              <div className="text-sm text-gray-700 mt-2 space-y-1">
+                                {info.details.map((detail, idx) => (
+                                  <p key={idx}>
+                                    {detail.includes(':') ? (
+                                      <>
+                                        <strong>{detail.split(':')[0]}:</strong> {detail.split(':')[1]}
+                                      </>
+                                    ) : (
+                                      detail
+                                    )}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })
+                )}
               </div>
 
               {/* Quick CTA */}

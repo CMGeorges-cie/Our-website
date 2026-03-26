@@ -9,9 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { usePageTitle } from '@/hooks/usePageTitle';
-import { 
-  Plus, 
-  Trash2, 
+import {
+  Plus,
+  Trash2,
   Send,
   Paintbrush,
   Sofa,
@@ -22,39 +22,11 @@ import { toast } from 'sonner';
 
 const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY;
 
-const serviceTypes = [
-  { value: 'manual', label: 'Déco Touché (Peinture/Rénovation)', icon: Paintbrush },
-  { value: 'furniture', label: 'Mobilier & Installation', icon: Sofa },
-  { value: 'tech', label: 'CMGeorges Tech', icon: Code },
-];
-
-const itemTypes = [
-  { value: 'bed', label: 'Lit' },
-  { value: 'dresser', label: 'Commode' },
-  { value: 'desk', label: 'Bureau' },
-  { value: 'wardrobe', label: 'Garde-robe' },
-  { value: 'sofa', label: 'Sofa' },
-  { value: 'table', label: 'Table' },
-  { value: 'chair', label: 'Chaise' },
-  { value: 'shelf', label: 'Étagère' },
-  { value: 'other', label: 'Autre' },
-];
-
-const brands = [
-  { value: 'ikea', label: 'IKEA' },
-  { value: 'jysk', label: 'JYSK' },
-  { value: 'structube', label: 'Structube' },
-  { value: 'wayfair', label: 'Wayfair' },
-  { value: 'other', label: 'Autre' },
-];
-
-const sources = [
-  { value: 'google', label: 'Google' },
-  { value: 'facebook', label: 'Facebook' },
-  { value: 'instagram', label: 'Instagram' },
-  { value: 'referral', label: 'Référence' },
-  { value: 'other', label: 'Autre' },
-];
+const iconMap = {
+  Paintbrush,
+  Sofa,
+  Code
+};
 
 const emptyItem = {
   item_type: 'bed',
@@ -70,6 +42,11 @@ export default function SoumissionPage() {
   const recaptchaRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const [serviceTypes, setServiceTypes] = useState([]);
+  const [itemTypes, setItemTypes] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [sources, setSources] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
   const [formData, setFormData] = useState({
     full_name: '',
     phone: '',
@@ -83,6 +60,31 @@ export default function SoumissionPage() {
     source: 'other',
     items: [],
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [serviceTypesRes, itemTypesRes, brandsRes, sourcesRes] = await Promise.all([
+          publicApi.getServiceTypes(),
+          publicApi.getItemTypes(),
+          publicApi.getBrands(),
+          publicApi.getSources()
+        ]);
+
+        setServiceTypes(serviceTypesRes.data);
+        setItemTypes(itemTypesRes.data);
+        setBrands(brandsRes.data);
+        setSources(sourcesRes.data);
+      } catch (error) {
+        console.error('Error fetching form data:', error);
+        toast.error('Erreur lors du chargement des données du formulaire');
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const isFurniture = formData.service_type === 'furniture';
 
@@ -193,28 +195,38 @@ export default function SoumissionPage() {
                 <div className="form-group">
                   <Label className="form-label">Type de service *</Label>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                    {serviceTypes.map((service) => {
-                      const Icon = service.icon;
-                      const isSelected = formData.service_type === service.value;
-                      return (
-                        <button
-                          key={service.value}
-                          type="button"
-                          onClick={() => handleChange('service_type', service.value)}
-                          className={`p-4 rounded-lg border-2 transition-all text-left ${
-                            isSelected 
-                              ? 'border-[#d4af37] bg-[#d4af37]/10' 
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          data-testid={`service-type-${service.value}`}
-                        >
-                          <Icon className={`h-6 w-6 mb-2 ${isSelected ? 'text-[#d4af37]' : 'text-gray-400'}`} />
-                          <span className={`text-sm font-medium ${isSelected ? 'text-[#1a365d]' : 'text-gray-700'}`}>
-                            {service.label}
-                          </span>
-                        </button>
-                      );
-                    })}
+                    {dataLoading ? (
+                      // Loading skeletons for service types
+                      Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="p-4 rounded-lg border-2 border-gray-200 animate-pulse">
+                          <div className="h-6 w-6 bg-gray-200 rounded mb-2"></div>
+                          <div className="h-4 bg-gray-200 rounded"></div>
+                        </div>
+                      ))
+                    ) : (
+                      serviceTypes.map((service) => {
+                        const Icon = iconMap[service.icon];
+                        const isSelected = formData.service_type === service.value;
+                        return (
+                          <button
+                            key={service.value}
+                            type="button"
+                            onClick={() => handleChange('service_type', service.value)}
+                            className={`p-4 rounded-lg border-2 transition-all text-left ${
+                              isSelected
+                                ? 'border-[#d4af37] bg-[#d4af37]/10'
+                                : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            data-testid={`service-type-${service.value}`}
+                          >
+                            {Icon && <Icon className={`h-6 w-6 mb-2 ${isSelected ? 'text-[#d4af37]' : 'text-gray-400'}`} />}
+                            <span className={`text-sm font-medium ${isSelected ? 'text-[#1a365d]' : 'text-gray-700'}`}>
+                              {service.label}
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
 

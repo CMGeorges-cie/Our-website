@@ -38,15 +38,6 @@ const cityData = {
   }
 };
 
-const services = [
-  { name: 'Peinture intérieure', icon: '🎨', desc: 'Murs, plafonds, boiseries' },
-  { name: 'Peinture extérieure', icon: '🏠', desc: 'Balcons, clôtures, portes' },
-  { name: 'Assemblage IKEA', icon: '🛋️', desc: 'Tous les meubles IKEA' },
-  { name: 'Assemblage JYSK', icon: '🛏️', desc: 'Lits, commodes, bureaux' },
-  { name: 'Installation TV', icon: '📺', desc: 'Fixation murale sécuritaire' },
-  { name: 'Sites web', icon: '💻', desc: 'Vitrine, e-commerce' }
-];
-
 export default function SEOCityPage({ city: propCity }) {
   const { city: paramCity } = useParams();
   const cityKey = propCity || paramCity || 'montreal';
@@ -54,6 +45,52 @@ export default function SEOCityPage({ city: propCity }) {
   
   const pageTitle = data ? "Services CMGeorges à " + data.name + " | Peinture, Mobilier, Tech" : "CMGeorges";
   const pageDescription = data?.description || '';
+
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await publicApi.getServices();
+        // Transform services to match the expected format for SEO pages
+        const transformedServices = response.data.map(service => ({
+          name: service.name,
+          icon: getServiceIcon(service.id),
+          desc: service.description.split('.')[0] // Take first sentence as description
+        }));
+        setServices(transformedServices);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        // Fallback to hardcoded services if API fails
+        setServices([
+          { name: 'Peinture intérieure', icon: '🎨', desc: 'Murs, plafonds, boiseries' },
+          { name: 'Peinture extérieure', icon: '🏠', desc: 'Balcons, clôtures, portes' },
+          { name: 'Assemblage IKEA', icon: '🛋️', desc: 'Tous les meubles IKEA' },
+          { name: 'Assemblage JYSK', icon: '🛏️', desc: 'Lits, commodes, bureaux' },
+          { name: 'Installation TV', icon: '📺', desc: 'Fixation murale sécuritaire' },
+          { name: 'Sites web', icon: '💻', desc: 'Vitrine, e-commerce' }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  const getServiceIcon = (serviceId) => {
+    switch (serviceId) {
+      case 'deco-touche':
+        return '🎨';
+      case 'mobilier':
+        return '🛋️';
+      case 'tech':
+        return '💻';
+      default:
+        return '🔧';
+    }
+  };
 
   // Set document title - must be before any conditional return
   useEffect(() => {
@@ -131,13 +168,24 @@ export default function SEOCityPage({ city: propCity }) {
           </p>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {services.map((service, idx) => (
-              <Card key={idx} className="p-6 text-center hover-lift">
-                <span className="text-4xl mb-4 block">{service.icon}</span>
-                <h3 className="font-semibold text-[#1a365d] mb-2">{service.name}</h3>
-                <p className="text-sm text-gray-500">{service.desc}</p>
-              </Card>
-            ))}
+            {loading ? (
+              // Loading skeleton
+              Array.from({ length: 6 }).map((_, idx) => (
+                <Card key={idx} className="p-6 text-center">
+                  <div className="text-4xl mb-4 block animate-pulse bg-gray-200 rounded h-12 w-12 mx-auto"></div>
+                  <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                </Card>
+              ))
+            ) : (
+              services.map((service, idx) => (
+                <Card key={idx} className="p-6 text-center hover-lift">
+                  <span className="text-4xl mb-4 block">{service.icon}</span>
+                  <h3 className="font-semibold text-[#1a365d] mb-2">{service.name}</h3>
+                  <p className="text-sm text-gray-500">{service.desc}</p>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>

@@ -766,6 +766,78 @@ class Testimonial(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class Guarantee(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    service_type: str  # 'manual', 'furniture', 'tech'
+    title: str
+    description: str
+    features: List[str]
+    icon: str
+    duration: str  # e.g., "1 an", "30 jours", "90 jours"
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ContentPage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    slug: str  # 'privacy', 'terms', 'about', etc.
+    title: str
+    content: str  # HTML content
+    meta_description: str
+    last_updated: str
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ContactInfo(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    type: str  # 'phone', 'email', 'location', 'hours'
+    title: str
+    value: str
+    subtitle: Optional[str] = None
+    details: Optional[List[str]] = []
+    is_active: bool = True
+    sort_order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ServiceType(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    value: str  # 'manual', 'furniture', 'tech'
+    label: str
+    icon: str  # 'Paintbrush', 'Sofa', 'Code'
+    is_active: bool = True
+    sort_order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ItemType(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    value: str  # 'bed', 'dresser', 'desk', etc.
+    label: str
+    is_active: bool = True
+    sort_order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Brand(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    value: str  # 'ikea', 'jysk', 'structube', etc.
+    label: str
+    is_active: bool = True
+    sort_order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Source(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    value: str  # 'google', 'facebook', 'referral', etc.
+    label: str
+    is_active: bool = True
+    sort_order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 # ==================== AUTH HELPERS ====================
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -1140,6 +1212,54 @@ async def get_testimonials(service_type: Optional[str] = None, featured_only: bo
     
     testimonials = await db.testimonials.find(query, {"_id": 0}).sort("created_at", -1).to_list(20)
     return testimonials
+
+@v1_router.get("/guarantees", response_model=List[Guarantee])
+async def get_guarantees(service_type: Optional[str] = None):
+    """Get guarantees, optionally filtered by service type"""
+    query = {"is_active": True}
+    if service_type:
+        query["service_type"] = service_type
+    
+    guarantees = await db.guarantees.find(query, {"_id": 0}).sort("created_at", 1).to_list(10)
+    return guarantees
+
+@v1_router.get("/content/{slug}", response_model=ContentPage)
+async def get_content_page(slug: str):
+    """Get a content page by slug"""
+    page = await db.content_pages.find_one({"slug": slug, "is_active": True}, {"_id": 0})
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    return page
+
+@v1_router.get("/contact-info", response_model=List[ContactInfo])
+async def get_contact_info():
+    """Get all active contact information"""
+    contact_info = await db.contact_info.find({"is_active": True}, {"_id": 0}).sort("sort_order", 1).to_list(100)
+    return contact_info
+
+@v1_router.get("/service-types", response_model=List[ServiceType])
+async def get_service_types():
+    """Get all active service types for submissions"""
+    service_types = await db.service_types.find({"is_active": True}, {"_id": 0}).sort("sort_order", 1).to_list(100)
+    return service_types
+
+@v1_router.get("/item-types", response_model=List[ItemType])
+async def get_item_types():
+    """Get all active item types for furniture submissions"""
+    item_types = await db.item_types.find({"is_active": True}, {"_id": 0}).sort("sort_order", 1).to_list(100)
+    return item_types
+
+@v1_router.get("/brands", response_model=List[Brand])
+async def get_brands():
+    """Get all active brands for furniture submissions"""
+    brands = await db.brands.find({"is_active": True}, {"_id": 0}).sort("sort_order", 1).to_list(100)
+    return brands
+
+@v1_router.get("/sources", response_model=List[Source])
+async def get_sources():
+    """Get all active sources for submissions"""
+    sources = await db.sources.find({"is_active": True}, {"_id": 0}).sort("sort_order", 1).to_list(100)
+    return sources
 
 # ==================== AUTH ENDPOINTS ====================
 @v1_router.post("/auth/login", response_model=TokenResponse)
@@ -2280,6 +2400,195 @@ async def migrate_static_data_to_db(current_user: dict = Depends(get_current_use
         await db.testimonials.insert_one(testimonial_data)
         migrated_data["testimonials"] = migrated_data.get("testimonials", [])
         migrated_data["testimonials"].append(testimonial_data)
+    
+    # Migrate guarantees
+    guarantees_data = [
+        {
+            "service_type": "manual",
+            "title": "Déco Touché",
+            "description": "Garantie complète sur nos services de peinture et rénovation",
+            "features": [
+                "Garantie 1 an sur la main-d'œuvre",
+                "Correction gratuite sous 30 jours",
+                "Protection des surfaces et meubles",
+                "Nettoyage complet après travaux"
+            ],
+            "icon": "🎨",
+            "duration": "1 an"
+        },
+        {
+            "service_type": "furniture",
+            "title": "Mobilier",
+            "description": "Garantie sur l'assemblage et l'installation de vos meubles",
+            "features": [
+                "Garantie 30 jours sur l'assemblage",
+                "Ancrage mural sécuritaire certifié",
+                "Remplacement pièces endommagées pendant l'installation",
+                "Récupération des emballages incluse"
+            ],
+            "icon": "🛋️",
+            "duration": "30 jours"
+        },
+        {
+            "service_type": "tech",
+            "title": "CMGeorges Tech",
+            "description": "Garantie sur nos services de développement web",
+            "features": [
+                "Garantie 90 jours sur les bugs",
+                "Support technique inclus",
+                "Code source fourni et documenté",
+                "Formation sur l'utilisation"
+            ],
+            "icon": "💻",
+            "duration": "90 jours"
+        }
+    ]
+    
+    for guarantee_data in guarantees_data:
+        guarantee_data["id"] = str(uuid.uuid4())
+        guarantee_data["created_at"] = datetime.now(timezone.utc)
+        guarantee_data["updated_at"] = datetime.now(timezone.utc)
+        guarantee_data["is_active"] = True
+        
+        await db.guarantees.insert_one(guarantee_data)
+        migrated_data["guarantees"] = migrated_data.get("guarantees", [])
+        migrated_data["guarantees"].append(guarantee_data)
+    
+    # Migrate content pages
+    content_pages_data = [
+        {
+            "slug": "privacy",
+            "title": "Politique de Confidentialité",
+            "meta_description": "Politique de confidentialité de CMGeorges. Découvrez comment nous protégeons vos données personnelles.",
+            "last_updated": "Février 2026",
+            "content": """
+            <div class="space-y-8">
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">1. Introduction</h2>
+                <p class="text-gray-600">
+                  CMGeorges ("nous", "notre", "nos") s'engage à protéger la confidentialité de vos informations personnelles. 
+                  Cette politique explique comment nous collectons, utilisons et protégeons vos données lorsque vous utilisez 
+                  notre site web et nos services.
+                </p>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">2. Informations Collectées</h2>
+                <p class="text-gray-600 mb-4">Nous collectons les types d'informations suivants:</p>
+                <ul class="list-disc pl-6 text-gray-600 space-y-2">
+                  <li><strong>Informations de contact:</strong> nom, adresse courriel, numéro de téléphone, adresse postale</li>
+                  <li><strong>Informations de projet:</strong> description des services demandés, préférences, photos</li>
+                  <li><strong>Informations de navigation:</strong> adresse IP, type de navigateur, pages visitées (via cookies)</li>
+                  <li><strong>Informations de paiement:</strong> traitées de manière sécurisée par nos partenaires de paiement</li>
+                </ul>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">3. Utilisation des Informations</h2>
+                <p class="text-gray-600 mb-4">Vos informations sont utilisées pour:</p>
+                <ul class="list-disc pl-6 text-gray-600 space-y-2">
+                  <li>Répondre à vos demandes de soumission et questions</li>
+                  <li>Fournir et améliorer nos services</li>
+                  <li>Vous contacter concernant votre projet</li>
+                  <li>Envoyer des communications marketing (avec votre consentement)</li>
+                  <li>Analyser l'utilisation de notre site pour l'améliorer</li>
+                  <li>Respecter nos obligations légales</li>
+                </ul>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">4. Partage des Informations</h2>
+                <p class="text-gray-600 mb-4">
+                  Nous ne vendons jamais vos informations personnelles. Nous pouvons partager vos informations avec:
+                </p>
+                <ul class="list-disc pl-6 text-gray-600 space-y-2">
+                  <li>Nos sous-traitants et partenaires pour la réalisation des services</li>
+                  <li>Nos fournisseurs de services (hébergement, paiement, courriel)</li>
+                  <li>Les autorités légales si requis par la loi</li>
+                </ul>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">5. Cookies et Technologies Similaires</h2>
+                <p class="text-gray-600 mb-4">
+                  Notre site utilise des cookies pour améliorer votre expérience:
+                </p>
+                <ul class="list-disc pl-6 text-gray-600 space-y-2">
+                  <li><strong>Cookies essentiels:</strong> nécessaires au fonctionnement du site</li>
+                  <li><strong>Cookies analytiques:</strong> Google Analytics pour comprendre l'utilisation du site</li>
+                  <li><strong>Cookies marketing:</strong> Meta Pixel pour mesurer l'efficacité de nos publicités</li>
+                </ul>
+                <p class="text-gray-600 mt-4">
+                  Vous pouvez configurer votre navigateur pour refuser les cookies, mais certaines fonctionnalités 
+                  pourraient ne pas fonctionner correctement.
+                </p>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">6. Sécurité des Données</h2>
+                <p class="text-gray-600">
+                  Nous mettons en œuvre des mesures de sécurité appropriées pour protéger vos informations contre 
+                  l'accès non autorisé, la modification, la divulgation ou la destruction. Cela inclut le chiffrement 
+                  des données en transit (HTTPS) et au repos, ainsi que des contrôles d'accès stricts.
+                </p>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">7. Conservation des Données</h2>
+                <p class="text-gray-600">
+                  Nous conservons vos informations personnelles aussi longtemps que nécessaire pour fournir nos services 
+                  et respecter nos obligations légales. Les données des projets sont conservées pendant 7 ans conformément 
+                  aux exigences fiscales.
+                </p>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">8. Vos Droits</h2>
+                <p class="text-gray-600 mb-4">Conformément à la Loi sur la protection des renseignements personnels du Québec, vous avez le droit de:</p>
+                <ul class="list-disc pl-6 text-gray-600 space-y-2">
+                  <li>Accéder à vos informations personnelles</li>
+                  <li>Rectifier des informations inexactes</li>
+                  <li>Demander la suppression de vos données</li>
+                  <li>Retirer votre consentement aux communications marketing</li>
+                  <li>Porter plainte auprès de la Commission d'accès à l'information du Québec</li>
+                </ul>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">9. Contact</h2>
+                <p class="text-gray-600">
+                  Pour toute question concernant cette politique ou pour exercer vos droits, contactez-nous:
+                </p>
+                <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <p class="text-gray-700"><strong>CMGeorges</strong></p>
+                  <p class="text-gray-600">Courriel: cmgeorges.cie@gmail.com</p>
+                  <p class="text-gray-600">Téléphone: 514-386-1743</p>
+                  <p class="text-gray-600">Montréal, QC, Canada</p>
+                </div>
+              </div>
+
+              <div>
+                <h2 class="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">10. Modifications</h2>
+                <p class="text-gray-600">
+                  Nous pouvons mettre à jour cette politique de temps en temps. Les modifications seront publiées 
+                  sur cette page avec une date de mise à jour. Nous vous encourageons à consulter régulièrement 
+                  cette politique.
+                </p>
+              </div>
+            </div>
+            """
+        }
+    ]
+    
+    for page_data in content_pages_data:
+        page_data["id"] = str(uuid.uuid4())
+        page_data["created_at"] = datetime.now(timezone.utc)
+        page_data["updated_at"] = datetime.now(timezone.utc)
+        page_data["is_active"] = True
+        
+        await db.content_pages.insert_one(page_data)
+        migrated_data["content_pages"] = migrated_data.get("content_pages", [])
+        migrated_data["content_pages"].append(page_data)
     
     # Log the migration
     await log_action(

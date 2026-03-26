@@ -1,9 +1,11 @@
 # Production Deployment Guide
+
 # Migration des données statiques vers la base de données
 
 ## Prérequis
 
 1. **Variables d'environnement de production configurées:**
+
    ```bash
    APP_ENV=production
    MONGO_URL=mongodb+srv://USERNAME:PASSWORD@CLUSTER.mongodb.net/?retryWrites=true&w=majority
@@ -18,12 +20,14 @@
 ## Étapes de déploiement
 
 ### 1. Sauvegarde de production
+
 ```bash
 # Créer une sauvegarde de la base de données actuelle
 mongodump --uri="$MONGO_URL" --db=our_website_prod --out=backup_$(date +%Y%m%d_%H%M%S)
 ```
 
 ### 2. Déploiement du code
+
 ```bash
 # Pousser les changements vers production
 git push origin main
@@ -34,6 +38,7 @@ git pull origin main
 ```
 
 ### 3. Migration des données
+
 ```bash
 # Exécuter le script de migration
 cd backend
@@ -41,6 +46,7 @@ python migrate_production.py
 ```
 
 ### 4. Vérification de la migration
+
 ```bash
 # Vérifier que les données ont été migrées
 python -c "
@@ -67,6 +73,7 @@ asyncio.run(check_migration())
 ```
 
 ### 5. Redémarrage des services
+
 ```bash
 # Redémarrer votre application (Docker, PM2, etc.)
 docker-compose restart backend
@@ -77,16 +84,19 @@ pm2 restart your-app
 ## Données migrées
 
 ### Services (3 services)
+
 - **Déco Touché** (manual) - Peinture & rénovation
 - **Mobilier** (furniture) - Installation de meubles
 - **Services Technologiques** (tech) - Développement web
 
 ### Configurations de prix
+
 - **Services manuels**: 8 configurations (peinture, plâtre, etc.)
 - **Mobilier**: 5 configurations (assemblage, livraison, etc.)
 - **Tech**: 4 configurations (développement, maintenance, etc.)
 
 ### Configurations système
+
 - Taux TPS/TVQ
 - Marges cibles par service
 - Pourcentages de paiement (dépôt, jalons, final)
@@ -106,6 +116,7 @@ git checkout PREVIOUS_COMMIT
 ## Tests post-déploiement
 
 1. **Vérifier que l'API fonctionne:**
+
    ```bash
    curl https://your-api.com/api/services
    curl https://your-api.com/api/pricing
@@ -124,6 +135,7 @@ git checkout PREVIOUS_COMMIT
 ## Maintenance continue
 
 Après la migration, vous pouvez:
+
 - **Modifier les services** via l'API `/api/services`
 - **Ajuster les prix** via l'API `/api/pricing`
 - **Changer les configurations** via l'API `/api/config`
