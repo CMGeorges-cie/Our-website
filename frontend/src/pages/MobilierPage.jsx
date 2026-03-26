@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,57 +12,48 @@ import {
   Clock,
   DollarSign
 } from 'lucide-react';
-
-const steps = [
-  {
-    icon: DollarSign,
-    title: 'Achetez votre mobilier',
-    description: 'Chez IKEA, JYSK, Structube ou ailleurs. Ou laissez-nous vous le fournir à prix compétitif.'
-  },
-  {
-    icon: Truck,
-    title: 'On livre chez vous',
-    description: 'Livraison incluse dans la région de Montréal et Rive-Sud.'
-  },
-  {
-    icon: Wrench,
-    title: 'Assemblage pro',
-    description: 'Installation experte avec ancrage mural sécuritaire si requis.'
-  }
-];
-
-const pricing = [
-  { item: 'Lit (simple/double)', price: '75$', time: '1-2h' },
-  { item: 'Lit King/Queen avec tiroirs', price: '95-125$', time: '2-3h' },
-  { item: 'Commode (3-6 tiroirs)', price: '65$', time: '1h' },
-  { item: 'Garde-robe PAX (1 section)', price: '100$', time: '2h' },
-  { item: 'Garde-robe PAX (2+ sections)', price: '150-250$', time: '3-5h' },
-  { item: 'Bureau', price: '50-75$', time: '45min-1h' },
-  { item: 'Table à manger', price: '50-75$', time: '1h' },
-  { item: 'Étagère KALLAX/BILLY', price: '40-60$', time: '30-45min' },
-  { item: 'Ancrage mural (par meuble)', price: '25$', time: '15min' },
-];
-
-const faqs = [
-  {
-    q: 'Quelles marques assemblez-vous?',
-    a: 'Nous assemblons toutes les grandes marques: IKEA, JYSK, Structube, Wayfair, et plus encore.'
-  },
-  {
-    q: 'L\'ancrage mural est-il obligatoire?',
-    a: 'Non, mais nous le recommandons fortement pour les commodes, étagères et garde-robes, surtout si vous avez des enfants.'
-  },
-  {
-    q: 'Pouvez-vous fournir les meubles?',
-    a: 'Oui! Nous pouvons acheter et livrer vos meubles à prix compétitif. Demandez une soumission pour voir nos prix vs le marché.'
-  },
-  {
-    q: 'Quelle est votre garantie?',
-    a: 'Nous garantissons notre travail. Si quelque chose n\'est pas correct, nous revenons gratuitement pour corriger.'
-  }
-];
+import { publicApi } from '@/lib/api';
 
 export default function MobilierPage() {
+  const [processSteps, setProcessSteps] = useState([]);
+  const [pricing, setPricing] = useState([]);
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [stepsResponse, pricingResponse, faqsResponse] = await Promise.all([
+          publicApi.getFurnitureProcessSteps(),
+          publicApi.getFurniturePricing(),
+          publicApi.getFAQs('Mobilier & Installation')
+        ]);
+        
+        setProcessSteps(stepsResponse.data);
+        setPricing(pricingResponse.data);
+        setFaqs(faqsResponse.data);
+      } catch (error) {
+        console.error('Error fetching furniture data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+
+  const getIcon = (iconName) => {
+    switch (iconName) {
+      case 'DollarSign':
+        return DollarSign;
+      case 'Truck':
+        return Truck;
+      case 'Wrench':
+        return Wrench;
+      default:
+        return DollarSign;
+    }
+  };
   return (
     <div className="min-h-screen" data-testid="mobilier-page">
       {/* Hero */}
@@ -112,25 +104,37 @@ export default function MobilierPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map((step, idx) => {
-              const Icon = step.icon;
-              return (
-                <Card key={idx} className="text-center p-8 hover-lift" data-testid={`step-${idx}`}>
-                  <div className="w-16 h-16 rounded-full bg-[#E07A5F]/10 flex items-center justify-center mx-auto mb-6">
-                    <Icon className="h-8 w-8 text-[#E07A5F]" />
-                  </div>
-                  <span className="text-5xl font-bold text-[#1a365d]/10 font-['Outfit']">
-                    {idx + 1}
-                  </span>
-                  <h3 className="text-xl font-semibold text-[#1a365d] mb-3 font-['Outfit'] -mt-4">
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-600">
-                    {step.description}
-                  </p>
+            {loading ? (
+              // Loading skeleton for process steps
+              Array.from({ length: 3 }).map((_, idx) => (
+                <Card key={idx} className="text-center p-8">
+                  <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-6 animate-pulse"></div>
+                  <div className="h-8 bg-gray-200 rounded mb-3 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
                 </Card>
-              );
-            })}
+              ))
+            ) : (
+              processSteps.map((step, idx) => {
+                const Icon = getIcon(step.icon);
+                return (
+                  <Card key={idx} className="text-center p-8 hover-lift" data-testid={`step-${idx}`}>
+                    <div className="w-16 h-16 rounded-full bg-[#E07A5F]/10 flex items-center justify-center mx-auto mb-6">
+                      <Icon className="h-8 w-8 text-[#E07A5F]" />
+                    </div>
+                    <span className="text-5xl font-bold text-[#1a365d]/10 font-['Outfit']">
+                      {idx + 1}
+                    </span>
+                    <h3 className="text-xl font-semibold text-[#1a365d] mb-3 font-['Outfit'] -mt-4">
+                      {step.title}
+                    </h3>
+                    <p className="text-gray-600">
+                      {step.description}
+                    </p>
+                  </Card>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
@@ -159,13 +163,24 @@ export default function MobilierPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {pricing.map((item, idx) => (
-                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 font-medium">{item.item}</td>
-                        <td className="px-6 py-4 text-center text-[#1a365d] font-semibold">{item.price}</td>
-                        <td className="px-6 py-4 text-center text-gray-500">{item.time}</td>
-                      </tr>
-                    ))}
+                    {loading ? (
+                      // Loading skeleton for pricing rows
+                      Array.from({ length: 9 }).map((_, idx) => (
+                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                          <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                          <td className="px-6 py-4 text-center"><div className="h-4 bg-gray-200 rounded animate-pulse"></div></td>
+                        </tr>
+                      ))
+                    ) : (
+                      pricing.map((item, idx) => (
+                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="px-6 py-4 font-medium">{item.item_name}</td>
+                          <td className="px-6 py-4 text-center text-[#1a365d] font-semibold">{item.base_price}$</td>
+                          <td className="px-6 py-4 text-center text-gray-500">{item.time_estimate}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -231,12 +246,23 @@ export default function MobilierPage() {
           </div>
 
           <div className="space-y-4">
-            {faqs.map((faq, idx) => (
-              <Card key={idx} className="p-6" data-testid={`faq-${idx}`}>
-                <h3 className="font-semibold text-[#1a365d] mb-2">{faq.q}</h3>
-                <p className="text-gray-600 text-sm">{faq.a}</p>
-              </Card>
-            ))}
+            {loading ? (
+              // Loading skeleton for FAQs
+              Array.from({ length: 4 }).map((_, idx) => (
+                <Card key={idx} className="p-6">
+                  <div className="h-5 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-1 animate-pulse"></div>
+                  <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                </Card>
+              ))
+            ) : (
+              faqs.map((faq, idx) => (
+                <Card key={idx} className="p-6" data-testid={`faq-${idx}`}>
+                  <h3 className="font-semibold text-[#1a365d] mb-2">{faq.question}</h3>
+                  <p className="text-gray-600 text-sm">{faq.answer}</p>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>
