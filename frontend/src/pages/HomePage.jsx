@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { publicApi } from '@/lib/api';
 import { 
   Paintbrush, 
   Sofa, 
@@ -12,45 +14,6 @@ import {
   CheckCircle,
   Star
 } from 'lucide-react';
-
-const services = [
-  {
-    id: 'deco-touche',
-    title: 'Déco Touché',
-    description: 'Peinture, entretien et rénovation légère pour transformer votre espace de vie.',
-    icon: Paintbrush,
-    color: 'bg-[#1a365d]',
-    textColor: 'text-white',
-    accentColor: 'text-[#d4af37]',
-    features: ['Peinture intérieure/extérieure', 'Rénovation légère', 'Entretien général'],
-    image: 'https://images.unsplash.com/photo-1652766825080-88818e6509b6?crop=entropy&cs=srgb&fm=jpg&q=85&w=600',
-    link: '/services'
-  },
-  {
-    id: 'mobilier',
-    title: 'Mobilier & Installation',
-    description: 'Service clé en main: fourniture, livraison, assemblage et installation sécuritaire.',
-    icon: Sofa,
-    color: 'bg-white',
-    textColor: 'text-[#1a365d]',
-    accentColor: 'text-[#E07A5F]',
-    features: ['Assemblage IKEA/JYSK', 'Livraison incluse', 'Ancrage mural'],
-    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
-    link: '/mobilier'
-  },
-  {
-    id: 'tech',
-    title: 'CMGeorges Tech',
-    description: 'Solutions web, développement et DevOps pour propulser votre entreprise.',
-    icon: Code,
-    color: 'bg-slate-900',
-    textColor: 'text-white',
-    accentColor: 'text-[#007AFF]',
-    features: ['Sites web sur mesure', 'Applications web', 'DevOps & Cloud'],
-    image: 'https://images.unsplash.com/photo-1681583484651-281ae2defb17?crop=entropy&cs=srgb&fm=jpg&q=85&w=600',
-    link: '/services'
-  }
-];
 
 const testimonials = [
   {
@@ -75,6 +38,87 @@ const testimonials = [
 
 export default function HomePage() {
   usePageTitle('Accueil - Rénovation, Mobilier & Tech à Montréal');
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await publicApi.getServices();
+        setServices(response.data);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchServices();
+  }, []);
+
+  const getServiceIcon = (serviceName) => {
+    switch (serviceName) {
+      case 'deco-touche':
+        return Paintbrush;
+      case 'mobilier':
+        return Sofa;
+      case 'tech-services':
+        return Code;
+      default:
+        return Paintbrush;
+    }
+  };
+
+  const getServiceColor = (serviceName) => {
+    switch (serviceName) {
+      case 'deco-touche':
+        return 'bg-[#1a365d]';
+      case 'mobilier':
+        return 'bg-white';
+      case 'tech-services':
+        return 'bg-slate-900';
+      default:
+        return 'bg-[#1a365d]';
+    }
+  };
+
+  const getServiceTextColor = (serviceName) => {
+    switch (serviceName) {
+      case 'deco-touche':
+        return 'text-white';
+      case 'mobilier':
+        return 'text-[#1a365d]';
+      case 'tech-services':
+        return 'text-white';
+      default:
+        return 'text-white';
+    }
+  };
+
+  const getServiceAccentColor = (serviceName) => {
+    switch (serviceName) {
+      case 'deco-touche':
+        return 'text-[#d4af37]';
+      case 'mobilier':
+        return 'text-[#E07A5F]';
+      case 'tech-services':
+        return 'text-[#007AFF]';
+      default:
+        return 'text-[#d4af37]';
+    }
+  };
+
+  const getServiceLink = (serviceName) => {
+    switch (serviceName) {
+      case 'deco-touche':
+        return '/services';
+      case 'mobilier':
+        return '/mobilier';
+      case 'tech-services':
+        return '/services';
+      default:
+        return '/services';
+    }
+  };
   
   return (
     <div data-testid="home-page">
@@ -154,55 +198,81 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 stagger-children">
-            {services.map((service) => {
-              const Icon = service.icon;
-              return (
-                <Card 
-                  key={service.id}
-                  className={`service-card ${service.id === 'tech' ? 'service-card-tech' : ''} group`}
-                  data-testid={`service-card-${service.id}`}
-                >
-                  <div className="relative h-48 -mx-8 -mt-8 mb-6 overflow-hidden rounded-t-xl">
-                    <img 
-                      src={service.image} 
-                      alt={service.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                    <div className={`absolute bottom-4 left-4 p-3 rounded-lg ${service.color}`}>
-                      <Icon className={`h-6 w-6 ${service.textColor}`} />
-                    </div>
-                  </div>
-                  <CardContent className="p-0">
-                    <h3 className={`text-xl font-bold mb-3 font-['Outfit'] ${service.id === 'tech' ? 'text-white' : 'text-[#1a365d]'}`}>
-                      {service.title}
-                    </h3>
-                    <p className={`text-sm mb-4 ${service.id === 'tech' ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {service.description}
-                    </p>
-                    <ul className="space-y-2 mb-6">
-                      {service.features.map((feature, idx) => (
-                        <li key={idx} className={`flex items-center gap-2 text-sm ${service.id === 'tech' ? 'text-gray-300' : 'text-gray-700'}`}>
-                          <CheckCircle className={`h-4 w-4 ${service.accentColor}`} />
-                          {feature}
-                        </li>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map(i => (
+                <Card key={i} className="overflow-hidden animate-pulse">
+                  <div className="h-48 bg-gray-200 rounded-t-xl" />
+                  <CardContent className="p-6">
+                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-3" />
+                    <div className="h-4 bg-gray-200 rounded w-full mb-2" />
+                    <div className="h-4 bg-gray-200 rounded w-5/6 mb-4" />
+                    <div className="space-y-2 mb-6">
+                      {[1, 2, 3].map(j => (
+                        <div key={j} className="h-4 bg-gray-200 rounded w-4/5" />
                       ))}
-                    </ul>
-                    <Link to={service.link}>
-                      <Button 
-                        variant={service.id === 'tech' ? 'outline' : 'default'}
-                        className={service.id === 'tech' ? 'border-[#007AFF] text-[#007AFF] hover:bg-[#007AFF] hover:text-white' : 'btn-primary'}
-                      >
-                        En savoir plus
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
+                    </div>
+                    <div className="h-10 bg-gray-200 rounded" />
                   </CardContent>
                 </Card>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 stagger-children">
+              {services.map((service) => {
+                const Icon = getServiceIcon(service.name);
+                const color = getServiceColor(service.name);
+                const textColor = getServiceTextColor(service.name);
+                const accentColor = getServiceAccentColor(service.name);
+                const link = getServiceLink(service.name);
+
+                return (
+                  <Card
+                    key={service.id}
+                    className={`service-card ${service.name === 'tech-services' ? 'service-card-tech' : ''} group`}
+                    data-testid={`service-card-${service.name}`}
+                  >
+                    <div className="relative h-48 -mx-8 -mt-8 mb-6 overflow-hidden rounded-t-xl">
+                      <img
+                        src={service.image_url}
+                        alt={service.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                      <div className={`absolute bottom-4 left-4 p-3 rounded-lg ${color}`}>
+                        <Icon className={`h-6 w-6 ${textColor}`} />
+                      </div>
+                    </div>
+                    <CardContent className="p-0">
+                      <h3 className={`text-xl font-bold mb-3 font-['Outfit'] ${service.name === 'tech-services' ? 'text-white' : 'text-[#1a365d]'}`}>
+                        {service.title}
+                      </h3>
+                      <p className={`text-sm mb-4 ${service.name === 'tech-services' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {service.description}
+                      </p>
+                      <ul className="space-y-2 mb-6">
+                        {service.features.slice(0, 3).map((feature, idx) => (
+                          <li key={idx} className={`flex items-center gap-2 text-sm ${service.name === 'tech-services' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            <CheckCircle className={`h-4 w-4 ${accentColor}`} />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      <Link to={link}>
+                        <Button
+                          variant={service.name === 'tech-services' ? 'outline' : 'default'}
+                          className={service.name === 'tech-services' ? 'border-[#007AFF] text-[#007AFF] hover:bg-[#007AFF] hover:text-white' : 'btn-primary'}
+                        >
+                          En savoir plus
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
