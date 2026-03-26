@@ -18,7 +18,7 @@ import {
   Clock
 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_URL?.replace(/\/api\/v1\/?$/, '');
 
 export default function AdminInvoiceDetail() {
   const { id } = useParams();

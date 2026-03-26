@@ -1,7 +1,14 @@
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API_BASE = `${BACKEND_URL}/api/v1`;
+const RAW_API_URL =
+  process.env.REACT_APP_API_URL ||
+  (process.env.REACT_APP_BACKEND_URL
+    ? `${process.env.REACT_APP_BACKEND_URL}/api/v1`
+    : '');
+const API_BASE = RAW_API_URL.replace(/\/+$/, '');
+const BACKEND_URL =
+  process.env.REACT_APP_BACKEND_URL ||
+  API_BASE.replace(/\/api\/v1\/?$/, '');
 
 // Create axios instance
 const api = axios.create({

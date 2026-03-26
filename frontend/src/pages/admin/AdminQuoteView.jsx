@@ -6,7 +6,7 @@ import { adminApi } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { ArrowLeft, Printer, Download, Send } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_URL?.replace(/\/api\/v1\/?$/, '');
 
 export default function AdminQuoteView() {
   const { id } = useParams();

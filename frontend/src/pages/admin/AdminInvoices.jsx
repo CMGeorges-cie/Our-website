@@ -12,7 +12,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 import { toast } from 'sonner';
 import { Eye, FileText, Download, Printer, Send, Plus, Trash2, Receipt } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_API_URL?.replace(/\/api\/v1\/?$/, '');
 
 const statusOptions = [
   { value: 'all', label: 'Tous les statuts' },
