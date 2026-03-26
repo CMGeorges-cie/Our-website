@@ -2,20 +2,23 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const navLinks = [
-  { href: '/', label: 'Accueil' },
-  { href: '/services', label: 'Services' },
-  { href: '/mobilier', label: 'Mobilier' },
-  { href: '/portfolio', label: 'Portfolio' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/', label: t('nav.home') },
+  { href: '/services', label: t('nav.services') },
+  { href: '/mobilier', label: t('nav.furniture') },
+  { href: '/portfolio', label: t('nav.portfolio') },
+  { href: '/blog', label: t('nav.blog') },
+  { href: '/contact', label: t('nav.contact') },
 ];
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation();
 
   return (
     <nav className="nav-glass sticky top-0 z-50 no-print" data-testid="main-navigation">
@@ -53,6 +56,7 @@ export default function Navigation() {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
+            <LanguageSelector />
             <a 
               href={CMGEORGES_PHONE_LINK}
               className="flex items-center gap-2 text-[#1a365d] hover:text-[#d4af37] transition-colors"
@@ -105,6 +109,9 @@ export default function Navigation() {
                   {link.label}
                 </Link>
               ))}
+              <div className="mx-4 mt-2">
+                <LanguageSelector />
+              </div>
               <Link
                 to="/soumission"
                 className="mx-4 mt-4"

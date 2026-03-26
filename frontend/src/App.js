@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
+import "./i18n"; // Initialize i18n
 
 // Pages
 import HomePage from "@/pages/HomePage";

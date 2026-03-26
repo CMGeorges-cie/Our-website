@@ -1,0 +1,55 @@
+{
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "furniture": "Furniture",
+    "portfolio": "Portfolio",
+    "blog": "Blog",
+    "contact": "Contact",
+    "quote": "Get Quote"
+  },
+  "hero": {
+    "title": "Professional Home Services",
+    "subtitle": "Expert craftsmanship for your home renovation needs",
+    "cta": "Get Free Quote"
+  },
+  "services": {
+    "title": "Our Services",
+    "painting": {
+      "title": "Painting & Renovation",
+      "description": "Transform your living space with our professional painting and light renovation services."
+    },
+    "furniture": {
+      "title": "Furniture & Installation",
+      "description": "From supply to secure installation, we take care of all your furniture needs."
+    },
+    "tech": {
+      "title": "Technology Services",
+      "description": "Professional web development and digital solutions."
+    }
+  },
+  "footer": {
+    "about": "About Us",
+    "services": "Services",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "back": "Back"
+  }
+}

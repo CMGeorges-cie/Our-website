@@ -1,0 +1,55 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "services": "Services",
+    "furniture": "Mobilier",
+    "portfolio": "Portfolio",
+    "blog": "Blogue",
+    "contact": "Contact",
+    "quote": "Devis gratuit"
+  },
+  "hero": {
+    "title": "Services professionnels à domicile",
+    "subtitle": "Artisanat d'expert pour vos besoins de rénovation",
+    "cta": "Devis gratuit"
+  },
+  "services": {
+    "title": "Nos Services",
+    "painting": {
+      "title": "Peinture & Rénovation",
+      "description": "Transformez votre espace de vie avec nos services professionnels de peinture et rénovation légère."
+    },
+    "furniture": {
+      "title": "Mobilier & Installation",
+      "description": "De la fourniture à l'installation sécuritaire, nous nous occupons de tout votre mobilier."
+    },
+    "tech": {
+      "title": "Services Technologiques",
+      "description": "Développement web professionnel et solutions numériques."
+    }
+  },
+  "footer": {
+    "about": "À propos",
+    "services": "Services",
+    "contact": "Contact",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "view": "Voir",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "save": "Sauvegarder",
+    "back": "Retour"
+  }
+}
