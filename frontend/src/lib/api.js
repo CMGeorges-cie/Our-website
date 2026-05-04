@@ -130,6 +130,12 @@ export const adminApi = {
   deleteInvoice: (id) => api.delete(`/admin/invoices/${id}`),
   deleteLead: (id) => api.delete(`/admin/leads/${id}`),
 
+  // Portfolio
+  getPortfolio: (params = {}) => api.get('/admin/portfolio', { params }),
+  createPortfolio: (data) => api.post('/admin/portfolio', data),
+  updatePortfolio: (id, data) => api.patch(`/admin/portfolio/${id}`, data),
+  deletePortfolio: (id) => api.delete(`/admin/portfolio/${id}`),
+
   // Send by email
   sendInvoiceByEmail: (id) => api.post(`/admin/invoices/${id}/send-email`),
   sendQuoteByEmail: (id) => api.post(`/admin/quotes/${id}/send-email`),

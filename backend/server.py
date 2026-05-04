@@ -4439,6 +4439,64 @@ async def delete_notification(notification_id: str, user: dict = Depends(get_cur
     return {"success": True}
 
 
+# ==================== ADMIN PORTFOLIO ENDPOINTS ====================
+class PortfolioMediaCreate(BaseModel):
+    title: str
+    description: str = ""
+    image_url: str
+    before_image_url: Optional[str] = None
+    service_type: ServiceType = ServiceType.MANUAL
+    category: str = "portfolio"
+
+class PortfolioMediaUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    before_image_url: Optional[str] = None
+    service_type: Optional[ServiceType] = None
+    category: Optional[str] = None
+
+@admin_router.get("/portfolio")
+async def get_admin_portfolio(user: dict = Depends(get_current_user)):
+    """Get all portfolio items for admin"""
+    items = await db.portfolio_media.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return items
+
+@admin_router.post("/portfolio")
+async def create_portfolio_item(item_data: PortfolioMediaCreate, request: Request, user: dict = Depends(get_current_user)):
+    """Create a new portfolio item"""
+    item = PortfolioMedia(**item_data.model_dump())
+    doc = item.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.portfolio_media.insert_one(doc)
+    await create_audit_log("portfolio_created", "portfolio", item.id, user=user, request=request)
+    doc.pop('_id', None)
+    return doc
+
+@admin_router.patch("/portfolio/{item_id}")
+async def update_portfolio_item(item_id: str, update: PortfolioMediaUpdate, request: Request, user: dict = Depends(get_current_user)):
+    """Update a portfolio item"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data")
+    result = await db.portfolio_media.update_one({"id": item_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Portfolio item not found")
+    await create_audit_log("portfolio_updated", "portfolio", item_id, user=user, details=update_data, request=request)
+    item = await db.portfolio_media.find_one({"id": item_id}, {"_id": 0})
+    return item
+
+@admin_router.delete("/portfolio/{item_id}")
+async def delete_portfolio_item(item_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Delete a portfolio item"""
+    result = await db.portfolio_media.delete_one({"id": item_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Portfolio item not found")
+    await create_audit_log("portfolio_deleted", "portfolio", item_id, user=user, request=request)
+    return {"success": True}
+
+
+
 # Include v1 routers (legacy)
 v1_router.include_router(admin_router)
 v1_router.include_router(client_router)
