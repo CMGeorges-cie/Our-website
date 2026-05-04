@@ -45,6 +45,7 @@ export const authApi = {
 export const publicApi = {
   getServices: () => api.get('/services'),
   getPortfolio: () => api.get('/portfolio'),
+  getSocialPosts: () => api.get('/social-posts'),
   createLead: (data) => api.post('/leads', data),
 };
 
@@ -135,6 +136,12 @@ export const adminApi = {
   createPortfolio: (data) => api.post('/admin/portfolio', data),
   updatePortfolio: (id, data) => api.patch(`/admin/portfolio/${id}`, data),
   deletePortfolio: (id) => api.delete(`/admin/portfolio/${id}`),
+
+  // Social Media Posts
+  getSocialPosts: (params = {}) => api.get('/admin/social-posts', { params }),
+  createSocialPost: (data) => api.post('/admin/social-posts', data),
+  updateSocialPost: (id, data) => api.patch(`/admin/social-posts/${id}`, data),
+  deleteSocialPost: (id) => api.delete(`/admin/social-posts/${id}`),
 
   // Send by email
   sendInvoiceByEmail: (id) => api.post(`/admin/invoices/${id}/send-email`),

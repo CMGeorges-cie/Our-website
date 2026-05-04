@@ -43,6 +43,7 @@ import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminNotifications from "@/pages/admin/AdminNotifications";
 import AdminCatalog from "@/pages/admin/AdminCatalog";
 import AdminPortfolio from "@/pages/admin/AdminPortfolio";
+import AdminSocial from "@/pages/admin/AdminSocial";
 
 // ServiceFlow / Client Portal
 import ServiceFlowPricing from "@/pages/ServiceFlowPricing";
@@ -208,6 +209,7 @@ function App() {
               <Route path="/admin/notifications" element={<AdminNotifications />} />
               <Route path="/admin/catalog" element={<AdminCatalog />} />
               <Route path="/admin/portfolio" element={<AdminPortfolio />} />
+              <Route path="/admin/social" element={<AdminSocial />} />
             </Route>
           </Routes>
         </BrowserRouter>

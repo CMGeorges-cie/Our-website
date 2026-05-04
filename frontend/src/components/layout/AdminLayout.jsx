@@ -20,7 +20,8 @@ import {
   Sun,
   Moon,
   Package,
-  ImageIcon
+  ImageIcon,
+  Share2
 } from 'lucide-react';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ const sidebarLinks = [
   { href: '/admin/projects', label: 'Projets', icon: Briefcase },
   { href: '/admin/catalog', label: 'Catalogue', icon: Package },
   { href: '/admin/portfolio', label: 'Portfolio', icon: ImageIcon },
+  { href: '/admin/social', label: 'Réseaux Sociaux', icon: Share2 },
   { href: '/admin/invoices', label: 'Factures', icon: Receipt },
   { href: '/admin/revenue', label: 'Revenus', icon: TrendingUp },
 ];

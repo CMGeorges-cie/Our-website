@@ -4498,6 +4498,88 @@ async def delete_portfolio_item(item_id: str, request: Request, user: dict = Dep
 
 
 # Include v1 routers (legacy)
+
+# ==================== ADMIN SOCIAL MEDIA ENDPOINTS ====================
+class SocialPlatform(str, Enum):
+    INSTAGRAM = "instagram"
+    TIKTOK = "tiktok"
+    FACEBOOK = "facebook"
+    YOUTUBE = "youtube"
+
+class SocialPostCreate(BaseModel):
+    title: str
+    description: str = ""
+    platform: SocialPlatform
+    post_url: str  # Link to the actual post on social media
+    thumbnail_url: str  # Image/thumbnail to display on the site
+    video_url: Optional[str] = None  # Optional video embed
+    posted_at: Optional[str] = None
+
+class SocialPostUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    platform: Optional[SocialPlatform] = None
+    post_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    video_url: Optional[str] = None
+    is_featured: Optional[bool] = None
+
+@admin_router.get("/social-posts")
+async def get_social_posts(user: dict = Depends(get_current_user)):
+    """Get all social media posts"""
+    posts = await db.social_posts.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return posts
+
+@admin_router.post("/social-posts")
+async def create_social_post(post_data: SocialPostCreate, request: Request, user: dict = Depends(get_current_user)):
+    """Create a new social media post reference"""
+    doc = {
+        "id": str(uuid.uuid4()),
+        "title": post_data.title,
+        "description": post_data.description,
+        "platform": post_data.platform,
+        "post_url": post_data.post_url,
+        "thumbnail_url": post_data.thumbnail_url,
+        "video_url": post_data.video_url,
+        "posted_at": post_data.posted_at or datetime.now(timezone.utc).isoformat(),
+        "is_featured": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.social_posts.insert_one(doc)
+    await create_audit_log("social_post_created", "social_post", doc["id"], user=user, request=request)
+    doc.pop('_id', None)
+    return doc
+
+@admin_router.patch("/social-posts/{post_id}")
+async def update_social_post(post_id: str, update: SocialPostUpdate, request: Request, user: dict = Depends(get_current_user)):
+    """Update a social media post"""
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data")
+    result = await db.social_posts.update_one({"id": post_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Post not found")
+    await create_audit_log("social_post_updated", "social_post", post_id, user=user, details=update_data, request=request)
+    post = await db.social_posts.find_one({"id": post_id}, {"_id": 0})
+    return post
+
+@admin_router.delete("/social-posts/{post_id}")
+async def delete_social_post(post_id: str, request: Request, user: dict = Depends(get_current_user)):
+    """Delete a social media post"""
+    result = await db.social_posts.delete_one({"id": post_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Post not found")
+    await create_audit_log("social_post_deleted", "social_post", post_id, user=user, request=request)
+    return {"success": True}
+
+# Public endpoint for social posts (no auth)
+@v1_router.get("/social-posts")
+async def get_public_social_posts():
+    """Get featured social media posts for public display"""
+    posts = await db.social_posts.find({"is_featured": True}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return posts
+
+
 v1_router.include_router(admin_router)
 v1_router.include_router(client_router)
 v1_router.include_router(saas_router)

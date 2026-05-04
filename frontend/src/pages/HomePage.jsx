@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { publicApi } from '@/lib/api';
 import { 
   Paintbrush, 
   Sofa, 
@@ -12,7 +14,8 @@ import {
   Star,
   Users,
   Receipt,
-  Calendar
+  Calendar,
+  ExternalLink
 } from 'lucide-react';
 
 const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
@@ -76,6 +79,69 @@ const testimonials = [
     rating: 5
   }
 ];
+
+const platformIcons = {
+  instagram: '📸',
+  tiktok: '🎵',
+  facebook: '👍',
+  youtube: '▶️'
+};
+
+function SocialMediaSection() {
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    publicApi.getSocialPosts()
+      .then(res => setPosts(res.data))
+      .catch(() => {});
+  }, []);
+
+  if (posts.length === 0) return null;
+
+  return (
+    <section className="section-spacing bg-[#0f0f1a]" data-testid="social-section">
+      <div className="container-main">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-['Outfit']">
+            Suivez-nous sur les <span className="text-[#d4af37]">réseaux sociaux</span>
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            Découvrez nos derniers projets et transformations en vidéo
+          </p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {posts.slice(0, 8).map((post) => (
+            <a
+              key={post.id}
+              href={post.post_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative aspect-square rounded-xl overflow-hidden"
+              data-testid={`social-public-${post.id}`}
+            >
+              <img
+                src={post.thumbnail_url}
+                alt={post.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity text-center">
+                  <ExternalLink className="h-6 w-6 text-white mx-auto mb-1" />
+                  <span className="text-white text-xs font-medium">
+                    {platformIcons[post.platform]} Voir sur {post.platform === 'instagram' ? 'Instagram' : post.platform === 'tiktok' ? 'TikTok' : post.platform}
+                  </span>
+                </div>
+              </div>
+              <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
+                {platformIcons[post.platform]}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -403,6 +469,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Social Media Section */}
+      <SocialMediaSection />
 
       {/* CTA Section */}
       <section className="py-16 bg-[#d4af37]" data-testid="cta-section">
