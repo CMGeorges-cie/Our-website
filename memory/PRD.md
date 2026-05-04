@@ -5,130 +5,80 @@
 
 ---
 
-## Ce qui est implémenté
+## Ce qui est implémenté et fonctionnel
 
 ### CRM Admin
-- Leads, Clients, Projets (CRUD complet)
-- Notifications système
+- Leads CRUD (liste, détail, conversion en client)
+- Clients CRUD (liste, détail, modification)
+- Projets CRUD avec tâches, timeline, messagerie
+- Notifications système (in-app + email)
 - Thème dark/light premium noir/or
 
-### Projets V2
-- Tâches avec progression
-- Messagerie interne
-- Timeline des événements
+### Facturation Style Joist
+- Création factures avec calcul TPS/TVQ automatique
+- Liste factures avec stats
+- Détail facture professionnelle
+- Génération PDF
+- Paiements (enregistrement, suivi)
+- Remises et acomptes
 
-### Multi-Tenant & Mobile
-- API v2 mobile-ready
-- TenantContext isolation (partielle)
-- Structure React Native complète
+### Signature Électronique
+- Signature in-app (admin capture signature client)
+- Lien signature publique (DocuSign style)
+- Email avec lien sécurisé (token 72h)
+- Page publique `/sign/:type/:token`
 
 ### Catalogue de Services
-- CRUD services avec catégories
-- 12 services CMGeorges
+- CRUD 12 services prédéfinis
+- Intégration avec facturation
 
-### Facturation Style Joist
-- Page liste avec stats
-- Modal création avec intégration catalogue
-- Calcul TPS/TVQ automatique
-- Remises et acomptes
-- Page détail professionnelle
+### Portfolio (NOUVEAU)
+- Admin: Ajouter/modifier/supprimer projets réalisés
+- Photos avant/après
+- Catégories par service
+- Page publique `/portfolio`
 
-### Signature Électronique (In-App)
-- Composant SignaturePad avec react-signature-canvas
-- Dialog de signature complet (texte légal, info signataire)
-- Backend endpoints pour factures et devis
-- Affichage signature sauvegardée
+### Réseaux Sociaux (NOUVEAU)
+- Admin: Gérer les posts Instagram/TikTok/Facebook/YouTube
+- Affichage sur la page d'accueil
+- Liens vers les posts originaux sur les plateformes
+- Les visiteurs cliquent → redirigés vers la vidéo/post
 
-### Lien de Signature Publique (DocuSign style)
-- **Page publique** `/sign/:type/:token` avec aperçu document complet
-- **Backend API** `GET/POST /api/public/sign/invoice/{token}` et `/api/public/sign/quote/{token}`
-- **Envoi lien par email** `POST /api/v1/admin/invoices/{id}/send-signature-link`
-- **Token sécurisé** SHA256 avec expiration 72h
-- **Routage corrigé** sous `/api` prefix pour Kubernetes
+### Dashboard & Revenus
+- Statistiques leads, clients, factures
+- Dashboard CEO avec revenus mensuels
 
-### Emails & Notifications
-- Templates email professionnels ServiceFlow
-- Liens email corrigés avec FRONTEND_URL
-- Notifications pour leads, factures, paiements, projets
+### Suite de Tests (NOUVEAU)
+- 30 tests pytest (`/app/backend/tests/test_build.py`)
+- Couvre: Auth, Endpoints publics, Leads, Clients, Factures, Projets, Portfolio, Réseaux Sociaux, Catalogue, Signature publique, Dashboard, Notifications
+- Commande: `cd /app/backend && pytest tests/test_build.py -v`
 
 ---
 
-## Architecture Fichiers
-
-```
-/app
-├── backend/
-│   ├── .env                    # FRONTEND_URL ajouté
-│   ├── server.py               # Monolithique (à refactorer)
-│   ├── routers/
-│   │   ├── auth.py
-│   │   ├── catalog.py
-│   │   ├── mobile.py
-│   │   ├── projects.py
-│   │   └── public_signature.py # Prefix /api/public/sign
-│   ├── middleware/
-│   │   └── tenant.py
-│   ├── services/
-│   │   └── database.py
-│   └── tests/
-│       └── test_public_signature.py
-├── frontend/
-│   └── src/
-│       ├── components/ui/
-│       │   └── signature-pad.jsx
-│       ├── lib/api.js
-│       └── pages/
-│           ├── PublicSignaturePage.jsx  # Appelle /api/public/sign/...
-│           └── admin/
-│               ├── AdminInvoices.jsx
-│               └── AdminInvoiceDetail.jsx
-└── mobile/
-    └── src/...
-```
-
----
-
-## API Clés
-
-| Endpoint | Auth | Description |
-|----------|------|-------------|
-| `GET /api/public/sign/invoice/{token}` | Non | Récupérer facture pour signature publique |
-| `POST /api/public/sign/invoice/{token}` | Non | Soumettre signature publique |
-| `GET /api/public/sign/quote/{token}` | Non | Récupérer devis pour signature publique |
-| `POST /api/public/sign/quote/{token}` | Non | Soumettre signature publique devis |
-| `POST /api/v1/admin/invoices/{id}/send-signature-link` | Oui | Envoyer lien signature par email |
-| `POST /api/v1/admin/quotes/{id}/send-signature-link` | Oui | Envoyer lien signature devis |
-| `POST /api/v1/admin/invoices/{id}/signature` | Oui | Ajouter signature in-app |
-| `DELETE /api/v1/admin/invoices/{id}/signature` | Oui | Supprimer signature |
-
----
-
-## Bugs Corrigés (24 Mars 2026)
-
-- **URLs email cassées** : `http:///admin/invoices/...` → `https://serviceflow-preview.preview.emergentagent.com/admin/invoices/...`
-- **Routage signature publique** : Endpoints déplacés sous `/api` pour compatibilité Kubernetes ingress
-- **`.env` corrompu** : STRIPE_API_KEY et FRONTEND_URL concaténés sur même ligne
+## Connexions Admin
+- **Email:** admin@cmgeorges.com
+- **Mot de passe:** strongpassword123
+- **URL:** /admin/login
 
 ---
 
 ## Backlog
 
-### P0 - Critique
-- [ ] Isolation multi-tenant complète (audit toutes les requêtes DB)
-- [ ] Déployer première version utilisable
+### P0 - Prochaine
+- [ ] Isolation multi-tenant complète
+- [ ] Stripe clé live (paiements réels)
+- [ ] Déploiement production
 
-### P1 - Priorité
+### P1
 - [ ] Inclure signature dans PDF
+- [ ] Portail client complet (connexion, historique, modification infos)
+- [ ] Webhooks Stripe (cycle de vie abonnements)
 - [ ] Système Produits + Installation + Inventaire
-- [ ] Intégration Stripe complète (webhooks cycle de vie)
 
 ### P2
-- [ ] Portail client complet avec RBAC
 - [ ] App React Native sur stores
-- [ ] Réactiver reCAPTCHA formulaire public
-- [ ] Connecter "Imprimer et Envoyer" au backend email
+- [ ] Réactiver reCAPTCHA
+- [ ] Dashboard Analytics avancé
 
 ### P3
-- [ ] Dashboard Analytics
 - [ ] Migration PostgreSQL
-- [ ] Simplifier formulaire devis (retirer "market price")
