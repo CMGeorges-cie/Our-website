@@ -55,9 +55,9 @@ export function getStatusLabel(status) {
 // Get service type label in French
 export function getServiceLabel(type) {
   const labels = {
-    manual: 'Déco Touché',
+    manual: 'Peinture & Réno',
     furniture: 'Mobilier',
-    tech: 'Tech',
+    entretien: 'Entretien',
   };
   return labels[type] || type;
 }

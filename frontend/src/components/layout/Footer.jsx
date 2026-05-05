@@ -22,10 +22,10 @@ export default function Footer() {
             </p>
             <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
               <div className="flex items-center gap-2 text-[#d4af37] text-xs font-semibold mb-1">
-                <Shield className="h-3 w-3" /> LICENCE & ASSURANCE
+                <Shield className="h-3 w-3" /> PROFESSIONNEL & ASSURÉ
               </div>
-              <p className="text-white/60 text-xs">Licence RBQ: En cours d'obtention</p>
               <p className="text-white/60 text-xs">Assurance responsabilité civile active</p>
+              <p className="text-white/60 text-xs">Service professionnel garanti</p>
             </div>
           </div>
 

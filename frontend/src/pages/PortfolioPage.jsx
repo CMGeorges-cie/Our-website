@@ -47,9 +47,8 @@ export default function PortfolioPage() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-8 bg-white shadow-sm">
               <TabsTrigger value="all" data-testid="tab-all">Tous</TabsTrigger>
-              <TabsTrigger value="manual" data-testid="tab-manual">Déco Touché</TabsTrigger>
+              <TabsTrigger value="manual" data-testid="tab-manual">Peinture & Rénovation</TabsTrigger>
               <TabsTrigger value="furniture" data-testid="tab-furniture">Mobilier</TabsTrigger>
-              <TabsTrigger value="tech" data-testid="tab-tech">Tech</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-0">
