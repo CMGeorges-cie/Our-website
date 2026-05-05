@@ -66,7 +66,7 @@ SERVICEFLOW_PLANS = {
 }
 
 # Create the main app
-app = FastAPI(title="CMGeorges API", version="2.0.0", description="API production CMGeorges")
+app = FastAPI(title="Déco Touché API", version="2.0.0", description="API production Déco Touché")
 
 # Create routers
 api_router = APIRouter(prefix="/api")
@@ -856,7 +856,7 @@ def get_lead_notification_html(lead: dict) -> str:
     </head>
     <body>
         <div class="header">
-            <h1>🦁 CMGeorges - Nouvelle demande!</h1>
+            <h1>🦁 Déco Touché - Nouvelle demande!</h1>
         </div>
         <div class="content">
             <h2>Nouveau lead reçu</h2>
@@ -872,7 +872,7 @@ def get_lead_notification_html(lead: dict) -> str:
         </div>
         <div class="footer">
             <p>Connectez-vous à l'admin pour gérer ce lead.</p>
-            <p>CMGeorges - Montréal & Rive-Sud | 514-386-1743</p>
+            <p>Déco Touché - Montréal & Rive-Sud | 514-386-1743</p>
         </div>
     </body>
     </html>
@@ -896,7 +896,7 @@ def get_lead_confirmation_html(lead: dict) -> str:
     </head>
     <body>
         <div class="header">
-            <h1>🦁 CMGeorges</h1>
+            <h1>🦁 Déco Touché</h1>
             <p>Montréal & Rive-Sud</p>
         </div>
         <div class="content">
@@ -917,8 +917,8 @@ def get_lead_confirmation_html(lead: dict) -> str:
             </p>
         </div>
         <div class="footer">
-            <p>CMGeorges - Votre partenaire pour tous vos projets</p>
-            <p>info@cmgeorges.com | 514-386-1743</p>
+            <p>Déco Touché - Votre partenaire pour tous vos projets</p>
+            <p>info@decotouche.ca | 514-386-1743</p>
         </div>
     </body>
     </html>
@@ -1004,7 +1004,7 @@ body{{font-family:Arial,sans-serif;background:#0d0d1f;margin:0;padding:0;}}
 {body_html}
 {cta_block}
 </div>
-<div class="footer">ServiceFlow — Plateforme CRM pour entreprises de services<br>CMGeorges | 514-386-1743 | info@cmgeorges.com</div>
+<div class="footer">ServiceFlow — Plateforme CRM pour entreprises de services<br>Déco Touché | 514-386-1743 | info@decotouche.ca</div>
 </div></body></html>"""
 
 async def notify_new_lead(lead: dict, background_tasks: BackgroundTasks):
@@ -1054,7 +1054,7 @@ async def notify_invoice_created(invoice: dict, client: dict, background_tasks: 
         <p>Vous pouvez consulter et payer cette facture via votre portail client.</p>
         """
         html_client = _notif_html(f"Votre facture {invoice.get('invoice_number','')}", client_body, "Accéder au portail client", f"{FRONTEND_URL}/client/login")
-        background_tasks.add_task(send_email, client["email"], f"Votre facture {invoice.get('invoice_number','')} — CMGeorges", html_client)
+        background_tasks.add_task(send_email, client["email"], f"Votre facture {invoice.get('invoice_number','')} — Déco Touché", html_client)
     background_tasks.add_task(create_notification, f"Facture {invoice.get('invoice_number','')} créée", f"Client: {client.get('full_name','')} — {invoice.get('total',0):.2f}$", "invoice_created", "invoice", invoice.get("id"))
 
 async def notify_payment_received(invoice: dict, client: dict, amount: float, background_tasks: BackgroundTasks):
@@ -1099,7 +1099,7 @@ async def notify_project_status(project: dict, old_status: str, new_status: str,
         <p>Connectez-vous au portail client pour plus de détails.</p>
         """
         html_client = _notif_html(f"Mise à jour de votre projet", client_body, "Voir mon projet", f"{FRONTEND_URL}/client/dashboard")
-        background_tasks.add_task(send_email, client["email"], f"Mise à jour: {project.get('title','')} — CMGeorges", html_client)
+        background_tasks.add_task(send_email, client["email"], f"Mise à jour: {project.get('title','')} — Déco Touché", html_client)
     background_tasks.add_task(create_notification, f"Projet: {new_lbl}", f"{project.get('title','')} — {old_lbl} → {new_lbl}", "project_status", "project", project.get("id"))
 
 
@@ -1165,7 +1165,7 @@ async def create_lead(lead_data: LeadCreate, background_tasks: BackgroundTasks, 
     lead_dict = {**doc, "id": lead.id}
     await notify_new_lead(lead_dict, background_tasks)
     # Confirmation email to client
-    background_tasks.add_task(send_email, lead.email, "CMGeorges - Confirmation de votre demande", get_lead_confirmation_html(lead_dict))
+    background_tasks.add_task(send_email, lead.email, "Déco Touché - Confirmation de votre demande", get_lead_confirmation_html(lead_dict))
     
     return lead
 
@@ -1200,7 +1200,7 @@ async def submit_contact(form: ContactForm, background_tasks: BackgroundTasks, r
     <p><strong>Message:</strong></p>
     <p>{form.message}</p>
     """
-    background_tasks.add_task(send_email, ADMIN_EMAIL, f"Contact CMGeorges: {form.subject}", html_content)
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"Contact Déco Touché: {form.subject}", html_content)
     
     return {"message": "Message envoyé avec succès"}
 
@@ -1227,13 +1227,13 @@ async def get_services():
             service_type=ServiceType.FURNITURE
         ),
         ServiceInfo(
-            id="tech",
-            name="CMGeorges Tech",
-            description="Solutions web, développement et DevOps pour propulser votre entreprise",
-            features=["Sites web sur mesure", "Applications web", "DevOps & Cloud", "Maintenance"],
-            price_range="70$/h ou forfait",
-            icon="code",
-            service_type=ServiceType.TECH
+            id="entretien",
+            name="Entretien général",
+            description="Petits travaux, réparations et entretien régulier pour votre propriété",
+            features=["Réparations mineures", "Joints & scellants", "Entretien saisonnier", "Nettoyage après travaux"],
+            price_range="À partir de 120$/visite",
+            icon="wrench",
+            service_type=ServiceType.MANUAL
         )
     ]
     return services
@@ -2189,7 +2189,7 @@ async def generate_project_report(project_id: str, user: dict = Depends(get_curr
     # Footer
     pdf.ln(10)
     pdf.set_font("Helvetica", "I", 9)
-    pdf.cell(0, 5, "CMGeorges - Montreal & Rive-Sud", ln=True, align="C")
+    pdf.cell(0, 5, "Déco Touché - Montreal & Rive-Sud", ln=True, align="C")
     
     # Output
     pdf_bytes = BytesIO()
@@ -2280,10 +2280,10 @@ async def send_project_message(
                     <p style="margin: 0; white-space: pre-wrap;">{message.content}</p>
                 </div>
                 <p>Connectez-vous au portail client pour répondre.</p>
-                <p style="color: #666;">L'équipe CMGeorges</p>
+                <p style="color: #666;">L'équipe Déco Touché</p>
             </div>
             """
-            background_tasks.add_task(send_email, client["email"], f"CMGeorges - Nouveau message: {project.get('title', 'Projet')}", email_html)
+            background_tasks.add_task(send_email, client["email"], f"Déco Touché - Nouveau message: {project.get('title', 'Projet')}", email_html)
     
     return {"id": msg.id, "message": "Message sent successfully"}
 
@@ -2458,7 +2458,7 @@ async def seed_database():
     admin_user = {
         "id": str(uuid.uuid4()),
         "email": "admin@cmgeorges.com",
-        "full_name": "Admin CMGeorges",
+        "full_name": "Admin Déco Touché",
         "role": "admin",
         "password_hash": hash_password("admin123"),
         "is_active": True,
@@ -2597,7 +2597,7 @@ async def seed_database():
             "category": "conseils",
             "tags": ["peinture", "conseils", "DIY"],
             "status": "published",
-            "author_name": "CMGeorges",
+            "author_name": "Déco Touché",
             "created_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "published_at": datetime.now(timezone.utc).isoformat(),
@@ -2625,7 +2625,7 @@ async def seed_database():
             "category": "guides",
             "tags": ["IKEA", "assemblage", "mobilier"],
             "status": "published",
-            "author_name": "CMGeorges",
+            "author_name": "Déco Touché",
             "created_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
             "updated_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
             "published_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
@@ -2791,8 +2791,8 @@ def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
     elements = []
     
     # Header
-    elements.append(Paragraph("🦁 CMGeorges", styles['CMGHeader']))
-    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@cmgeorges.com", styles['CMGSubHeader']))
+    elements.append(Paragraph("🦁 Déco Touché", styles['CMGHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@decotouche.ca", styles['CMGSubHeader']))
     elements.append(Spacer(1, 20))
     
     # Quote Info
@@ -2891,7 +2891,7 @@ def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
     # Footer
     elements.append(Spacer(1, 30))
     elements.append(Paragraph("Merci de votre confiance!", styles['CMGSubHeader']))
-    elements.append(Paragraph("CMGeorges - Votre partenaire pour tous vos projets", styles['CMGSubHeader']))
+    elements.append(Paragraph("Déco Touché - Votre partenaire pour tous vos projets", styles['CMGSubHeader']))
     
     doc.build(elements)
     buffer.seek(0)
@@ -2910,8 +2910,8 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     elements = []
     
     # Header
-    elements.append(Paragraph("🦁 CMGeorges", styles['CMGHeader']))
-    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@cmgeorges.com", styles['CMGSubHeader']))
+    elements.append(Paragraph("🦁 Déco Touché", styles['CMGHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@decotouche.ca", styles['CMGSubHeader']))
     elements.append(Spacer(1, 20))
     
     # Invoice Info
@@ -2995,7 +2995,7 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     elements.append(Paragraph("""
     • Virement Interac: cmgeorges.cie@gmail.com<br/>
     • Comptant<br/>
-    • Chèque à l'ordre de CMGeorges
+    • Chèque à l'ordre de Déco Touché
     """, styles['Normal']))
     
     # Footer
@@ -3100,7 +3100,7 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
     </head>
     <body>
         <div class="header">
-            <h1>🦁 CMGeorges</h1>
+            <h1>🦁 Déco Touché</h1>
         </div>
         <div class="content">
             <h2>Bonjour {client.get('full_name', '').split()[0]}!</h2>
@@ -3112,13 +3112,13 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
             <p>Si vous n'avez pas demandé cet accès, veuillez ignorer ce courriel.</p>
         </div>
         <div class="footer">
-            <p>CMGeorges - Montréal & Rive-Sud | 514-386-1743</p>
+            <p>Déco Touché - Montréal & Rive-Sud | 514-386-1743</p>
         </div>
     </body>
     </html>
     """
     
-    background_tasks.add_task(send_email, client["email"], "CMGeorges - Accès à votre portail client", email_html)
+    background_tasks.add_task(send_email, client["email"], "Déco Touché - Accès à votre portail client", email_html)
     
     await create_audit_log("portal_access_created", "client_portal", portal_access.id, user=user, details={"client_id": client_id}, request=request)
     
@@ -3581,7 +3581,7 @@ async def send_invoice_by_email(invoice_id: str, request: Request, user: dict = 
     .highlight{{background:#f8fafc;border-left:4px solid #d4af37;padding:15px;margin:20px 0;}}
     .footer{{background:#1a365d;color:white;padding:20px;text-align:center;}}
     </style></head><body>
-    <div class="header"><h1>CMGeorges</h1><p>Montréal & Rive-Sud</p></div>
+    <div class="header"><h1>Déco Touché</h1><p>Montréal & Rive-Sud</p></div>
     <div class="content">
     <h2>Bonjour {client['full_name']},</h2>
     <p>Veuillez trouver ci-joint votre facture.</p>
@@ -3590,10 +3590,10 @@ async def send_invoice_by_email(invoice_id: str, request: Request, user: dict = 
     <strong>Montant total:</strong> {invoice['total']:.2f}$<br>
     <strong>Date d'échéance:</strong> {due_date_str}
     </div>
-    <p>Pour toute question, contactez-nous au 514-386-1743 ou info@cmgeorges.com</p>
+    <p>Pour toute question, contactez-nous au 514-386-1743 ou info@decotouche.ca</p>
     <p>Merci de votre confiance!</p>
     </div>
-    <div class="footer"><p>CMGeorges | 514-386-1743 | info@cmgeorges.com</p></div>
+    <div class="footer"><p>Déco Touché | 514-386-1743 | info@decotouche.ca</p></div>
     </body></html>
     """
 
@@ -3604,7 +3604,7 @@ async def send_invoice_by_email(invoice_id: str, request: Request, user: dict = 
         params = {
             "from": SENDER_EMAIL,
             "to": [client["email"]],
-            "subject": f"Facture {invoice['invoice_number']} - CMGeorges",
+            "subject": f"Facture {invoice['invoice_number']} - Déco Touché",
             "html": html_content,
             "attachments": [{"filename": f"facture-{invoice['invoice_number']}.pdf", "content": list(pdf_bytes)}]
         }
@@ -3670,8 +3670,8 @@ async def send_invoice_signature_link(invoice_id: str, request: Request, user: d
     .expires{{color:#888;font-size:12px;margin-top:16px;}}
     </style></head><body>
     <div class="header">
-        <img src="https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png" alt="CMGeorges" style="width:60px;height:60px;border-radius:12px;margin-bottom:10px;">
-        <h1>CMGeorges</h1>
+        <img src="https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png" alt="Déco Touché" style="width:60px;height:60px;border-radius:12px;margin-bottom:10px;">
+        <h1>Déco Touché</h1>
         <p style="color:#888;margin:0;">Services de rénovation & design</p>
     </div>
     <div class="content">
@@ -3695,11 +3695,11 @@ async def send_invoice_signature_link(invoice_id: str, request: Request, user: d
         <p>Pour toute question, contactez-nous:</p>
         <ul>
             <li>📞 514-386-1743</li>
-            <li>✉️ info@cmgeorges.com</li>
+            <li>✉️ info@decotouche.ca</li>
         </ul>
     </div>
     <div class="footer">
-        <p>CMGeorges | Montréal & Rive-Sud</p>
+        <p>Déco Touché | Montréal & Rive-Sud</p>
         <p>Ce lien est unique et sécurisé. Ne le partagez pas.</p>
     </div>
     </body></html>
@@ -3712,7 +3712,7 @@ async def send_invoice_signature_link(invoice_id: str, request: Request, user: d
         params = {
             "from": SENDER_EMAIL,
             "to": [client["email"]],
-            "subject": f"✍️ Signature requise - Facture {invoice['invoice_number']} - CMGeorges",
+            "subject": f"✍️ Signature requise - Facture {invoice['invoice_number']} - Déco Touché",
             "html": html_content
         }
         await asyncio.to_thread(resend.Emails.send, params)
@@ -3770,8 +3770,8 @@ async def send_quote_signature_link(quote_id: str, request: Request, user: dict 
     .expires{{color:#888;font-size:12px;margin-top:16px;}}
     </style></head><body>
     <div class="header">
-        <img src="https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png" alt="CMGeorges" style="width:60px;height:60px;border-radius:12px;margin-bottom:10px;">
-        <h1>CMGeorges</h1>
+        <img src="https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png" alt="Déco Touché" style="width:60px;height:60px;border-radius:12px;margin-bottom:10px;">
+        <h1>Déco Touché</h1>
     </div>
     <div class="content">
         <h2>Bonjour {client.get('full_name', 'Client')},</h2>
@@ -3789,7 +3789,7 @@ async def send_quote_signature_link(quote_id: str, request: Request, user: dict 
         <p class="expires">⏱️ Ce lien expire dans 72 heures.</p>
     </div>
     <div class="footer">
-        <p>CMGeorges | 514-386-1743 | info@cmgeorges.com</p>
+        <p>Déco Touché | 514-386-1743 | info@decotouche.ca</p>
     </div>
     </body></html>
     """
@@ -3801,7 +3801,7 @@ async def send_quote_signature_link(quote_id: str, request: Request, user: dict 
         params = {
             "from": SENDER_EMAIL,
             "to": [client["email"]],
-            "subject": f"✍️ Devis à signer - {quote.get('quote_number', 'CMGeorges')}",
+            "subject": f"✍️ Devis à signer - {quote.get('quote_number', 'Déco Touché')}",
             "html": html_content
         }
         await asyncio.to_thread(resend.Emails.send, params)
@@ -3839,7 +3839,7 @@ async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depe
     .highlight{{background:#f8fafc;border-left:4px solid #d4af37;padding:15px;margin:20px 0;}}
     .footer{{background:#1a365d;color:white;padding:20px;text-align:center;}}
     </style></head><body>
-    <div class="header"><h1>CMGeorges</h1><p>Montréal & Rive-Sud</p></div>
+    <div class="header"><h1>Déco Touché</h1><p>Montréal & Rive-Sud</p></div>
     <div class="content">
     <h2>Bonjour {lead['full_name']},</h2>
     <p>Veuillez trouver ci-joint votre soumission.</p>
@@ -3847,10 +3847,10 @@ async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depe
     <strong>Montant total (taxes incluses):</strong> {quote['total_with_tax']:.2f}$<br>
     <strong>Validité:</strong> 30 jours
     </div>
-    <p>Pour accepter ou pour toute question, contactez-nous au 514-386-1743 ou info@cmgeorges.com</p>
+    <p>Pour accepter ou pour toute question, contactez-nous au 514-386-1743 ou info@decotouche.ca</p>
     <p>Merci de votre confiance!</p>
     </div>
-    <div class="footer"><p>CMGeorges | 514-386-1743 | info@cmgeorges.com</p></div>
+    <div class="footer"><p>Déco Touché | 514-386-1743 | info@decotouche.ca</p></div>
     </body></html>
     """
 
@@ -3861,7 +3861,7 @@ async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depe
         params = {
             "from": SENDER_EMAIL,
             "to": [lead["email"]],
-            "subject": f"Soumission CMGeorges - {lead['full_name']}",
+            "subject": f"Soumission Déco Touché - {lead['full_name']}",
             "html": html_content,
             "attachments": [{"filename": f"soumission-{quote['id'][:8]}.pdf", "content": list(pdf_bytes)}]
         }
@@ -3877,7 +3877,7 @@ async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depe
         params = {
             "from": SENDER_EMAIL,
             "to": [lead["email"]],
-            "subject": f"Soumission CMGeorges - {lead['full_name']}",
+            "subject": f"Soumission Déco Touché - {lead['full_name']}",
             "html": html_content,
             "attachments": [{"filename": f"soumission-{quote['id'][:8]}.pdf", "content": list(pdf_bytes)}]
         }
@@ -3904,7 +3904,7 @@ async def get_current_tenant(user: dict = Depends(get_current_user)):
     tenant_id = user.get("tenant_id", "default")
     tenant = await db.tenants.find_one({"id": tenant_id}, {"_id": 0})
     if not tenant:
-        return {"id": "default", "name": "CMGeorges", "slug": "cmgeorges", "plan": "pro"}
+        return {"id": "default", "name": "Déco Touché", "slug": "cmgeorges", "plan": "pro"}
     return tenant
 
 @v1_router.get("/admin/users-list")

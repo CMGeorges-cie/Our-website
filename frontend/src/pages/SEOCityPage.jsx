@@ -27,7 +27,7 @@ const cityData = {
   'laval': {
     name: 'Laval',
     region: 'Laval',
-    description: 'CMGeorges dessert toute l\'île de Laval pour vos projets de peinture, meubles et tech.',
+    description: 'Déco Touché dessert toute l\'île de Laval pour vos projets de peinture, meubles et tech.',
     neighborhoods: ['Chomedey', 'Vimont', 'Sainte-Dorothée', 'Duvernay', 'Pont-Viau']
   },
   'ville-saint-laurent': {
@@ -52,7 +52,7 @@ export default function SEOCityPage({ city: propCity }) {
   const cityKey = propCity || paramCity || 'montreal';
   const data = cityData[cityKey] || cityData['montreal'];
   
-  const pageTitle = data ? "Services CMGeorges à " + data.name + " | Peinture, Mobilier, Tech" : "CMGeorges";
+  const pageTitle = data ? "Services Déco Touché à " + data.name + " | Peinture, Mobilier, Tech" : "Déco Touché";
   const pageDescription = data?.description || '';
 
   // Set document title - must be before any conditional return
@@ -71,10 +71,10 @@ export default function SEOCityPage({ city: propCity }) {
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": "CMGeorges",
+    "name": "Déco Touché",
     "description": data.description || '',
     "telephone": "+1-514-386-1743",
-    "email": "info@cmgeorges.com",
+    "email": "info@decotouche.ca",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": data.name || 'Montréal',
@@ -98,7 +98,7 @@ export default function SEOCityPage({ city: propCity }) {
             <span className="text-sm font-medium">{data.region}</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 font-['Outfit']">
-            Services CMGeorges à <span className="text-[#d4af37]">{data.name}</span>
+            Services Déco Touché à <span className="text-[#d4af37]">{data.name}</span>
           </h1>
           <p className="text-xl text-white/80 mb-8 max-w-2xl">
             {data.description}
@@ -165,7 +165,7 @@ export default function SEOCityPage({ city: propCity }) {
       <section className="section-spacing bg-white">
         <div className="container-main">
           <h2 className="text-2xl font-bold text-[#1a365d] mb-8 font-['Outfit']">
-            Pourquoi choisir CMGeorges à {data.name}?
+            Pourquoi choisir Déco Touché à {data.name}?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[

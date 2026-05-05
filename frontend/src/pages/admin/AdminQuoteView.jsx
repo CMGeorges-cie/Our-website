@@ -120,14 +120,14 @@ export default function AdminQuoteView() {
                   <span className="text-[#d4af37] text-2xl">🦁</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#1a365d] font-['Outfit']">CMGeorges</h2>
+                  <h2 className="text-xl font-bold text-[#1a365d] font-['Outfit']">Déco Touché</h2>
                   <p className="text-xs text-gray-500">Services professionnels</p>
                 </div>
               </div>
               <div className="text-sm text-gray-600">
                 <p>Montréal & Rive-Sud, QC</p>
                 <p>514-386-1743</p>
-                <p>info@cmgeorges.com</p>
+                <p>info@decotouche.ca</p>
               </div>
             </div>
             <div className="text-right">
@@ -257,8 +257,8 @@ export default function AdminQuoteView() {
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-[#d4af37] text-center">
-            <p className="text-[#1a365d] font-semibold">Merci de faire confiance à CMGeorges!</p>
-            <p className="text-xs text-gray-400 mt-1">514-386-1743 | info@cmgeorges.com</p>
+            <p className="text-[#1a365d] font-semibold">Merci de faire confiance à Déco Touché!</p>
+            <p className="text-xs text-gray-400 mt-1">514-386-1743 | info@decotouche.ca</p>
           </div>
         </CardContent>
       </Card>

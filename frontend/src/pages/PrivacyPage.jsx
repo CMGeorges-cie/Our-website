@@ -4,8 +4,8 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen" data-testid="privacy-page">
       <Helmet>
-        <title>Politique de Confidentialité | CMGeorges</title>
-        <meta name="description" content="Politique de confidentialité de CMGeorges. Découvrez comment nous protégeons vos données personnelles." />
+        <title>Politique de Confidentialité | Déco Touché</title>
+        <meta name="description" content="Politique de confidentialité de Déco Touché. Découvrez comment nous protégeons vos données personnelles." />
       </Helmet>
 
       {/* Header */}
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">1. Introduction</h2>
               <p className="text-gray-600">
-                CMGeorges ("nous", "notre", "nos") s'engage à protéger la confidentialité de vos informations personnelles. 
+                Déco Touché ("nous", "notre", "nos") s'engage à protéger la confidentialité de vos informations personnelles. 
                 Cette politique explique comment nous collectons, utilisons et protégeons vos données lorsque vous utilisez 
                 notre site web et nos services.
               </p>
@@ -119,8 +119,8 @@ export default function PrivacyPage() {
                 Pour toute question concernant cette politique ou pour exercer vos droits, contactez-nous:
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="text-gray-700"><strong>CMGeorges</strong></p>
-                <p className="text-gray-600">Courriel: info@cmgeorges.com</p>
+                <p className="text-gray-700"><strong>Déco Touché</strong></p>
+                <p className="text-gray-600">Courriel: info@decotouche.ca</p>
                 <p className="text-gray-600">Téléphone: 514-386-1743</p>
                 <p className="text-gray-600">Montréal, QC, Canada</p>
               </div>

@@ -132,7 +132,7 @@ export default function AdminLayout() {
           <div className="flex items-center gap-2 bg-gold-500/10 border border-gold-500/20 rounded-lg px-3 py-2">
             <div className="w-6 h-6 bg-gradient-to-br from-gold-400 to-gold-600 rounded-md flex items-center justify-center text-xs font-bold text-black">C</div>
             <div>
-              <span className="text-xs font-semibold text-white block leading-none">CMGeorges</span>
+              <span className="text-xs font-semibold text-white block leading-none">Déco Touché</span>
               <span className="text-[10px] text-gold-500/60">Workspace</span>
             </div>
           </div>
@@ -197,7 +197,7 @@ export default function AdminLayout() {
               {user?.full_name?.charAt(0) || 'A'}
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">{user?.full_name || 'Admin CMGeorges'}</p>
+              <p className="text-sm font-semibold text-white">{user?.full_name || 'Admin Déco Touché'}</p>
               <p className="text-xs text-gold-500/80 capitalize">{user?.role || 'admin'}</p>
             </div>
           </div>

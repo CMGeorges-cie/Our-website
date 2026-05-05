@@ -30,11 +30,11 @@ export default function BlogPostPage() {
   // Update document title manually to avoid Helmet issues
   useEffect(() => {
     if (post) {
-      document.title = `${post.meta_title || post.title || 'Article'} | CMGeorges`;
+      document.title = `${post.meta_title || post.title || 'Article'} | Déco Touché`;
     } else if (loading) {
-      document.title = 'Chargement... | CMGeorges';
+      document.title = 'Chargement... | Déco Touché';
     } else {
-      document.title = 'Article non trouvé | CMGeorges';
+      document.title = 'Article non trouvé | Déco Touché';
     }
   }, [post, loading]);
 
@@ -87,7 +87,7 @@ export default function BlogPostPage() {
             </span>
             <span className="flex items-center gap-1">
               <User className="h-4 w-4" />
-              {post.author_name || 'CMGeorges'}
+              {post.author_name || 'Déco Touché'}
             </span>
             <span className="flex items-center gap-1">
               <Eye className="h-4 w-4" />

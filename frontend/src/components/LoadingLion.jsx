@@ -63,7 +63,7 @@ export default function LoadingLion({ message = "Chargement en cours..." }) {
         
         {/* Text */}
         <h2 className="text-2xl font-bold text-gold-500 mb-2 font-['Outfit']">
-          CMGeorges
+          Déco Touché
         </h2>
         <p className="text-gray-400 text-lg">
           {message}{dots}

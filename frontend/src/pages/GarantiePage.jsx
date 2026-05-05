@@ -7,7 +7,7 @@ export default function GarantiePage() {
   return (
     <div className="min-h-screen" data-testid="garantie-page">
       <Helmet>
-        <title>Garantie de Service | CMGeorges Montréal</title>
+        <title>Garantie de Service | Déco Touché Montréal</title>
         <meta name="description" content="Découvrez notre garantie de satisfaction sur tous nos services de peinture, assemblage mobilier et développement web à Montréal." />
       </Helmet>
 
@@ -104,28 +104,28 @@ export default function GarantiePage() {
               </ul>
             </div>
 
-            {/* Tech */}
-            <div className="bg-white rounded-xl p-8 shadow-sm" data-testid="garantie-tech">
+            {/* Entretien */}
+            <div className="bg-white rounded-xl p-8 shadow-sm" data-testid="garantie-entretien">
               <div className="w-12 h-12 rounded-lg bg-[#007AFF] flex items-center justify-center mb-6">
-                <span className="text-2xl">💻</span>
+                <span className="text-2xl">🔧</span>
               </div>
-              <h3 className="text-xl font-bold text-[#1a365d] mb-4 font-['Outfit']">CMGeorges Tech</h3>
+              <h3 className="text-xl font-bold text-[#1a365d] mb-4 font-['Outfit']">Entretien général</h3>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Garantie 90 jours sur les bugs</span>
+                  <span className="text-gray-600 text-sm">Garantie 30 jours sur les réparations</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Support technique inclus</span>
+                  <span className="text-gray-600 text-sm">Matériaux de qualité professionnelle</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Code source fourni et documenté</span>
+                  <span className="text-gray-600 text-sm">Nettoyage complet après travaux</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-600 text-sm">Formation sur l'utilisation</span>
+                  <span className="text-gray-600 text-sm">Service de rappel inclus</span>
                 </li>
               </ul>
             </div>

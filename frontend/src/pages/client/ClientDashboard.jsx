@@ -152,7 +152,7 @@ export default function ClientDashboard() {
           <div className="space-y-8">
             <div>
               <h1 className="text-2xl font-bold text-white">Bonjour, {user.full_name || 'Client'} 👋</h1>
-              <p className="text-white/40 mt-1">Voici un aperçu de vos dossiers avec CMGeorges</p>
+              <p className="text-white/40 mt-1">Voici un aperçu de vos dossiers avec Déco Touché</p>
             </div>
 
             {/* Stats */}
@@ -226,7 +226,7 @@ export default function ClientDashboard() {
               <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-6 text-center">
                 <AlertCircle className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
                 <p className="text-white font-medium">Compte non lié à un profil client</p>
-                <p className="text-white/50 text-sm mt-1">Contactez CMGeorges pour associer votre compte à vos projets.</p>
+                <p className="text-white/50 text-sm mt-1">Contactez Déco Touché pour associer votre compte à vos projets.</p>
               </div>
             )}
           </div>

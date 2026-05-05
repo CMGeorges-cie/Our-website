@@ -84,11 +84,11 @@ async def get_invoice_for_signing(token: str, request: Request):
     
     # Get company info
     company = {
-        "name": "CMGeorges",
+        "name": "Déco Touché",
         "tagline": "Services de rénovation & design",
         "address": "Montréal, QC",
         "phone": "(514) 555-0123",
-        "email": "info@cmgeorges.com",
+        "email": "info@decotouche.ca",
         "logo": "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png"
     }
     
@@ -174,11 +174,11 @@ async def get_quote_for_signing(token: str, request: Request):
         )
     
     company = {
-        "name": "CMGeorges",
+        "name": "Déco Touché",
         "tagline": "Services de rénovation & design",
         "address": "Montréal, QC",
         "phone": "(514) 555-0123",
-        "email": "info@cmgeorges.com",
+        "email": "info@decotouche.ca",
         "logo": "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png"
     }
     

@@ -22,9 +22,8 @@ import { toast } from 'sonner';
 const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY;
 
 const serviceTypes = [
-  { value: 'manual', label: 'Déco Touché (Peinture/Rénovation)', icon: Paintbrush },
-  { value: 'furniture', label: 'Mobilier & Installation', icon: Sofa },
-  { value: 'tech', label: 'CMGeorges Tech', icon: Code },
+  { value: 'manual', label: 'Peinture & Rénovation', icon: Paintbrush },
+  { value: 'furniture', label: 'Installation de mobilier', icon: Sofa },
 ];
 
 const itemTypes = [

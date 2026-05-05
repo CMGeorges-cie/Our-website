@@ -273,12 +273,12 @@ export default function AdminInvoiceDetail() {
             <div className="flex items-start gap-4">
               <img src={SERVICEFLOW_LOGO} alt="Logo" className="w-16 h-16 rounded-xl" />
               <div>
-                <h2 className="text-xl font-bold text-foreground">CMGeorges</h2>
+                <h2 className="text-xl font-bold text-foreground">Déco Touché</h2>
                 <p className="text-sm text-muted-foreground">Services de rénovation & design</p>
                 <div className="mt-2 text-sm text-muted-foreground space-y-0.5">
                   <p className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> Montréal, QC</p>
                   <p className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> (514) 555-0123</p>
-                  <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> info@cmgeorges.com</p>
+                  <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> info@decotouche.ca</p>
                 </div>
               </div>
             </div>

@@ -248,7 +248,7 @@ export default function MobilierPage() {
             Prêt à commander?
           </h2>
           <p className="text-white/90 mb-8 max-w-xl mx-auto">
-            Obtenez une soumission gratuite incluant le comparatif prix marché vs CMGeorges.
+            Obtenez une soumission gratuite incluant le comparatif prix marché vs Déco Touché.
           </p>
           <Link to="/soumission">
             <Button size="lg" className="bg-white text-[#E07A5F] hover:bg-white/90">

@@ -15,7 +15,7 @@ export default function FAQPage() {
         },
         {
           q: "Comment puis-je obtenir une soumission?",
-          a: "Vous pouvez demander une soumission gratuite via notre formulaire en ligne, par téléphone au 514-386-1743, ou par courriel à info@cmgeorges.com. Nous vous répondrons sous 24h."
+          a: "Vous pouvez demander une soumission gratuite via notre formulaire en ligne, par téléphone au 514-386-1743, ou par courriel à info@decotouche.ca. Nous vous répondrons sous 24h."
         }
       ]
     },
@@ -58,7 +58,7 @@ export default function FAQPage() {
       ]
     },
     {
-      category: "CMGeorges Tech",
+      category: "Peinture & Rénovation",
       questions: [
         {
           q: "Quels types de sites web créez-vous?",
@@ -96,7 +96,7 @@ export default function FAQPage() {
   return (
     <div className="min-h-screen" data-testid="faq-page">
       <Helmet>
-        <title>FAQ - Questions Fréquentes | CMGeorges Montréal</title>
+        <title>FAQ - Questions Fréquentes | Déco Touché Montréal</title>
         <meta name="description" content="Trouvez les réponses à vos questions sur nos services de peinture, assemblage mobilier et développement web à Montréal et Rive-Sud." />
       </Helmet>
 
@@ -154,10 +154,10 @@ export default function FAQPage() {
                 📞 514-386-1743
               </a>
               <a 
-                href="mailto:info@cmgeorges.com" 
+                href="mailto:info@decotouche.ca" 
                 className="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-[#1a365d] transition-colors"
               >
-                ✉️ info@cmgeorges.com
+                ✉️ info@decotouche.ca
               </a>
             </div>
           </div>

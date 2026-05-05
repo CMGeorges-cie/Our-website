@@ -97,9 +97,9 @@ export default function AdminPortfolio() {
   };
 
   const serviceLabels = {
-    manual: 'Déco Touché',
+    manual: 'Peinture & Réno',
     furniture: 'Mobilier',
-    tech: 'Tech'
+    entretien: 'Entretien'
   };
 
   if (loading) {
@@ -227,9 +227,9 @@ export default function AdminPortfolio() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="manual">Déco Touché</SelectItem>
-                  <SelectItem value="furniture">Mobilier & Installation</SelectItem>
-                  <SelectItem value="tech">CMGeorges Tech</SelectItem>
+                  <SelectItem value="manual">Peinture & Rénovation</SelectItem>
+                  <SelectItem value="furniture">Installation mobilier</SelectItem>
+                  <SelectItem value="entretien">Entretien général</SelectItem>
                 </SelectContent>
               </Select>
             </div>

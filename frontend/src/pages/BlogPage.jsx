@@ -44,7 +44,7 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]" data-testid="blog-page">
       <Helmet>
-        <title>Blog | CMGeorges - Conseils et Guides</title>
+        <title>Blog | Déco Touché - Conseils et Guides</title>
         <meta name="description" content="Découvrez nos conseils, guides et actualités sur la peinture, l'assemblage de meubles et les services tech." />
       </Helmet>
 
@@ -52,7 +52,7 @@ export default function BlogPage() {
       <section className="bg-[#1a365d] py-16">
         <div className="container-main">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 font-['Outfit']">
-            Blog CMGeorges
+            Blog Déco Touché
           </h1>
           <p className="text-white/80 max-w-2xl">
             Conseils pratiques, guides détaillés et actualités pour tous vos projets de rénovation et technologie.

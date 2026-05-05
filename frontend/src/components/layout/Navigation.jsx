@@ -4,14 +4,12 @@ import { Menu, X, Phone, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
-
 const navLinks = [
   { href: '/', label: 'Accueil' },
   { href: '/services', label: 'Services' },
-  { href: '/mobilier', label: 'Mobilier' },
   { href: '/portfolio', label: 'Portfolio' },
   { href: '/blog', label: 'Blog' },
+  { href: '/faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ];
 
@@ -23,19 +21,17 @@ export default function Navigation() {
     <nav className="nav-glass sticky top-0 z-50 no-print" data-testid="main-navigation">
       <div className="container-main">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-3" data-testid="nav-logo">
             <img 
               src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
-              alt="CMGeorges"
+              alt="Déco Touché"
               className="h-12 w-auto"
             />
             <span className="font-bold text-xl text-[#1a365d] hidden sm:block font-['Outfit']">
-              CMGeorges
+              Déco Touché
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
@@ -51,22 +47,8 @@ export default function Navigation() {
                 {link.label}
               </Link>
             ))}
-            {/* ServiceFlow Link - Highlighted */}
-            <Link
-              to="/serviceflow"
-              className={`flex items-center gap-1.5 text-sm font-medium transition-colors px-3 py-1.5 rounded-full ${
-                location.pathname.startsWith('/serviceflow')
-                  ? 'bg-[#1a365d] text-white'
-                  : 'bg-[#1a365d]/5 text-[#1a365d] hover:bg-[#1a365d]/10'
-              }`}
-              data-testid="nav-link-serviceflow"
-            >
-              <img src={SERVICEFLOW_LOGO} alt="" className="w-5 h-5 rounded" />
-              ServiceFlow
-            </Link>
           </div>
 
-          {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-3">
             <a 
               href={CMGEORGES_PHONE_LINK}
@@ -83,32 +65,22 @@ export default function Navigation() {
               </Button>
             </Link>
             <Link to="/soumission">
-              <Button 
-                className="btn-accent"
-                size="sm"
-                data-testid="nav-soumission-btn"
-              >
+              <Button className="btn-accent" size="sm" data-testid="nav-soumission-btn">
                 Soumission gratuite
               </Button>
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             className="lg:hidden p-2"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
             data-testid="mobile-menu-toggle"
           >
-            {isOpen ? (
-              <X className="h-6 w-6 text-[#1a365d]" />
-            ) : (
-              <Menu className="h-6 w-6 text-[#1a365d]" />
-            )}
+            {isOpen ? <X className="h-6 w-6 text-[#1a365d]" /> : <Menu className="h-6 w-6 text-[#1a365d]" />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         {isOpen && (
           <div className="lg:hidden py-4 border-t border-gray-100 animate-fade-in" data-testid="mobile-menu">
             <div className="flex flex-col gap-2">
@@ -127,36 +99,14 @@ export default function Navigation() {
                   {link.label}
                 </Link>
               ))}
-              {/* ServiceFlow - Mobile */}
-              <Link
-                to="/serviceflow"
-                className="px-4 py-3 rounded-lg text-sm font-medium bg-[#1a365d]/5 text-[#1a365d] flex items-center gap-2"
-                onClick={() => setIsOpen(false)}
-              >
-                <img src={SERVICEFLOW_LOGO} alt="" className="w-5 h-5 rounded" />
-                ServiceFlow
-                <span className="text-xs bg-[#d4af37] text-[#1a365d] px-2 py-0.5 rounded-full ml-auto">CRM</span>
-              </Link>
-              
               <div className="border-t border-gray-100 mt-2 pt-2">
-                <Link
-                  to="/connexion"
-                  className="mx-4 mt-2 block"
-                  onClick={() => setIsOpen(false)}
-                >
+                <Link to="/connexion" className="mx-4 mt-2 block" onClick={() => setIsOpen(false)}>
                   <Button variant="outline" className="w-full border-[#1a365d] text-[#1a365d]" data-testid="mobile-login-btn">
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Connexion
+                    <LogIn className="h-4 w-4 mr-2" /> Connexion
                   </Button>
                 </Link>
-                <Link
-                  to="/soumission"
-                  className="mx-4 mt-2 block"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Button className="btn-accent w-full" data-testid="mobile-soumission-btn">
-                    Soumission gratuite
-                  </Button>
+                <Link to="/soumission" className="mx-4 mt-2 block" onClick={() => setIsOpen(false)}>
+                  <Button className="btn-accent w-full" data-testid="mobile-soumission-btn">Soumission gratuite</Button>
                 </Link>
               </div>
             </div>

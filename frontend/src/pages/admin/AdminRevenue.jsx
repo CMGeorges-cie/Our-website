@@ -137,7 +137,7 @@ export default function AdminRevenue() {
 
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm text-gray-600">CMGeorges Tech</span>
+                  <span className="text-sm text-gray-600">Déco Touché Tech</span>
                   <span className="font-semibold text-[#007AFF]">{ceoData.average_margin_tech}%</span>
                 </div>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -241,7 +241,7 @@ export default function AdminRevenue() {
                   const labels = {
                     manual: 'Déco Touché',
                     furniture: 'Mobilier',
-                    tech: 'CMGeorges Tech'
+                    tech: 'Déco Touché Tech'
                   };
                   const colors = {
                     manual: 'bg-[#1a365d]',

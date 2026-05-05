@@ -126,10 +126,10 @@ export default function LoginPage() {
             <Link to="/" className="inline-flex items-center gap-3 mb-4">
               <img 
                 src={SERVICEFLOW_LOGO}
-                alt="CMGeorges"
+                alt="Déco Touché"
                 className="h-14 w-14 rounded-xl shadow-lg shadow-[#d4af37]/30"
               />
-              <span className="text-3xl font-bold text-white font-['Outfit']">CMGeorges</span>
+              <span className="text-3xl font-bold text-white font-['Outfit']">Déco Touché</span>
             </Link>
             <p className="text-white/60 text-sm">Choisissez votre espace de connexion</p>
           </div>
@@ -202,10 +202,10 @@ export default function LoginPage() {
               <Link to="/" className="inline-flex items-center gap-3 mb-3">
                 <img 
                   src={SERVICEFLOW_LOGO}
-                  alt="CMGeorges"
+                  alt="Déco Touché"
                   className="h-12 w-12 rounded-xl shadow-lg shadow-[#d4af37]/30"
                 />
-                <span className="text-2xl font-bold text-white font-['Outfit']">CMGeorges</span>
+                <span className="text-2xl font-bold text-white font-['Outfit']">Déco Touché</span>
               </Link>
               <p className="text-white/50 text-sm">Portail Client</p>
             </>
@@ -222,7 +222,7 @@ export default function LoginPage() {
                 type="email"
                 value={credentials.email}
                 onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
-                placeholder={loginType === 'admin' ? "admin@cmgeorges.com" : "votre@email.com"}
+                placeholder={loginType === 'admin' ? "admin@decotouche.ca" : "votre@email.com"}
                 required
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-[#d4af37] focus:ring-[#d4af37]/20"
                 data-testid="login-email"
@@ -290,7 +290,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-white/20 text-xs mt-6">
-          © {new Date().getFullYear()} CMGeorges. Tous droits réservés.
+          &copy; {new Date().getFullYear()} Déco Touché. Tous droits réservés.
         </p>
       </div>
     </div>

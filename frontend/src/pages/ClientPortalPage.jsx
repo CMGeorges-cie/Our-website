@@ -32,7 +32,7 @@ export default function ClientPortalPage() {
   useEffect(() => {
     const fetchPortalData = async () => {
       if (!token) {
-        setError('Lien d\'accès invalide. Veuillez demander un nouveau lien à CMGeorges.');
+        setError('Lien d\'accès invalide. Veuillez demander un nouveau lien à Déco Touché.');
         setLoading(false);
         return;
       }
@@ -43,7 +43,7 @@ export default function ClientPortalPage() {
       } catch (err) {
         console.error('Portal error:', err);
         if (err.response?.status === 401) {
-          setError('Votre lien d\'accès a expiré. Veuillez demander un nouveau lien à CMGeorges.');
+          setError('Votre lien d\'accès a expiré. Veuillez demander un nouveau lien à Déco Touché.');
         } else {
           setError('Erreur lors du chargement de vos données. Veuillez réessayer.');
         }
@@ -126,7 +126,7 @@ export default function ClientPortalPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]" data-testid="client-portal-page">
       <Helmet>
-        <title>Portail Client | CMGeorges</title>
+        <title>Portail Client | Déco Touché</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
@@ -137,7 +137,7 @@ export default function ClientPortalPage() {
             <div className="w-10 h-10 bg-[#d4af37] rounded-lg flex items-center justify-center">
               <span className="text-[#1a365d] text-xl font-bold">🦁</span>
             </div>
-            <span className="text-2xl font-bold text-white font-['Outfit']">CMGeorges</span>
+            <span className="text-2xl font-bold text-white font-['Outfit']">Déco Touché</span>
           </div>
           <h1 className="text-xl text-white/90">Portail Client</h1>
         </div>
@@ -372,10 +372,10 @@ export default function ClientPortalPage() {
                     514-386-1743
                   </Button>
                 </a>
-                <a href="mailto:info@cmgeorges.com">
+                <a href="mailto:info@decotouche.ca">
                   <Button variant="outline">
                     <Mail className="h-4 w-4 mr-2" />
-                    info@cmgeorges.com
+                    info@decotouche.ca
                   </Button>
                 </a>
               </div>

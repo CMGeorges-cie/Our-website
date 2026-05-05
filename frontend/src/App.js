@@ -8,6 +8,9 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 // Pages
 import HomePage from "@/pages/HomePage";
 import ServicesPage from "@/pages/ServicesPage";
+import PeinturePage from "@/pages/PeinturePage";
+import RenovationPage from "@/pages/RenovationPage";
+import EntretienPage from "@/pages/EntretienPage";
 import MobilierPage from "@/pages/MobilierPage";
 import PortfolioPage from "@/pages/PortfolioPage";
 import SoumissionPage from "@/pages/SoumissionPage";
@@ -45,9 +48,7 @@ import AdminCatalog from "@/pages/admin/AdminCatalog";
 import AdminPortfolio from "@/pages/admin/AdminPortfolio";
 import AdminSocial from "@/pages/admin/AdminSocial";
 
-// ServiceFlow / Client Portal
-import ServiceFlowPricing from "@/pages/ServiceFlowPricing";
-import ServiceFlowPage from "@/pages/ServiceFlowPage";
+// Client Portal
 import ClientLogin from "@/pages/client/ClientLogin";
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import LoginPage from "@/pages/LoginPage";
@@ -141,6 +142,10 @@ function App() {
             <Route element={<PublicLayout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/services" element={<ServicesPage />} />
+              <Route path="/services/peinture" element={<PeinturePage />} />
+              <Route path="/services/renovation" element={<RenovationPage />} />
+              <Route path="/services/entretien" element={<EntretienPage />} />
+              <Route path="/services/mobilier" element={<MobilierPage />} />
               <Route path="/mobilier" element={<MobilierPage />} />
               <Route path="/portfolio" element={<PortfolioPage />} />
               <Route path="/soumission" element={<SoumissionPage />} />
@@ -181,10 +186,6 @@ function App() {
             <Route path="/client/dashboard" element={<ClientDashboard />} />
             <Route path="/client/projects" element={<ClientDashboard />} />
             <Route path="/client/invoices" element={<ClientDashboard />} />
-            
-            {/* ServiceFlow SaaS */}
-            <Route path="/serviceflow" element={<ServiceFlowPage />} />
-            <Route path="/serviceflow/pricing" element={<ServiceFlowPricing />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />

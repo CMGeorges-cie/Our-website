@@ -4,8 +4,8 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen" data-testid="terms-page">
       <Helmet>
-        <title>Conditions Générales | CMGeorges</title>
-        <meta name="description" content="Conditions générales de service de CMGeorges pour les services de rénovation, assemblage mobilier et développement web." />
+        <title>Conditions Générales | Déco Touché</title>
+        <meta name="description" content="Conditions générales de service de Déco Touché pour les services de rénovation, peinture et entretien." />
       </Helmet>
 
       {/* Header */}
@@ -25,14 +25,14 @@ export default function TermsPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">1. Acceptation des Conditions</h2>
               <p className="text-gray-600">
-                En utilisant les services de CMGeorges, vous acceptez d'être lié par les présentes conditions générales. 
+                En utilisant les services de Déco Touché, vous acceptez d'être lié par les présentes conditions générales. 
                 Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser nos services.
               </p>
             </div>
 
             <div>
               <h2 className="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">2. Description des Services</h2>
-              <p className="text-gray-600 mb-4">CMGeorges offre trois catégories de services:</p>
+              <p className="text-gray-600 mb-4">Déco Touché offre trois catégories de services:</p>
               <ul className="list-disc pl-6 text-gray-600 space-y-2">
                 <li><strong>Déco Touché:</strong> Peinture, rénovation légère, entretien, installation TV murale</li>
                 <li><strong>Mobilier:</strong> Assemblage, livraison et installation de meubles (IKEA, JYSK, etc.)</li>
@@ -106,7 +106,7 @@ export default function TermsPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">7. Responsabilité</h2>
               <ul className="list-disc pl-6 text-gray-600 space-y-2">
-                <li>CMGeorges est assuré pour les dommages causés lors des travaux</li>
+                <li>Déco Touché est assuré pour les dommages causés lors des travaux</li>
                 <li>Notre responsabilité est limitée au montant du contrat</li>
                 <li>Le client doit signaler tout problème existant avant les travaux</li>
                 <li>Nous ne sommes pas responsables des vices cachés des meubles du fabricant</li>
@@ -128,7 +128,7 @@ export default function TermsPage() {
               <h2 className="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">9. Propriété Intellectuelle</h2>
               <p className="text-gray-600">
                 Pour les services Tech: le client devient propriétaire du code source et des livrables 
-                une fois le paiement complet effectué. CMGeorges conserve le droit d'utiliser des extraits 
+                une fois le paiement complet effectué. Déco Touché conserve le droit d'utiliser des extraits 
                 anonymisés dans son portfolio.
               </p>
             </div>
@@ -136,7 +136,7 @@ export default function TermsPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">10. Force Majeure</h2>
               <p className="text-gray-600">
-                CMGeorges n'est pas responsable des retards ou de l'impossibilité d'exécuter les services 
+                Déco Touché n'est pas responsable des retards ou de l'impossibilité d'exécuter les services 
                 en raison de circonstances indépendantes de notre volonté (pandémie, catastrophes naturelles, 
                 grèves, pénuries de matériaux, etc.).
               </p>
@@ -157,8 +157,8 @@ export default function TermsPage() {
                 Pour toute question concernant ces conditions:
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="text-gray-700"><strong>CMGeorges</strong></p>
-                <p className="text-gray-600">Courriel: info@cmgeorges.com</p>
+                <p className="text-gray-700"><strong>Déco Touché</strong></p>
+                <p className="text-gray-600">Courriel: info@decotouche.ca</p>
                 <p className="text-gray-600">Téléphone: 514-386-1743</p>
               </div>
             </div>

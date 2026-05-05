@@ -280,7 +280,7 @@ async def create_package(
 async def seed_default_services(
     tenant_ctx: TenantContext = Depends(require_role("admin"))
 ):
-    """Seed default CMGeorges services"""
+    """Seed default Déco Touché services"""
     db = get_database()
     
     default_services = [
