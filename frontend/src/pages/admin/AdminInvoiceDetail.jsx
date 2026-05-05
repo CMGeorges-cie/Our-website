@@ -149,6 +149,13 @@ export default function AdminInvoiceDetail() {
     }
   };
 
+  const copyPaymentLink = () => {
+    const paymentUrl = `${window.location.origin}/paiement?invoice=${id}`;
+    navigator.clipboard.writeText(paymentUrl);
+    toast.success('Lien de paiement copié dans le presse-papier!');
+  };
+
+
   const getStatusInfo = (status) => {
     const info = {
       paid: { label: 'Payée', class: 'bg-green-500/20 text-green-400 border-green-500/30', icon: CheckCircle },
@@ -261,6 +268,15 @@ export default function AdminInvoiceDetail() {
               Lien signature
             </Button>
           )}
+          <Button 
+            onClick={copyPaymentLink}
+            variant="outline"
+            className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+            data-testid="copy-payment-link-btn"
+          >
+            <CreditCard className="h-4 w-4 mr-2" />
+            Lien de paiement
+          </Button>
         </div>
       </div>
 

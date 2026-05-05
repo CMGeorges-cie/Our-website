@@ -1,319 +1,289 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { clientPortalApi, saasApi } from '@/lib/api';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { clientPortalApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { 
-  LogOut, LayoutDashboard, Briefcase, Receipt, 
-  CheckCircle, Clock, AlertCircle, DollarSign, ArrowRight, ExternalLink
+  LayoutDashboard, FileText, Briefcase, User, LogOut, 
+  Receipt, Clock, CheckCircle, AlertCircle, Loader2, 
+  Save, CreditCard, Download, MessageSquare
 } from 'lucide-react';
-import { getClientToken, clearClientAuth } from './ClientLogin';
 
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-
-const formatCurrency = (v) => new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(v || 0);
-const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-CA') : '-';
-
-const statusColors = {
-  in_progress: 'bg-blue-500/20 text-blue-400',
-  completed: 'bg-green-500/20 text-green-400',
-  pending: 'bg-gray-500/20 text-gray-400',
-  scheduled: 'bg-yellow-500/20 text-yellow-400',
-  paid: 'bg-green-500/20 text-green-400',
-  sent: 'bg-blue-500/20 text-blue-400',
-  unpaid: 'bg-red-500/20 text-red-400',
-  partial: 'bg-yellow-500/20 text-yellow-400',
-};
-const statusLabels = {
-  in_progress: 'En cours', completed: 'Terminé', pending: 'En attente', scheduled: 'Planifié',
-  paid: 'Payée', sent: 'Envoyée', unpaid: 'Non payée', partial: 'Partielle', draft: 'Brouillon',
-};
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [data, setData] = useState(null);
+  const [tab, setTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [dashboard, setDashboard] = useState(null);
   const [projects, setProjects] = useState([]);
   const [invoices, setInvoices] = useState([]);
-  const [payingId, setPayingId] = useState(null);
-
-  const user = (() => { try { return JSON.parse(localStorage.getItem('sf_client_user') || '{}'); } catch { return {}; } })();
+  const [profile, setProfile] = useState({ full_name: '', email: '', phone: '', address: '' });
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
-    const token = getClientToken();
-    if (!token) { navigate('/client/login'); return; }
-    
-    // Check payment return
-    const params = new URLSearchParams(location.search);
-    const sessionId = params.get('session_id');
-    if (sessionId) {
-      clientPortalApi.getPaymentStatus(sessionId).then(res => {
-        if (res.data.payment_status === 'paid') toast.success('Paiement confirmé!');
-      }).catch(() => {});
-    }
-
-    fetchData();
+    const token = localStorage.getItem('cmgeorges_token');
+    if (!token) { navigate('/connexion'); return; }
+    loadData();
   }, [navigate]);
 
-  const fetchData = async () => {
+  const loadData = async () => {
     try {
-      const [dashRes, projRes, invRes] = await Promise.all([
+      const [dashRes, projRes, invRes, profRes] = await Promise.allSettled([
         clientPortalApi.getDashboard(),
         clientPortalApi.getProjects(),
         clientPortalApi.getInvoices(),
+        clientPortalApi.getProfile(),
       ]);
-      setData(dashRes.data);
-      setProjects(projRes.data || []);
-      setInvoices(invRes.data || []);
-    } catch (e) {
-      if (e.response?.status === 401) { clearClientAuth(); navigate('/client/login'); }
-    } finally { setLoading(false); }
-  };
-
-  const handleLogout = () => { clearClientAuth(); navigate('/client/login'); };
-
-  const handlePayInvoice = async (invoice) => {
-    setPayingId(invoice.id);
-    try {
-      const res = await clientPortalApi.payInvoice(invoice.id);
-      window.location.href = res.data.url;
-    } catch (e) {
-      toast.error(e.response?.data?.detail || 'Erreur de paiement');
-      setPayingId(null);
+      if (dashRes.status === 'fulfilled') setDashboard(dashRes.value.data);
+      if (projRes.status === 'fulfilled') setProjects(projRes.value.data);
+      if (invRes.status === 'fulfilled') setInvoices(invRes.value.data);
+      if (profRes.status === 'fulfilled') setProfile(profRes.value.data);
+    } catch (err) {
+      if (err.response?.status === 401) { navigate('/connexion'); return; }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const downloadInvoicePdf = (id) => window.open(`${BACKEND_URL}/api/v1/admin/invoices/${id}/pdf`, '_blank');
+  const handleLogout = () => {
+    localStorage.removeItem('cmgeorges_token');
+    localStorage.removeItem('cmgeorges_user');
+    navigate('/connexion');
+  };
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    try {
+      const res = await clientPortalApi.updateProfile(profile);
+      setProfile(res.data);
+      toast.success('Profil mis à jour avec succès');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Erreur de mise à jour');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handlePayInvoice = async (invoiceId) => {
+    window.open(`/paiement?invoice=${invoiceId}`, '_blank');
+  };
+
+  const statusLabel = (s) => {
+    const map = { draft: 'Brouillon', sent: 'Envoyée', partial: 'Partiel', paid: 'Payée', overdue: 'En retard' };
+    return map[s] || s;
+  };
+
+  const statusColor = (s) => {
+    const map = { paid: 'text-green-500 bg-green-500/10', partial: 'text-yellow-500 bg-yellow-500/10', sent: 'text-blue-500 bg-blue-500/10', overdue: 'text-red-500 bg-red-500/10' };
+    return map[s] || 'text-gray-500 bg-gray-500/10';
+  };
+
+  const tabs = [
+    { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
+    { id: 'projects', label: 'Mes projets', icon: Briefcase },
+    { id: 'invoices', label: 'Mes factures', icon: Receipt },
+    { id: 'profile', label: 'Mon profil', icon: User },
+  ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white/50">Chargement...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#d4af37]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0d1f]" data-testid="client-dashboard">
+    <div className="min-h-screen bg-gray-50" data-testid="client-dashboard">
       {/* Header */}
-      <header className="border-b border-white/10 bg-[#13132b]/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="bg-[#1a365d] text-white">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img 
-              src={SERVICEFLOW_LOGO} 
-              alt="Déco Touché" 
-              className="w-8 h-8 rounded-lg"
-            />
-            <span className="font-black text-white">Déco <span className="text-yellow-400">Touché</span></span>
-            <span className="text-white/20 text-sm ml-2">/ Portail Client</span>
+            <img src={SERVICEFLOW_LOGO} alt="Déco Touché" className="h-8" />
+            <span className="font-bold font-['Outfit']">Déco <span className="text-[#d4af37]">Touché</span></span>
+            <span className="text-white/40 text-sm ml-2">| Portail client</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-white/60 text-sm hidden md:block">{user.full_name || user.email}</span>
-            <button onClick={handleLogout} className="flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors text-sm" data-testid="client-logout-btn">
-              <LogOut className="w-4 h-4" />
-            </button>
+            <span className="text-sm text-white/70 hidden sm:block">{profile.full_name || profile.email}</span>
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="text-white/70 hover:text-white" data-testid="client-logout-btn">
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <div className="border-b border-white/10 bg-[#13132b]/40">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex gap-1">
-            {[
-              { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-              { id: 'projects', label: 'Mes projets', icon: Briefcase },
-              { id: 'invoices', label: 'Mes factures', icon: Receipt },
-            ].map(tab => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-4 text-sm font-medium border-b-2 transition-all ${activeTab === tab.id ? 'border-yellow-400 text-yellow-400' : 'border-transparent text-white/40 hover:text-white/70'}`}
-                  data-testid={`client-tab-${tab.id}`}
-                >
-                  <Icon className="w-4 h-4" />{tab.label}
-                </button>
-              );
-            })}
+      {/* Tabs */}
+      <div className="border-b bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex gap-1 overflow-x-auto">
+            {tabs.map(t => (
+              <button key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  tab === t.id ? 'border-[#d4af37] text-[#1a365d]' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+                data-testid={`client-tab-${t.id}`}
+              >
+                <t.icon className="h-4 w-4" /> {t.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      {/* Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+
         {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Bonjour, {user.full_name || 'Client'} 👋</h1>
-              <p className="text-white/40 mt-1">Voici un aperçu de vos dossiers avec Déco Touché</p>
+        {tab === 'dashboard' && dashboard && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-[#1a365d] font-['Outfit']">Bienvenue, {profile.full_name || 'Client'}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Briefcase className="h-8 w-8 text-[#d4af37] mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-[#1a365d]">{dashboard.total_projects || 0}</p>
+                  <p className="text-sm text-gray-500">Projets</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <Receipt className="h-8 w-8 text-[#d4af37] mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-[#1a365d]">{dashboard.total_invoices || 0}</p>
+                  <p className="text-sm text-gray-500">Factures</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-[#1a365d]">{dashboard.paid_invoices || 0}</p>
+                  <p className="text-sm text-gray-500">Factures payées</p>
+                </CardContent>
+              </Card>
             </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { label: 'Projets actifs', value: data?.stats?.active_projects || 0, color: 'text-blue-400', icon: Briefcase },
-                { label: 'Projets total', value: data?.stats?.projects_count || 0, color: 'text-white', icon: LayoutDashboard },
-                { label: 'Factures', value: data?.stats?.invoices_count || 0, color: 'text-white', icon: Receipt },
-                { label: 'Solde dû', value: formatCurrency(data?.stats?.pending_amount), color: 'text-red-400', icon: DollarSign },
-              ].map((stat, i) => {
-                const Icon = stat.icon;
-                return (
-                  <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-5">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 bg-yellow-400/10 rounded-lg flex items-center justify-center">
-                        <Icon className="w-4 h-4 text-yellow-400" />
-                      </div>
-                    </div>
-                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                    <p className="text-white/40 text-sm mt-0.5">{stat.label}</p>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Recent Projects */}
-            {(data?.recent_projects?.length > 0) && (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-white">Projets récents</h2>
-                  <button onClick={() => setActiveTab('projects')} className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center gap-1">Voir tout <ArrowRight className="w-3 h-3" /></button>
-                </div>
-                <div className="grid gap-3">
-                  {data.recent_projects.slice(0, 3).map(p => (
-                    <div key={p.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
-                      <div>
-                        <p className="text-white font-medium">{p.title}</p>
-                        <p className="text-white/40 text-sm">{formatDate(p.created_at)}</p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[p.status] || 'bg-gray-500/20 text-gray-400'}`}>{statusLabels[p.status] || p.status}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Pending Invoices */}
-            {invoices.filter(i => ['sent', 'unpaid', 'partial'].includes(i.status)).length > 0 && (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-white">Factures en attente</h2>
-                  <button onClick={() => setActiveTab('invoices')} className="text-yellow-400 hover:text-yellow-300 text-sm flex items-center gap-1">Voir tout <ArrowRight className="w-3 h-3" /></button>
-                </div>
-                <div className="grid gap-3">
-                  {invoices.filter(i => ['sent', 'unpaid', 'partial'].includes(i.status)).slice(0, 3).map(inv => (
-                    <div key={inv.id} className="bg-white/5 border border-white/10 rounded-xl p-4 flex items-center justify-between">
-                      <div>
-                        <p className="text-white font-medium">{inv.invoice_number}</p>
-                        <p className="text-white/40 text-sm">Solde: {formatCurrency(inv.balance_due)}</p>
-                      </div>
-                      <Button onClick={() => handlePayInvoice(inv)} disabled={payingId === inv.id} className="bg-yellow-400 hover:bg-yellow-300 text-[#23153c] text-sm font-semibold px-4 py-2" data-testid={`pay-invoice-btn-${inv.id}`}>
-                        {payingId === inv.id ? 'Chargement...' : 'Payer'}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {!data?.client && (
-              <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-xl p-6 text-center">
-                <AlertCircle className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-                <p className="text-white font-medium">Compte non lié à un profil client</p>
-                <p className="text-white/50 text-sm mt-1">Contactez Déco Touché pour associer votre compte à vos projets.</p>
-              </div>
+            {dashboard.pending_amount > 0 && (
+              <Card className="border-[#d4af37]/30 bg-[#d4af37]/5">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <AlertCircle className="h-5 w-5 text-[#d4af37]" />
+                  <p className="text-sm"><strong>{dashboard.pending_amount?.toFixed(2)}$</strong> en factures en attente de paiement</p>
+                </CardContent>
+              </Card>
             )}
           </div>
         )}
 
         {/* Projects Tab */}
-        {activeTab === 'projects' && (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-white">Mes projets</h1>
+        {tab === 'projects' && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-[#1a365d] font-['Outfit']">Mes projets</h2>
             {projects.length === 0 ? (
-              <div className="text-center py-20 text-white/40">Aucun projet trouvé</div>
+              <Card><CardContent className="p-8 text-center text-gray-500">Aucun projet en cours</CardContent></Card>
             ) : (
-              <div className="grid gap-4">
-                {projects.map(p => (
-                  <div key={p.id} className="bg-white/5 border border-white/10 rounded-xl p-6" data-testid={`client-project-${p.id}`}>
-                    <div className="flex items-start justify-between mb-3">
+              projects.map(p => (
+                <Card key={p.id} data-testid={`client-project-${p.id}`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-white font-semibold">{p.title}</h3>
-                        {p.description && <p className="text-white/50 text-sm mt-1">{p.description}</p>}
+                        <h3 className="font-semibold text-[#1a365d]">{p.title}</h3>
+                        <p className="text-sm text-gray-500 mt-1">{p.description || 'Aucune description'}</p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[p.status] || 'bg-gray-500/20 text-gray-400'}`}>{statusLabels[p.status] || p.status}</span>
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        p.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        p.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {p.status === 'completed' ? 'Terminé' : p.status === 'in_progress' ? 'En cours' : p.status}
+                      </span>
                     </div>
-                    {typeof p.progress === 'number' && (
+                    {p.progress !== undefined && (
                       <div className="mt-3">
-                        <div className="flex justify-between text-xs text-white/40 mb-1">
-                          <span>Progression</span><span>{p.progress}%</span>
+                        <div className="flex justify-between text-xs text-gray-500 mb-1">
+                          <span>Progression</span>
+                          <span>{p.progress || 0}%</span>
                         </div>
-                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                          <div className="h-full bg-yellow-400 rounded-full transition-all" style={{width: `${p.progress}%`}}></div>
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#d4af37] rounded-full" style={{ width: `${p.progress || 0}%` }} />
                         </div>
                       </div>
                     )}
-                    <p className="text-white/30 text-xs mt-3">{formatDate(p.created_at)}</p>
-                  </div>
-                ))}
-              </div>
+                  </CardContent>
+                </Card>
+              ))
             )}
           </div>
         )}
 
         {/* Invoices Tab */}
-        {activeTab === 'invoices' && (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-bold text-white">Mes factures</h1>
+        {tab === 'invoices' && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-[#1a365d] font-['Outfit']">Mes factures</h2>
             {invoices.length === 0 ? (
-              <div className="text-center py-20 text-white/40">Aucune facture trouvée</div>
+              <Card><CardContent className="p-8 text-center text-gray-500">Aucune facture</CardContent></Card>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-white/10">
-                <table className="w-full">
-                  <thead className="bg-white/5">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase">Facture</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase">Date</th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-white/40 uppercase">Statut</th>
-                      <th className="px-6 py-4 text-right text-xs font-semibold text-white/40 uppercase">Total</th>
-                      <th className="px-6 py-4 text-right text-xs font-semibold text-white/40 uppercase">Solde dû</th>
-                      <th className="px-6 py-4 text-right text-xs font-semibold text-white/40 uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {invoices.map(inv => (
-                      <tr key={inv.id} className="border-t border-white/10 hover:bg-white/5 transition-colors" data-testid={`client-invoice-${inv.id}`}>
-                        <td className="px-6 py-4 text-yellow-400 font-medium">{inv.invoice_number}</td>
-                        <td className="px-6 py-4 text-white/60 text-sm">{formatDate(inv.created_at)}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[inv.status] || 'bg-gray-500/20 text-gray-400'}`}>{statusLabels[inv.status] || inv.status}</span>
-                        </td>
-                        <td className="px-6 py-4 text-right text-white font-medium">{formatCurrency(inv.total)}</td>
-                        <td className="px-6 py-4 text-right">
-                          <span className={inv.balance_due > 0 ? 'text-red-400 font-medium' : 'text-green-400'}>{formatCurrency(inv.balance_due)}</span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button onClick={() => downloadInvoicePdf(inv.id)} className="text-white/40 hover:text-white/70 transition-colors p-1" title="Télécharger PDF"><ExternalLink className="w-4 h-4" /></button>
-                            {inv.balance_due > 0 && (
-                              <Button onClick={() => handlePayInvoice(inv)} disabled={payingId === inv.id} className="bg-yellow-400 hover:bg-yellow-300 text-[#23153c] text-xs font-semibold px-3 py-1.5 h-auto" data-testid={`pay-invoice-${inv.id}`}>
-                                {payingId === inv.id ? '...' : 'Payer'}
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              invoices.map(inv => (
+                <Card key={inv.id} data-testid={`client-invoice-${inv.id}`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-[#1a365d]">{inv.invoice_number}</h3>
+                        <p className="text-sm text-gray-500">{inv.created_at ? new Date(inv.created_at).toLocaleDateString('fr-CA') : ''}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-[#1a365d]">{inv.total?.toFixed(2)}$</p>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor(inv.status)}`}>
+                          {statusLabel(inv.status)}
+                        </span>
+                      </div>
+                    </div>
+                    {inv.status !== 'paid' && (
+                      <div className="flex gap-2 mt-4">
+                        <Button size="sm" onClick={() => handlePayInvoice(inv.id)} className="bg-[#d4af37] hover:bg-[#c4a030] text-[#1a365d]" data-testid={`pay-invoice-${inv.id}`}>
+                          <CreditCard className="h-3.5 w-3.5 mr-1" /> Payer
+                        </Button>
+                      </div>
+                    )}
+                    {inv.balance_due > 0 && inv.amount_paid > 0 && (
+                      <p className="text-xs text-gray-400 mt-2">Payé: {inv.amount_paid?.toFixed(2)}$ — Solde: {inv.balance_due?.toFixed(2)}$</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
             )}
+          </div>
+        )}
+
+        {/* Profile Tab */}
+        {tab === 'profile' && (
+          <div className="max-w-xl space-y-6">
+            <h2 className="text-xl font-bold text-[#1a365d] font-['Outfit']">Mon profil</h2>
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <div>
+                  <Label>Nom complet</Label>
+                  <Input value={profile.full_name} onChange={e => setProfile({...profile, full_name: e.target.value})} className="mt-1" data-testid="profile-name" />
+                </div>
+                <div>
+                  <Label>Courriel</Label>
+                  <Input value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="mt-1" data-testid="profile-email" />
+                </div>
+                <div>
+                  <Label>Téléphone</Label>
+                  <Input value={profile.phone} onChange={e => setProfile({...profile, phone: e.target.value})} placeholder="514-555-0000" className="mt-1" data-testid="profile-phone" />
+                </div>
+                <div>
+                  <Label>Adresse</Label>
+                  <Input value={profile.address} onChange={e => setProfile({...profile, address: e.target.value})} placeholder="123 rue Exemple, Montréal" className="mt-1" data-testid="profile-address" />
+                </div>
+                <Button onClick={handleSaveProfile} disabled={savingProfile} className="bg-[#d4af37] hover:bg-[#c4a030] text-[#1a365d]" data-testid="save-profile-btn">
+                  {savingProfile ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                  Sauvegarder
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         )}
       </main>

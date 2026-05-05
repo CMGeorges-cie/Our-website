@@ -192,6 +192,8 @@ export const clientPortalApi = {
   getDashboard: () => api.get('/client/dashboard'),
   getProjects: () => api.get('/client/projects'),
   getInvoices: () => api.get('/client/invoices'),
+  getProfile: () => api.get('/client/profile'),
+  updateProfile: (data) => api.patch('/client/profile', data),
   payInvoice: (invoice_id) => api.post(`/pay/invoice/${invoice_id}`, { origin_url: window.location.origin }),
   getPaymentStatus: (session_id) => api.get(`/pay/status/${session_id}`),
 };

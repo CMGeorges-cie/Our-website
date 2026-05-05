@@ -11,6 +11,9 @@ import ServicesPage from "@/pages/ServicesPage";
 import PeinturePage from "@/pages/PeinturePage";
 import RenovationPage from "@/pages/RenovationPage";
 import EntretienPage from "@/pages/EntretienPage";
+import PaymentPage from "@/pages/PaymentPage";
+import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
+import PaymentCancelPage from "@/pages/PaymentCancelPage";
 import MobilierPage from "@/pages/MobilierPage";
 import PortfolioPage from "@/pages/PortfolioPage";
 import SoumissionPage from "@/pages/SoumissionPage";
@@ -149,6 +152,9 @@ function App() {
               <Route path="/mobilier" element={<MobilierPage />} />
               <Route path="/portfolio" element={<PortfolioPage />} />
               <Route path="/soumission" element={<SoumissionPage />} />
+              <Route path="/paiement" element={<PaymentPage />} />
+              <Route path="/paiement/succes" element={<PaymentSuccessPage />} />
+              <Route path="/paiement/annule" element={<PaymentCancelPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/faq" element={<FAQPage />} />
               <Route path="/confidentialite" element={<PrivacyPage />} />

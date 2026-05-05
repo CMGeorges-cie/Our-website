@@ -218,6 +218,52 @@ class TestSocialPosts:
         assert d.status_code == 200
 
 
+# ==================== DEPOSIT PAYMENT TESTS ====================
+class TestDepositPayment:
+    def test_public_invoice_endpoint(self, client, auth_headers):
+        invoices = client.get("/api/v1/admin/invoices", headers=auth_headers).json()
+        if invoices:
+            r = client.get(f"/api/v1/invoices/{invoices[0]['id']}/public")
+            assert r.status_code == 200
+            data = r.json()
+            assert "invoice_number" in data
+            assert "total" in data
+            assert "status" in data
+
+    def test_public_invoice_not_found(self, client):
+        r = client.get("/api/v1/invoices/nonexistent/public")
+        assert r.status_code == 404
+
+    def test_create_deposit_checkout(self, client, auth_headers):
+        invoices = client.get("/api/v1/admin/invoices", headers=auth_headers).json()
+        if invoices:
+            r = client.post(f"/api/v1/invoices/{invoices[0]['id']}/pay-deposit", json={
+                "deposit_percent": 30,
+                "origin_url": "https://serviceflow-preview.preview.emergentagent.com"
+            })
+            assert r.status_code == 200
+            data = r.json()
+            assert "url" in data
+            assert "amount" in data
+            assert data["amount"] > 0
+
+    def test_deposit_50_percent(self, client, auth_headers):
+        invoices = client.get("/api/v1/admin/invoices", headers=auth_headers).json()
+        if invoices:
+            r = client.post(f"/api/v1/invoices/{invoices[0]['id']}/pay-deposit", json={
+                "deposit_percent": 50,
+                "origin_url": "https://serviceflow-preview.preview.emergentagent.com"
+            })
+            assert r.status_code == 200
+            data = r.json()
+            # 50% should be more than 30%
+            total = invoices[0].get("total", 0)
+            expected = round(total * 0.50, 2)
+            assert data["amount"] == expected
+
+
+
+
 # ==================== CATALOG TESTS ====================
 class TestCatalog:
     def test_list_catalog(self, client, auth_headers):

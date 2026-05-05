@@ -1004,7 +1004,7 @@ body{{font-family:Arial,sans-serif;background:#0d0d1f;margin:0;padding:0;}}
 {body_html}
 {cta_block}
 </div>
-<div class="footer">ServiceFlow — Plateforme CRM pour entreprises de services<br>Déco Touché | 514-386-1743 | info@decotouche.ca</div>
+<div class="footer">Déco Touché — Peinture, rénovation et entretien<br>514-386-1743 | info@decotouche.ca</div>
 </div></body></html>"""
 
 async def notify_new_lead(lead: dict, background_tasks: BackgroundTasks):
@@ -1025,7 +1025,7 @@ async def notify_new_lead(lead: dict, background_tasks: BackgroundTasks):
     </div>
     """
     html = _notif_html(f"Nouveau lead : {lead.get('full_name','')}", body_html, "Voir dans l'admin", f"{FRONTEND_URL}/admin/leads")
-    background_tasks.add_task(send_email, ADMIN_EMAIL, f"🔔 Nouveau lead: {lead.get('full_name','')} — ServiceFlow", html)
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"🔔 Nouveau lead: {lead.get('full_name','')} — Déco Touché", html)
     background_tasks.add_task(create_notification, f"Nouveau lead: {lead.get('full_name','')}", f"Service: {service} — Urgence: {urgence}", "new_lead", "lead", lead.get("id"))
 
 async def notify_invoice_created(invoice: dict, client: dict, background_tasks: BackgroundTasks):
@@ -1040,7 +1040,7 @@ async def notify_invoice_created(invoice: dict, client: dict, background_tasks: 
     </div>
     """
     html_admin = _notif_html(f"Facture {invoice.get('invoice_number','')} créée", body_html, "Voir la facture", f"{FRONTEND_URL}/admin/invoices/{invoice.get('id','')}")
-    background_tasks.add_task(send_email, ADMIN_EMAIL, f"📄 Facture {invoice.get('invoice_number','')} créée — ServiceFlow", html_admin)
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"📄 Facture {invoice.get('invoice_number','')} créée — Déco Touché", html_admin)
     # Email to client
     if client.get("email"):
         client_body = f"""
@@ -1069,7 +1069,7 @@ async def notify_payment_received(invoice: dict, client: dict, amount: float, ba
     </div>
     """
     html = _notif_html(f"Paiement reçu — {invoice.get('invoice_number','')}", body_html, "Voir la facture", f"{FRONTEND_URL}/admin/invoices/{invoice.get('id','')}")
-    background_tasks.add_task(send_email, ADMIN_EMAIL, f"💰 Paiement reçu: {amount:.2f}$ — {invoice.get('invoice_number','')} — ServiceFlow", html)
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"💰 Paiement reçu: {amount:.2f}$ — {invoice.get('invoice_number','')} — Déco Touché", html)
     background_tasks.add_task(create_notification, f"Paiement de {amount:.2f}$ reçu", f"Facture {invoice.get('invoice_number','')} — Solde: {invoice.get('balance_due',0):.2f}$", "payment_received", "invoice", invoice.get("id"))
 
 async def notify_project_status(project: dict, old_status: str, new_status: str, client: dict, background_tasks: BackgroundTasks):
@@ -1087,7 +1087,7 @@ async def notify_project_status(project: dict, old_status: str, new_status: str,
     </div>
     """
     html_admin = _notif_html(f"Projet mis à jour: {project.get('title','')}", body_html, "Voir le projet", f"{FRONTEND_URL}/admin/projects/{project.get('id','')}")
-    background_tasks.add_task(send_email, ADMIN_EMAIL, f"🔄 Projet {new_lbl}: {project.get('title','')} — ServiceFlow", html_admin)
+    background_tasks.add_task(send_email, ADMIN_EMAIL, f"🔄 Projet {new_lbl}: {project.get('title','')} — Déco Touché", html_admin)
     if client and client.get("email"):
         client_body = f"""
         <p>Bonjour {client.get('full_name','').split()[0]},</p>
@@ -4149,12 +4149,63 @@ async def send_client_message(
         <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 15px 0;">
             <p style="margin: 0; white-space: pre-wrap;">{message.content}</p>
         </div>
-        <p>Connectez-vous à ServiceFlow pour répondre.</p>
+        <p>Connectez-vous au portail Déco Touché pour répondre.</p>
     </div>
     """
     background_tasks.add_task(send_email, ADMIN_EMAIL, f"Message client: {client.get('full_name', 'N/A')} - {project.get('title', 'Projet')}", email_html)
     
     return {"id": msg.id, "message": "Message sent successfully"}
+
+
+# ==================== CLIENT PROFILE ====================
+class ClientProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+
+@client_router.get("/profile")
+async def get_client_profile(user: dict = Depends(get_current_user)):
+    """Get client profile info"""
+    client = await db.clients.find_one({"portal_user_id": user["id"]}, {"_id": 0})
+    if not client:
+        client = await db.clients.find_one({"email": user["email"]}, {"_id": 0})
+    if not client:
+        return {"id": user["id"], "full_name": user.get("full_name", ""), "email": user["email"], "phone": "", "address": ""}
+    return {
+        "id": client["id"],
+        "full_name": client.get("full_name", ""),
+        "email": client.get("email", ""),
+        "phone": client.get("phone", ""),
+        "address": client.get("address", ""),
+    }
+
+@client_router.patch("/profile")
+async def update_client_profile(data: ClientProfileUpdate, user: dict = Depends(get_current_user)):
+    """Update client profile info"""
+    client = await db.clients.find_one({"portal_user_id": user["id"]}, {"_id": 0})
+    if not client:
+        client = await db.clients.find_one({"email": user["email"]}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Profil client non trouvé")
+    
+    update_data = {k: v for k, v in data.model_dump().items() if v is not None}
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
+    
+    await db.clients.update_one({"id": client["id"]}, {"$set": update_data})
+    # Also update user record if email/name changed
+    user_update = {}
+    if "full_name" in update_data:
+        user_update["full_name"] = update_data["full_name"]
+    if "email" in update_data:
+        user_update["email"] = update_data["email"]
+    if user_update:
+        await db.users.update_one({"id": user["id"]}, {"$set": user_update})
+    
+    updated = await db.clients.find_one({"id": client["id"]}, {"_id": 0})
+    return {"id": updated["id"], "full_name": updated.get("full_name", ""), "email": updated.get("email", ""), "phone": updated.get("phone", ""), "address": updated.get("address", "")}
+
 
 
 # ===================== STRIPE SAAS SUBSCRIPTIONS =====================
@@ -4379,14 +4430,186 @@ async def stripe_webhook(request: Request):
         stripe_checkout = StripeCheckout(api_key=STRIPE_API_KEY, webhook_url="")
         event = await stripe_checkout.handle_webhook(body, stripe_sig)
         if event.payment_status == "paid":
-            await db.payment_transactions.update_one(
-                {"session_id": event.session_id},
-                {"$set": {"payment_status": "paid", "status": "completed"}}
-            )
+            tx = await db.payment_transactions.find_one({"session_id": event.session_id}, {"_id": 0})
+            if tx:
+                await db.payment_transactions.update_one(
+                    {"session_id": event.session_id},
+                    {"$set": {"payment_status": "paid", "status": "completed"}}
+                )
+                # Auto-record invoice deposit payment
+                if tx.get("type") == "invoice_deposit" and tx.get("payment_status") != "paid":
+                    invoice_id = tx.get("invoice_id")
+                    amount = tx.get("amount", 0)
+                    payment_doc = {
+                        "id": str(uuid.uuid4()),
+                        "amount": amount,
+                        "method": "stripe",
+                        "date": datetime.now(timezone.utc).isoformat(),
+                        "note": f"Dépôt {tx.get('deposit_percent', 30)}% via Stripe (webhook)",
+                        "stripe_session_id": event.session_id,
+                    }
+                    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+                    if invoice:
+                        current_paid = invoice.get("amount_paid", 0)
+                        new_paid = current_paid + amount
+                        new_balance = invoice.get("total", 0) - new_paid
+                        new_status = "paid" if new_balance <= 0 else "partial"
+                        await db.invoices.update_one(
+                            {"id": invoice_id},
+                            {
+                                "$push": {"payments": payment_doc},
+                                "$set": {"amount_paid": new_paid, "balance_due": max(0, new_balance), "status": new_status}
+                            }
+                        )
         logger.info(f"Stripe webhook: {event.event_type}")
     except Exception as e:
         logger.warning(f"Stripe webhook handling: {str(e)}")
     return {"received": True}
+
+# ==================== INVOICE DEPOSIT PAYMENT (Public) ====================
+class DepositRequest(BaseModel):
+    deposit_percent: int = 30  # 30 or 50
+    origin_url: Optional[str] = None
+
+@v1_router.post("/invoices/{invoice_id}/pay-deposit")
+async def create_invoice_deposit_checkout(invoice_id: str, data: DepositRequest, request: Request):
+    """Create a Stripe checkout session for invoice deposit payment (public, no auth)"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Facture introuvable")
+    
+    if invoice.get("status") == "paid":
+        raise HTTPException(status_code=400, detail="Cette facture est déjà payée")
+    
+    deposit_percent = max(30, min(50, data.deposit_percent))
+    total = invoice.get("total", 0)
+    deposit_amount = round(total * deposit_percent / 100, 2)
+    
+    if deposit_amount <= 0:
+        raise HTTPException(status_code=400, detail="Montant invalide")
+    
+    host_url = data.origin_url or FRONTEND_URL
+    
+    stripe_checkout = StripeCheckout(
+        api_key=STRIPE_API_KEY,
+        webhook_url=f"{str(request.base_url).rstrip('/')}/api/webhook/stripe"
+    )
+    
+    success_url = f"{host_url}/paiement/succes?invoice_id={invoice_id}&session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{host_url}/paiement/annule?invoice_id={invoice_id}"
+    
+    checkout_req = CheckoutSessionRequest(
+        amount=deposit_amount,
+        currency="cad",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "type": "invoice_deposit",
+            "invoice_id": invoice_id,
+            "invoice_number": invoice.get("invoice_number", ""),
+            "deposit_percent": str(deposit_percent),
+            "client_name": invoice.get("client_name", ""),
+        }
+    )
+    
+    session = await stripe_checkout.create_checkout_session(checkout_req)
+    
+    # Store pending transaction
+    await db.payment_transactions.insert_one({
+        "id": str(uuid.uuid4()),
+        "session_id": session.session_id,
+        "type": "invoice_deposit",
+        "invoice_id": invoice_id,
+        "invoice_number": invoice.get("invoice_number", ""),
+        "amount": deposit_amount,
+        "deposit_percent": deposit_percent,
+        "currency": "cad",
+        "client_name": invoice.get("client_name", ""),
+        "payment_status": "pending",
+        "status": "initiated",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    
+    return {"url": session.url, "session_id": session.session_id, "amount": deposit_amount}
+
+@v1_router.get("/invoices/{invoice_id}/payment-status/{session_id}")
+async def check_deposit_payment_status(invoice_id: str, session_id: str, request: Request):
+    """Check deposit payment status and record payment if completed"""
+    stripe_checkout = StripeCheckout(
+        api_key=STRIPE_API_KEY,
+        webhook_url=f"{str(request.base_url).rstrip('/')}/api/webhook/stripe"
+    )
+    
+    checkout_status = await stripe_checkout.get_checkout_status(session_id)
+    
+    if checkout_status.payment_status == "paid":
+        # Check if payment already recorded
+        existing = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+        if existing and existing.get("payment_status") != "paid":
+            amount = existing.get("amount", 0)
+            # Record payment on invoice
+            payment_doc = {
+                "id": str(uuid.uuid4()),
+                "amount": amount,
+                "method": "stripe",
+                "date": datetime.now(timezone.utc).isoformat(),
+                "note": f"Dépôt {existing.get('deposit_percent', 30)}% via Stripe",
+                "stripe_session_id": session_id,
+            }
+            
+            invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+            current_paid = invoice.get("amount_paid", 0) if invoice else 0
+            new_paid = current_paid + amount
+            new_balance = invoice.get("total", 0) - new_paid if invoice else 0
+            new_status = "paid" if new_balance <= 0 else "partial"
+            
+            await db.invoices.update_one(
+                {"id": invoice_id},
+                {
+                    "$push": {"payments": payment_doc},
+                    "$set": {
+                        "amount_paid": new_paid,
+                        "balance_due": max(0, new_balance),
+                        "status": new_status,
+                    }
+                }
+            )
+            
+            await db.payment_transactions.update_one(
+                {"session_id": session_id},
+                {"$set": {"payment_status": "paid", "status": "completed"}}
+            )
+    
+    return {
+        "payment_status": checkout_status.payment_status,
+        "session_id": session_id,
+        "invoice_id": invoice_id,
+    }
+
+# Public invoice view for payment (no auth needed)
+@v1_router.get("/invoices/{invoice_id}/public")
+async def get_public_invoice(invoice_id: str):
+    """Get invoice details for public payment page"""
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Facture introuvable")
+    # Return limited info for security
+    return {
+        "id": invoice["id"],
+        "invoice_number": invoice.get("invoice_number", ""),
+        "client_name": invoice.get("client_name", ""),
+        "total": invoice.get("total", 0),
+        "subtotal": invoice.get("subtotal", 0),
+        "tps": invoice.get("tps", 0),
+        "tvq": invoice.get("tvq", 0),
+        "balance_due": invoice.get("balance_due", invoice.get("total", 0)),
+        "amount_paid": invoice.get("amount_paid", 0),
+        "status": invoice.get("status", "draft"),
+        "items": invoice.get("items", []),
+        "created_at": invoice.get("created_at", ""),
+    }
+
+
 
 
 # ==================== NOTIFICATIONS ENDPOINTS ====================
