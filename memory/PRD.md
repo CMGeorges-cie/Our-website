@@ -8,21 +8,20 @@
 
 ## Fonctionnalités complètes et testées
 
-### Rebranding (5 Mai 2026)
+### Rebranding
 - CMGeorges → Déco Touché (logo, nav, footer, admin, emails, PDFs)
-- ServiceFlow/Tech supprimés du site principal
 - Navigation: Accueil, Services, Portfolio, Blog, FAQ, Contact
 - Footer: Professionnel & Assuré, info@decotouche.ca, TPS/TVQ
 
 ### Pages de services
-- `/services/peinture` — Peinture intérieure & extérieure (tarifs, étapes, FAQ)
-- `/services/renovation` — Rénovation légère (planchers, moulures, gyproc)
-- `/services/entretien` — Entretien général (réparations, nettoyage)
-- `/services/mobilier` — Installation mobilier (IKEA, montage)
+- `/services/peinture` — Peinture intérieure & extérieure
+- `/services/renovation` — Rénovation légère
+- `/services/entretien` — Entretien général
+- `/services/mobilier` — Installation mobilier
 
 ### CRM Admin
 - Leads, Clients, Projets (CRUD complet)
-- Dashboard CEO avec stats
+- Dashboard CEO avec stats et revenus
 
 ### Facturation
 - Création, PDF, envoi email
@@ -32,19 +31,22 @@
 
 ### Dépôt obligatoire (Stripe)
 - Page `/paiement?invoice={id}` publique
-- Options 30% ou 50%
-- Redirection Stripe Checkout
-- Webhook auto-enregistrement du paiement
-- Pages succès/annulation
+- Options 30% ou 50%, Stripe Checkout
+- Webhook auto-enregistrement
 
 ### Portfolio
-- 5 vrais projets (photos HEIC → JPEG converties)
-- Filtres: Tous, Peinture & Rénovation, Mobilier
-- Admin CRUD avec photos avant/après
+- 5 vrais projets (photos HEIC → JPEG)
+- Filtres: Peinture & Rénovation, Mobilier
 
 ### Réseaux Sociaux
 - Admin: Gérer posts Instagram/TikTok
-- Affichage sur page d'accueil avec liens
+- Section sur page d'accueil avec liens
+
+### Formulaire soumission avec upload photos
+- Upload jusqu'à 5 photos (JPEG, PNG, HEIC, WebP)
+- Conversion HEIC → JPEG auto
+- Photos attachées au lead
+- Max 10MB par fichier
 
 ### Portail Client
 - Connexion/Inscription
@@ -68,7 +70,6 @@
 
 ### P1
 - [ ] Stripe clé live (paiements réels)
-- [ ] Formulaire soumission amélioré (upload photos)
 - [ ] Signature incluse dans PDF exporté
 
 ### P2
