@@ -37,6 +37,7 @@
 ### Portfolio
 - 5 vrais projets (photos HEIC → JPEG)
 - Filtres: Peinture & Rénovation, Mobilier
+- **Carrousel multi-photos par projet** (5 mai 2026) — chaque projet supporte un nombre illimité de photos affichées en carrousel; les **2 dernières** photos sont automatiquement étiquetées **Avant** (avant-dernière) et **Après** (dernière). Admin: gestion ordre/ajout/suppression.
 
 ### Réseaux Sociaux
 - Admin: Gérer posts Instagram/TikTok

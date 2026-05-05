@@ -550,6 +550,7 @@ class PortfolioMedia(BaseModel):
     description: str = ""
     image_url: str
     before_image_url: Optional[str] = None
+    images: List[str] = Field(default_factory=list)
     service_type: ServiceType = ServiceType.MANUAL
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -4723,6 +4724,7 @@ class PortfolioMediaCreate(BaseModel):
     description: str = ""
     image_url: str
     before_image_url: Optional[str] = None
+    images: List[str] = Field(default_factory=list)
     service_type: ServiceType = ServiceType.MANUAL
     category: str = "portfolio"
 
@@ -4731,6 +4733,7 @@ class PortfolioMediaUpdate(BaseModel):
     description: Optional[str] = None
     image_url: Optional[str] = None
     before_image_url: Optional[str] = None
+    images: Optional[List[str]] = None
     service_type: Optional[ServiceType] = None
     category: Optional[str] = None
 
