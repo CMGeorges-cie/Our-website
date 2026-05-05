@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, BackgroundTasks, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, BackgroundTasks, Response, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import HTMLResponse, StreamingResponse
 from dotenv import load_dotenv
@@ -264,6 +264,7 @@ class LeadBase(BaseModel):
 
 class LeadCreate(LeadBase):
     items: Optional[List[LeadItemBase]] = None
+    photos: List[str] = []  # URLs of uploaded photos
 
 class Lead(LeadBase):
     model_config = ConfigDict(extra="ignore")
@@ -271,6 +272,7 @@ class Lead(LeadBase):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: LeadStatus = LeadStatus.NEW
     items: List[LeadItem] = []
+    photos: List[str] = []
     notes: str = ""
     client_id: Optional[str] = None
 
@@ -1137,6 +1139,59 @@ async def get_next_invoice_number() -> str:
         return f"{prefix}{str(last_num + 1).zfill(4)}"
     
     return f"{prefix}0001"
+
+
+# ==================== FILE UPLOAD ====================
+import shutil
+from typing import List as TypingList
+
+UPLOAD_DIR = "/app/frontend/public/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@v1_router.post("/upload/photos")
+async def upload_photos(files: TypingList[UploadFile] = File(...)):
+    """Upload photos for soumission form (max 5 files, 10MB each)"""
+    if len(files) > 5:
+        raise HTTPException(status_code=400, detail="Maximum 5 photos autorisées")
+    
+    uploaded_urls = []
+    for file in files:
+        if file.size and file.size > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail=f"Fichier {file.filename} trop volumineux (max 10MB)")
+        
+        # Validate file type
+        allowed_types = ["image/jpeg", "image/png", "image/heic", "image/webp", "image/heif"]
+        if file.content_type and file.content_type not in allowed_types:
+            raise HTTPException(status_code=400, detail=f"Type de fichier non supporté: {file.content_type}")
+        
+        # Generate unique filename
+        ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+        unique_name = f"{uuid.uuid4().hex[:12]}.{ext}"
+        file_path = os.path.join(UPLOAD_DIR, unique_name)
+        
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # Convert HEIC to JPEG if needed
+        if ext.lower() in ("heic", "heif"):
+            try:
+                import pillow_heif
+                pillow_heif.register_heif_opener()
+                from PIL import Image
+                img = Image.open(file_path)
+                jpeg_name = f"{uuid.uuid4().hex[:12]}.jpg"
+                jpeg_path = os.path.join(UPLOAD_DIR, jpeg_name)
+                img.convert("RGB").save(jpeg_path, "JPEG", quality=85)
+                os.remove(file_path)
+                unique_name = jpeg_name
+            except Exception:
+                pass  # Keep original if conversion fails
+        
+        uploaded_urls.append(f"/uploads/{unique_name}")
+    
+    return {"urls": uploaded_urls}
+
 
 # ==================== PUBLIC ENDPOINTS ====================
 @v1_router.post("/leads", response_model=Lead)

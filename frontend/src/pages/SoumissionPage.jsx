@@ -14,10 +14,16 @@ import {
   Send,
   Paintbrush,
   Sofa,
-  Code
+  Camera,
+  Upload,
+  X,
+  Loader2
 } from 'lucide-react';
 import { publicApi } from '@/lib/api';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY;
 
@@ -65,7 +71,10 @@ const emptyItem = {
 export default function SoumissionPage() {
   const navigate = useNavigate();
   const recaptchaRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [photos, setPhotos] = useState([]);  // [{file, preview, url}]
   const [recaptchaToken, setRecaptchaToken] = useState(null);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -114,6 +123,58 @@ export default function SoumissionPage() {
     setRecaptchaToken(token);
   };
 
+  const handlePhotoSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (photos.length + files.length > 5) {
+      toast.error('Maximum 5 photos autorisées');
+      return;
+    }
+    const newPhotos = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      url: null,
+    }));
+    setPhotos(prev => [...prev, ...newPhotos]);
+  };
+
+  const removePhoto = (index) => {
+    setPhotos(prev => {
+      const updated = [...prev];
+      if (updated[index].preview) URL.revokeObjectURL(updated[index].preview);
+      updated.splice(index, 1);
+      return updated;
+    });
+  };
+
+  const uploadPhotos = async () => {
+    const toUpload = photos.filter(p => !p.url);
+    if (toUpload.length === 0) return photos.filter(p => p.url).map(p => p.url);
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      toUpload.forEach(p => formData.append('files', p.file));
+      const res = await axios.post(`${BACKEND_URL}/api/v1/upload/photos`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const urls = res.data.urls;
+      // Update photo objects with server URLs
+      let urlIndex = 0;
+      setPhotos(prev => prev.map(p => {
+        if (!p.url && urlIndex < urls.length) {
+          return { ...p, url: urls[urlIndex++] };
+        }
+        return p;
+      }));
+      return [...photos.filter(p => p.url).map(p => p.url), ...urls];
+    } catch (err) {
+      toast.error('Erreur upload photos: ' + (err.response?.data?.detail || 'Réessayez'));
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -125,8 +186,17 @@ export default function SoumissionPage() {
     setLoading(true);
 
     try {
+      // Upload photos first
+      let photoUrls = [];
+      if (photos.length > 0) {
+        const urls = await uploadPhotos();
+        if (urls === null) { setLoading(false); return; }
+        photoUrls = urls;
+      }
+      
       const data = { 
         ...formData,
+        photos: photoUrls,
         recaptcha_token: recaptchaToken
       };
       if (!isFurniture) {
@@ -421,6 +491,58 @@ export default function SoumissionPage() {
                     placeholder="Décrivez votre projet en détail..."
                     data-testid="input-description"
                   />
+                </div>
+
+                {/* Photo Upload */}
+                <div className="form-group">
+                  <Label className="form-label">Photos du projet (optionnel)</Label>
+                  <p className="text-xs text-gray-500 mb-3">Ajoutez jusqu'à 5 photos pour nous aider à mieux évaluer votre projet</p>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                    {photos.map((photo, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border-2 border-gray-200 group">
+                        <img src={photo.preview} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                        {photo.url && (
+                          <span className="absolute bottom-1 left-1 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded">OK</span>
+                        )}
+                      </div>
+                    ))}
+                    
+                    {photos.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-[#d4af37] flex flex-col items-center justify-center gap-2 transition-colors cursor-pointer"
+                        data-testid="photo-upload-btn"
+                      >
+                        <Camera className="h-6 w-6 text-gray-400" />
+                        <span className="text-xs text-gray-400">Ajouter</span>
+                      </button>
+                    )}
+                  </div>
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoSelect}
+                    className="hidden"
+                    data-testid="photo-file-input"
+                  />
+                  
+                  {uploading && (
+                    <div className="flex items-center gap-2 text-sm text-[#d4af37]">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Upload en cours...
+                    </div>
+                  )}
                 </div>
 
                 {/* Source */}
