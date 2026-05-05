@@ -6,51 +6,74 @@
 
 ---
 
-## Rebranding accompli (5 Mai 2026)
+## Fonctionnalités complètes et testées
 
-### CMGeorges → Déco Touché
-- Logo, navigation, footer, pages admin — tout rebrandé
-- Services Tech supprimés — exclusivement peinture/rénovation/entretien/mobilier
+### Rebranding (5 Mai 2026)
+- CMGeorges → Déco Touché (logo, nav, footer, admin, emails, PDFs)
+- ServiceFlow/Tech supprimés du site principal
 - Navigation: Accueil, Services, Portfolio, Blog, FAQ, Contact
-- Footer: Déco Touché + licence RBQ + TPS/TVQ
-- Email: info@decotouche.ca
+- Footer: Professionnel & Assuré, info@decotouche.ca, TPS/TVQ
 
-### Nouvelles pages de services
-- `/services/peinture` — Peinture intérieure & extérieure
-- `/services/renovation` — Rénovation légère
-- `/services/entretien` — Entretien général
-- `/services/mobilier` — Installation de mobilier
+### Pages de services
+- `/services/peinture` — Peinture intérieure & extérieure (tarifs, étapes, FAQ)
+- `/services/renovation` — Rénovation légère (planchers, moulures, gyproc)
+- `/services/entretien` — Entretien général (réparations, nettoyage)
+- `/services/mobilier` — Installation mobilier (IKEA, montage)
 
-### Fonctionnalités complètes
-- CRM Admin (Leads, Clients, Projets)
-- Facturation Joist-style (PDF, signatures, calcul TPS/TVQ)
+### CRM Admin
+- Leads, Clients, Projets (CRUD complet)
+- Dashboard CEO avec stats
+
+### Facturation
+- Création, PDF, envoi email
+- Calcul TPS/TVQ automatique
 - Signature électronique (in-app + DocuSign public)
-- Catalogue de services (12 items)
-- Portfolio admin (CRUD avec photos avant/après)
-- Réseaux Sociaux (liens TikTok/Instagram sur le site)
-- Suite de tests: 30 tests pytest
+- Lien de paiement pour dépôt (Stripe)
 
-### Connexions Admin
-- **Email:** admin@cmgeorges.com
-- **Mot de passe:** strongpassword123
+### Dépôt obligatoire (Stripe)
+- Page `/paiement?invoice={id}` publique
+- Options 30% ou 50%
+- Redirection Stripe Checkout
+- Webhook auto-enregistrement du paiement
+- Pages succès/annulation
+
+### Portfolio
+- 5 vrais projets (photos HEIC → JPEG converties)
+- Filtres: Tous, Peinture & Rénovation, Mobilier
+- Admin CRUD avec photos avant/après
+
+### Réseaux Sociaux
+- Admin: Gérer posts Instagram/TikTok
+- Affichage sur page d'accueil avec liens
+
+### Portail Client
+- Connexion/Inscription
+- Dashboard (projets, factures, stats)
+- Mon profil (modification nom, email, téléphone, adresse)
+- Paiement factures en ligne
+
+### Tests
+- 34 tests pytest (`/app/backend/tests/test_build.py`)
+- Commande: `cd /app/backend && pytest tests/test_build.py -v`
+
+---
+
+## Connexions
+- **Admin:** admin@cmgeorges.com / strongpassword123
+- **URL:** /admin/login
 
 ---
 
 ## Backlog
 
-### P0 — Prochain
-- [ ] Portail client (connexion, historique factures, modification infos)
-- [ ] Dépôt obligatoire 30-50% (paiement en ligne)
-- [ ] Formulaire soumission amélioré (upload photos)
-
 ### P1
-- [ ] Stripe live (paiements réels)
-- [ ] Webhooks Stripe cycle de vie
-- [ ] Signature dans PDF exporté
+- [ ] Stripe clé live (paiements réels)
+- [ ] Formulaire soumission amélioré (upload photos)
+- [ ] Signature incluse dans PDF exporté
 
 ### P2
 - [ ] Site séparé CMGeorges Tech
 - [ ] App React Native mobile
 - [ ] Dashboard Analytics avancé
-- [ ] Isolation multi-tenant complète
+- [ ] Isolation multi-tenant
 - [ ] Migration PostgreSQL
