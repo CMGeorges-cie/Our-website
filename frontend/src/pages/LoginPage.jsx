@@ -188,11 +188,11 @@ export default function LoginPage() {
               <div className="flex items-center justify-center gap-3 mb-3">
                 <img 
                   src={SERVICEFLOW_LOGO} 
-                  alt="ServiceFlow" 
+                  alt="Déco Touché" 
                   className="w-12 h-12 rounded-xl shadow-lg shadow-[#d4af37]/30"
                 />
                 <span className="text-3xl font-black text-white tracking-tight font-['Outfit']">
-                  Service<span className="text-[#d4af37]">Flow</span>
+                  Déco <span className="text-[#d4af37]">Touché</span>
                 </span>
               </div>
               <p className="text-white/50 text-sm">Espace Administration</p>

@@ -106,10 +106,10 @@ export default function ClientDashboard() {
           <div className="flex items-center gap-3">
             <img 
               src={SERVICEFLOW_LOGO} 
-              alt="ServiceFlow" 
+              alt="Déco Touché" 
               className="w-8 h-8 rounded-lg"
             />
-            <span className="font-black text-white">Service<span className="text-yellow-400">Flow</span></span>
+            <span className="font-black text-white">Déco <span className="text-yellow-400">Touché</span></span>
             <span className="text-white/20 text-sm ml-2">/ Portail Client</span>
           </div>
           <div className="flex items-center gap-3">

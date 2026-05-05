@@ -103,19 +103,19 @@ export default function AdminLogin() {
       <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-md">
-        {/* ServiceFlow Branding */}
+        {/* Déco Touché Admin Branding */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-3">
             <img 
               src={SERVICEFLOW_LOGO} 
-              alt="ServiceFlow" 
+              alt="Déco Touché" 
               className="w-12 h-12 rounded-xl shadow-lg shadow-yellow-400/30"
             />
             <span className="text-3xl font-black text-white tracking-tight" style={{fontFamily: 'Outfit, sans-serif'}}>
-              Service<span className="text-yellow-400">Flow</span>
+              Déco <span className="text-yellow-400">Touché</span>
             </span>
           </div>
-          <p className="text-white/50 text-sm tracking-wider uppercase">Espace de travail</p>
+          <p className="text-white/50 text-sm tracking-wider uppercase">Espace administration</p>
         </div>
 
         {/* Login Card */}
@@ -186,7 +186,7 @@ export default function AdminLogin() {
         </div>
 
         <p className="text-center text-white/20 text-xs mt-6">
-          © {new Date().getFullYear()} ServiceFlow. Tous droits réservés.
+          &copy; {new Date().getFullYear()} Déco Touché. Tous droits réservés.
         </p>
       </div>
     </div>

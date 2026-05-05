@@ -122,18 +122,18 @@ export default function AdminLayout() {
           <Link to="/admin" className="flex items-center gap-3 mb-3">
             <img 
               src={SERVICEFLOW_LOGO} 
-              alt="ServiceFlow" 
+              alt="Déco Touché" 
               className="w-10 h-10 rounded-lg shadow-lg shadow-yellow-400/20"
             />
             <div>
-              <span className="font-black text-lg text-white tracking-tight">Service<span className="text-yellow-400">Flow</span></span>
+              <span className="font-black text-lg text-white tracking-tight">Déco <span className="text-yellow-400">Touché</span></span>
             </div>
           </Link>
           <div className="flex items-center gap-2 bg-gold-500/10 border border-gold-500/20 rounded-lg px-3 py-2">
-            <div className="w-6 h-6 bg-gradient-to-br from-gold-400 to-gold-600 rounded-md flex items-center justify-center text-xs font-bold text-black">C</div>
+            <div className="w-6 h-6 bg-gradient-to-br from-gold-400 to-gold-600 rounded-md flex items-center justify-center text-xs font-bold text-black">D</div>
             <div>
               <span className="text-xs font-semibold text-white block leading-none">Déco Touché</span>
-              <span className="text-[10px] text-gold-500/60">Workspace</span>
+              <span className="text-[10px] text-gold-500/60">Administration</span>
             </div>
           </div>
         </div>

@@ -103,11 +103,11 @@ export default function ClientLogin() {
           <div className="flex items-center justify-center gap-3 mb-3">
             <img 
               src={SERVICEFLOW_LOGO} 
-              alt="ServiceFlow" 
+              alt="Déco Touché" 
               className="w-12 h-12 rounded-xl shadow-lg shadow-yellow-400/30"
             />
             <span className="text-3xl font-black text-white tracking-tight" style={{fontFamily: 'Outfit, sans-serif'}}>
-              Service<span className="text-yellow-400">Flow</span>
+              Déco <span className="text-yellow-400">Touché</span>
             </span>
           </div>
           <p className="text-white/50 text-sm tracking-wider uppercase">Portail Client</p>

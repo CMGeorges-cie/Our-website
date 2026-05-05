@@ -1,84 +1,56 @@
-# CMGeorges / ServiceFlow — PRD
+# Déco Touché — PRD
 
-**Mise à jour:** 24 Mars 2026  
-**Stack:** React + FastAPI + MongoDB
-
----
-
-## Ce qui est implémenté et fonctionnel
-
-### CRM Admin
-- Leads CRUD (liste, détail, conversion en client)
-- Clients CRUD (liste, détail, modification)
-- Projets CRUD avec tâches, timeline, messagerie
-- Notifications système (in-app + email)
-- Thème dark/light premium noir/or
-
-### Facturation Style Joist
-- Création factures avec calcul TPS/TVQ automatique
-- Liste factures avec stats
-- Détail facture professionnelle
-- Génération PDF
-- Paiements (enregistrement, suivi)
-- Remises et acomptes
-
-### Signature Électronique
-- Signature in-app (admin capture signature client)
-- Lien signature publique (DocuSign style)
-- Email avec lien sécurisé (token 72h)
-- Page publique `/sign/:type/:token`
-
-### Catalogue de Services
-- CRUD 12 services prédéfinis
-- Intégration avec facturation
-
-### Portfolio (NOUVEAU)
-- Admin: Ajouter/modifier/supprimer projets réalisés
-- Photos avant/après
-- Catégories par service
-- Page publique `/portfolio`
-
-### Réseaux Sociaux (NOUVEAU)
-- Admin: Gérer les posts Instagram/TikTok/Facebook/YouTube
-- Affichage sur la page d'accueil
-- Liens vers les posts originaux sur les plateformes
-- Les visiteurs cliquent → redirigés vers la vidéo/post
-
-### Dashboard & Revenus
-- Statistiques leads, clients, factures
-- Dashboard CEO avec revenus mensuels
-
-### Suite de Tests (NOUVEAU)
-- 30 tests pytest (`/app/backend/tests/test_build.py`)
-- Couvre: Auth, Endpoints publics, Leads, Clients, Factures, Projets, Portfolio, Réseaux Sociaux, Catalogue, Signature publique, Dashboard, Notifications
-- Commande: `cd /app/backend && pytest tests/test_build.py -v`
+**Mise à jour:** 5 Mai 2026  
+**Stack:** React + FastAPI + MongoDB  
+**Marque:** Déco Touché (anciennement CMGeorges)
 
 ---
 
-## Connexions Admin
+## Rebranding accompli (5 Mai 2026)
+
+### CMGeorges → Déco Touché
+- Logo, navigation, footer, pages admin — tout rebrandé
+- Services Tech supprimés — exclusivement peinture/rénovation/entretien/mobilier
+- Navigation: Accueil, Services, Portfolio, Blog, FAQ, Contact
+- Footer: Déco Touché + licence RBQ + TPS/TVQ
+- Email: info@decotouche.ca
+
+### Nouvelles pages de services
+- `/services/peinture` — Peinture intérieure & extérieure
+- `/services/renovation` — Rénovation légère
+- `/services/entretien` — Entretien général
+- `/services/mobilier` — Installation de mobilier
+
+### Fonctionnalités complètes
+- CRM Admin (Leads, Clients, Projets)
+- Facturation Joist-style (PDF, signatures, calcul TPS/TVQ)
+- Signature électronique (in-app + DocuSign public)
+- Catalogue de services (12 items)
+- Portfolio admin (CRUD avec photos avant/après)
+- Réseaux Sociaux (liens TikTok/Instagram sur le site)
+- Suite de tests: 30 tests pytest
+
+### Connexions Admin
 - **Email:** admin@cmgeorges.com
 - **Mot de passe:** strongpassword123
-- **URL:** /admin/login
 
 ---
 
 ## Backlog
 
-### P0 - Prochaine
-- [ ] Isolation multi-tenant complète
-- [ ] Stripe clé live (paiements réels)
-- [ ] Déploiement production
+### P0 — Prochain
+- [ ] Portail client (connexion, historique factures, modification infos)
+- [ ] Dépôt obligatoire 30-50% (paiement en ligne)
+- [ ] Formulaire soumission amélioré (upload photos)
 
 ### P1
-- [ ] Inclure signature dans PDF
-- [ ] Portail client complet (connexion, historique, modification infos)
-- [ ] Webhooks Stripe (cycle de vie abonnements)
-- [ ] Système Produits + Installation + Inventaire
+- [ ] Stripe live (paiements réels)
+- [ ] Webhooks Stripe cycle de vie
+- [ ] Signature dans PDF exporté
 
 ### P2
-- [ ] App React Native sur stores
-- [ ] Réactiver reCAPTCHA
+- [ ] Site séparé CMGeorges Tech
+- [ ] App React Native mobile
 - [ ] Dashboard Analytics avancé
-
-### P3
+- [ ] Isolation multi-tenant complète
 - [ ] Migration PostgreSQL
