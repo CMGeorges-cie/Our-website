@@ -372,10 +372,10 @@ export default function ClientPortalPage() {
                     514-386-1743
                   </Button>
                 </a>
-                <a href="mailto:info@decotouche.ca">
+                <a href="mailto:cmgeorges.cie@gmail.com">
                   <Button variant="outline">
                     <Mail className="h-4 w-4 mr-2" />
-                    info@decotouche.ca
+                    cmgeorges.cie@gmail.com
                   </Button>
                 </a>
               </div>

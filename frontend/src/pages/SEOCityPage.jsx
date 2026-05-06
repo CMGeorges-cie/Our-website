@@ -74,7 +74,7 @@ export default function SEOCityPage({ city: propCity }) {
     "name": "Déco Touché",
     "description": data.description || '',
     "telephone": "+1-514-386-1743",
-    "email": "info@decotouche.ca",
+    "email": "cmgeorges.cie@gmail.com",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": data.name || 'Montréal',

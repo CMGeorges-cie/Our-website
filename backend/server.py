@@ -921,7 +921,7 @@ def get_lead_confirmation_html(lead: dict) -> str:
         </div>
         <div class="footer">
             <p>Déco Touché - Votre partenaire pour tous vos projets</p>
-            <p>info@decotouche.ca | 514-386-1743</p>
+            <p>cmgeorges.cie@gmail.com | 514-386-1743</p>
         </div>
     </body>
     </html>
@@ -1007,7 +1007,7 @@ body{{font-family:Arial,sans-serif;background:#0d0d1f;margin:0;padding:0;}}
 {body_html}
 {cta_block}
 </div>
-<div class="footer">Déco Touché — Peinture, rénovation et entretien<br>514-386-1743 | info@decotouche.ca</div>
+<div class="footer">Déco Touché — Peinture, rénovation et entretien<br>514-386-1743 | cmgeorges.cie@gmail.com</div>
 </div></body></html>"""
 
 async def notify_new_lead(lead: dict, background_tasks: BackgroundTasks):
@@ -2848,7 +2848,7 @@ def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
     
     # Header
     elements.append(Paragraph("🦁 Déco Touché", styles['CMGHeader']))
-    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@decotouche.ca", styles['CMGSubHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | cmgeorges.cie@gmail.com", styles['CMGSubHeader']))
     elements.append(Spacer(1, 20))
     
     # Quote Info
@@ -2967,7 +2967,7 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     
     # Header
     elements.append(Paragraph("🦁 Déco Touché", styles['CMGHeader']))
-    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | info@decotouche.ca", styles['CMGSubHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | cmgeorges.cie@gmail.com", styles['CMGSubHeader']))
     elements.append(Spacer(1, 20))
     
     # Invoice Info
@@ -3646,10 +3646,10 @@ async def send_invoice_by_email(invoice_id: str, request: Request, user: dict = 
     <strong>Montant total:</strong> {invoice['total']:.2f}$<br>
     <strong>Date d'échéance:</strong> {due_date_str}
     </div>
-    <p>Pour toute question, contactez-nous au 514-386-1743 ou info@decotouche.ca</p>
+    <p>Pour toute question, contactez-nous au 514-386-1743 ou cmgeorges.cie@gmail.com</p>
     <p>Merci de votre confiance!</p>
     </div>
-    <div class="footer"><p>Déco Touché | 514-386-1743 | info@decotouche.ca</p></div>
+    <div class="footer"><p>Déco Touché | 514-386-1743 | cmgeorges.cie@gmail.com</p></div>
     </body></html>
     """
 
@@ -3751,7 +3751,7 @@ async def send_invoice_signature_link(invoice_id: str, request: Request, user: d
         <p>Pour toute question, contactez-nous:</p>
         <ul>
             <li>📞 514-386-1743</li>
-            <li>✉️ info@decotouche.ca</li>
+            <li>✉️ cmgeorges.cie@gmail.com</li>
         </ul>
     </div>
     <div class="footer">
@@ -3845,7 +3845,7 @@ async def send_quote_signature_link(quote_id: str, request: Request, user: dict 
         <p class="expires">⏱️ Ce lien expire dans 72 heures.</p>
     </div>
     <div class="footer">
-        <p>Déco Touché | 514-386-1743 | info@decotouche.ca</p>
+        <p>Déco Touché | 514-386-1743 | cmgeorges.cie@gmail.com</p>
     </div>
     </body></html>
     """
@@ -3903,10 +3903,10 @@ async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depe
     <strong>Montant total (taxes incluses):</strong> {quote['total_with_tax']:.2f}$<br>
     <strong>Validité:</strong> 30 jours
     </div>
-    <p>Pour accepter ou pour toute question, contactez-nous au 514-386-1743 ou info@decotouche.ca</p>
+    <p>Pour accepter ou pour toute question, contactez-nous au 514-386-1743 ou cmgeorges.cie@gmail.com</p>
     <p>Merci de votre confiance!</p>
     </div>
-    <div class="footer"><p>Déco Touché | 514-386-1743 | info@decotouche.ca</p></div>
+    <div class="footer"><p>Déco Touché | 514-386-1743 | cmgeorges.cie@gmail.com</p></div>
     </body></html>
     """
 

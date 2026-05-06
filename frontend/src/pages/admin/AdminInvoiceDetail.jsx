@@ -294,7 +294,7 @@ export default function AdminInvoiceDetail() {
                 <div className="mt-2 text-sm text-muted-foreground space-y-0.5">
                   <p className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> Montréal, QC</p>
                   <p className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> (514) 555-0123</p>
-                  <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> info@decotouche.ca</p>
+                  <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> cmgeorges.cie@gmail.com</p>
                 </div>
               </div>
             </div>

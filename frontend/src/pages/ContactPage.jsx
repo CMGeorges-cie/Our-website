@@ -68,10 +68,10 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold text-[#1a365d] mb-1">Courriel</h3>
                       <a 
-                        href="mailto:info@decotouche.ca"
+                        href="mailto:cmgeorges.cie@gmail.com"
                         className="text-lg text-[#d4af37] font-bold hover:underline"
                       >
-                        info@decotouche.ca
+                        cmgeorges.cie@gmail.com
                       </a>
                       <p className="text-sm text-gray-500 mt-1">
                         Réponse sous 24h
