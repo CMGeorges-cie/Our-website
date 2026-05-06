@@ -60,6 +60,7 @@ import PublicSignaturePage from "@/pages/PublicSignaturePage";
 // Layout
 import PublicLayout from "@/components/layout/PublicLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
+import RouteTitle from "@/components/RouteTitle";
 
 // Analytics initialization
 const initAnalytics = () => {
@@ -140,6 +141,7 @@ function App() {
     <ThemeProvider defaultTheme="dark">
       <div className="App">
         <BrowserRouter>
+          <RouteTitle />
           <Routes>
             {/* Public Routes */}
             <Route element={<PublicLayout />}>
