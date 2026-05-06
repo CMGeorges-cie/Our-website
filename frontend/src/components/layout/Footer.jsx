@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Shield } from 'lucide-react';
-import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
+import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK, DECOTOUCHE_LOGO_URL } from '@/lib/utils';
 
 export default function Footer() {
   return (
@@ -11,9 +11,9 @@ export default function Footer() {
           <div>
             <Link to="/" className="flex items-center gap-3 mb-4">
               <img 
-                src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+                src={DECOTOUCHE_LOGO_URL} 
                 alt="Déco Touché"
-                className="h-12 w-auto brightness-0 invert"
+                className="h-12 w-auto"
               />
               <span className="font-bold text-xl font-['Outfit']">Déco Touché</span>
             </Link>

@@ -26,7 +26,7 @@ export default function PaymentSuccessPage() {
       <Card className="max-w-md w-full border-0 shadow-xl">
         <CardContent className="p-8 text-center">
           <img 
-            src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+            src="https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg" 
             alt="Déco Touché" className="h-10 mx-auto mb-6"
           />
           {status === 'checking' ? (

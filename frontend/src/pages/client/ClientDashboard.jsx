@@ -12,7 +12,7 @@ import {
   Save, CreditCard, Download, MessageSquare
 } from 'lucide-react';
 
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg";
+const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg";
 
 export default function ClientDashboard() {
   const navigate = useNavigate();

@@ -88,7 +88,7 @@ export default function PaymentPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <img 
-            src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+            src="https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg" 
             alt="Déco Touché" className="h-12 mx-auto mb-3"
           />
           <h1 className="text-2xl font-bold text-[#1a365d] font-['Outfit']">Paiement sécurisé</h1>

@@ -62,7 +62,7 @@ export default function ServiceFlowPage() {
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 mb-8">
               <span className="text-white/60 text-sm">Développé par</span>
               <img 
-                src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+                src="https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg" 
                 alt="CMGeorges"
                 className="h-5 w-auto brightness-0 invert opacity-80"
               />
@@ -268,7 +268,7 @@ export default function ServiceFlowPage() {
               {/* Floating badge */}
               <div className="absolute -bottom-4 -right-4 bg-white rounded-xl p-4 shadow-xl flex items-center gap-3">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+                  src="https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg" 
                   alt="CMGeorges"
                   className="h-8 w-auto"
                 />

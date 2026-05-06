@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
+import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK, DECOTOUCHE_LOGO_URL } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Accueil' },
@@ -23,7 +23,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center gap-3" data-testid="nav-logo">
             <img 
-              src="https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg" 
+              src={DECOTOUCHE_LOGO_URL} 
               alt="Déco Touché"
               className="h-12 w-auto"
             />
