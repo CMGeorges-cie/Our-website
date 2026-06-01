@@ -161,9 +161,9 @@ export default function MobilierPage() {
                   <tbody>
                     {pricing.map((item, idx) => (
                       <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 font-medium">{item.item}</td>
+                        <td className="px-6 py-4 font-medium text-[#1a365d]">{item.item}</td>
                         <td className="px-6 py-4 text-center text-[#1a365d] font-semibold">{item.price}</td>
-                        <td className="px-6 py-4 text-center text-gray-500">{item.time}</td>
+                        <td className="px-6 py-4 text-center text-gray-600">{item.time}</td>
                       </tr>
                     ))}
                   </tbody>

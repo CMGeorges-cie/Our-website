@@ -58,8 +58,17 @@ export default function DemolitionPage() {
       </Helmet>
 
       {/* Hero */}
-      <section className="bg-[#1a365d] py-20">
-        <div className="container-main">
+      <section className="relative bg-[#1a365d] py-20 overflow-hidden">
+        {/* Background image with overlay */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=1920&auto=format&fit=crop&q=80"
+            alt="Chantier de démolition"
+            className="w-full h-full object-cover opacity-25"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1a365d] via-[#1a365d]/95 to-[#1a365d]/70" />
+        </div>
+        <div className="container-main relative z-10">
           <div className="max-w-3xl">
             <span className="inline-block px-3 py-1 bg-[#d4af37]/20 text-[#d4af37] rounded-full text-xs font-semibold mb-4">
               NOUVEAU SERVICE
