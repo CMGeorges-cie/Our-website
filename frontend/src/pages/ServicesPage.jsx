@@ -45,7 +45,7 @@ const services = [
     title: 'Démolition résidentielle & commerciale',
     description: 'Avant de rénover, on démolit tout — proprement, rapidement, professionnellement. Cuisine, salle de bain, sous-sol, planchers.',
     href: '/services/demolition',
-    image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=600&auto=format&fit=crop',
+    image: '/portfolio/demolition_hero.jpg',
     features: ['Cuisine complète', 'Salle de bain', 'Sous-sol & cloisons', 'Évacuation débris'],
     priceFrom: 'À partir de 200$',
   },
