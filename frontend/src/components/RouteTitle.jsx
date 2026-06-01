@@ -10,6 +10,7 @@ const TITLE_MAP = [
   { match: (p) => p === '/services/renovation', title: 'Rénovation légère' },
   { match: (p) => p === '/services/entretien', title: 'Entretien général' },
   { match: (p) => p === '/services/mobilier' || p === '/mobilier', title: 'Installation de mobilier' },
+  { match: (p) => p === '/services/demolition' || p === '/demolition', title: 'Démolition résidentielle & commerciale' },
   { match: (p) => p === '/portfolio', title: 'Portfolio' },
   { match: (p) => p === '/soumission', title: 'Soumission gratuite' },
   { match: (p) => p === '/paiement', title: 'Paiement de dépôt' },

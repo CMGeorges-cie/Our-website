@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { clientPortalApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { LogIn, User } from 'lucide-react';
-
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
+import { BRAND_LOGO_URL as SERVICEFLOW_LOGO } from '@/config/brand';
 
 const CLIENT_TOKEN_KEY = 'sf_client_token';
 const CLIENT_USER_KEY = 'sf_client_user';

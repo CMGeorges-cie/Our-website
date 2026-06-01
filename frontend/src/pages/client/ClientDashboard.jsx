@@ -11,8 +11,7 @@ import {
   Receipt, Clock, CheckCircle, AlertCircle, Loader2, 
   Save, CreditCard, Download, MessageSquare
 } from 'lucide-react';
-
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg";
+import { BRAND_LOGO_URL as SERVICEFLOW_LOGO } from '@/config/brand';
 
 export default function ClientDashboard() {
   const navigate = useNavigate();

@@ -7,8 +7,7 @@ import { authApi, seedDatabase } from '@/lib/api';
 import { setAuthData, isAuthenticated } from '@/lib/utils';
 import { toast } from 'sonner';
 import { LogIn } from 'lucide-react';
-
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
+import { BRAND_LOGO_URL as SERVICEFLOW_LOGO } from '@/config/brand';
 
 export default function AdminLogin() {
   const navigate = useNavigate();

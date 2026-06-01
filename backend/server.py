@@ -44,10 +44,13 @@ JWT_ALGORITHM = "HS256"
 JWT_ACCESS_EXPIRATION_HOURS = 1
 JWT_REFRESH_EXPIRATION_DAYS = 7
 
+# Brand info — single source of truth (config/brand.py, overridable via BRAND_* env vars)
+from config.brand import Brand as BRAND  # noqa: E402
+
 # Resend Configuration
 resend.api_key = os.environ.get('RESEND_API_KEY', '')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
-ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'cmgeorges.cie@gmail.com')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', BRAND.EMAIL)
 
 # reCAPTCHA Configuration
 RECAPTCHA_SECRET_KEY = os.environ.get('RECAPTCHA_SECRET_KEY', '')
@@ -66,7 +69,7 @@ SERVICEFLOW_PLANS = {
 }
 
 # Create the main app
-app = FastAPI(title="Déco Touché API", version="2.0.0", description="API production Déco Touché")
+app = FastAPI(title=f"{BRAND.NAME} API", version="2.0.0", description=f"API production {BRAND.NAME}")
 
 # Create routers
 api_router = APIRouter(prefix="/api")
@@ -875,7 +878,7 @@ def get_lead_notification_html(lead: dict) -> str:
         </div>
         <div class="footer">
             <p>Connectez-vous à l'admin pour gérer ce lead.</p>
-            <p>Déco Touché - Montréal & Rive-Sud | 514-386-1743</p>
+            <p>{BRAND.NAME} - {BRAND.ADDRESS} | {BRAND.PHONE_DISPLAY}</p>
         </div>
     </body>
     </html>
@@ -916,12 +919,12 @@ def get_lead_confirmation_html(lead: dict) -> str:
             
             <p>En attendant, n'hésitez pas à nous appeler:</p>
             <p style="text-align: center;">
-                <a href="tel:+15143861743" class="cta">📞 514-386-1743</a>
+                <a href="tel:{BRAND.PHONE_E164}" class="cta">📞 {BRAND.PHONE_DISPLAY}</a>
             </p>
         </div>
         <div class="footer">
             <p>Déco Touché - Votre partenaire pour tous vos projets</p>
-            <p>cmgeorges.cie@gmail.com | 514-386-1743</p>
+            <p>{BRAND.EMAIL} | {BRAND.PHONE_DISPLAY}</p>
         </div>
     </body>
     </html>
@@ -1007,7 +1010,7 @@ body{{font-family:Arial,sans-serif;background:#0d0d1f;margin:0;padding:0;}}
 {body_html}
 {cta_block}
 </div>
-<div class="footer">Déco Touché — Peinture, rénovation et entretien<br>514-386-1743 | cmgeorges.cie@gmail.com</div>
+<div class="footer">Déco Touché — Peinture, rénovation et entretien<br>{BRAND.PHONE_DISPLAY} | {BRAND.EMAIL}</div>
 </div></body></html>"""
 
 async def notify_new_lead(lead: dict, background_tasks: BackgroundTasks):
@@ -2245,7 +2248,7 @@ async def generate_project_report(project_id: str, user: dict = Depends(get_curr
     # Footer
     pdf.ln(10)
     pdf.set_font("Helvetica", "I", 9)
-    pdf.cell(0, 5, "Déco Touché - Montreal & Rive-Sud", ln=True, align="C")
+    pdf.cell(0, 5, "{BRAND.NAME} - {BRAND.ADDRESS}", ln=True, align="C")
     
     # Output
     pdf_bytes = BytesIO()
@@ -2848,7 +2851,7 @@ def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
     
     # Header
     elements.append(Paragraph("🦁 Déco Touché", styles['CMGHeader']))
-    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | cmgeorges.cie@gmail.com", styles['CMGSubHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | {BRAND.PHONE_DISPLAY} | {BRAND.EMAIL}", styles['CMGSubHeader']))
     elements.append(Spacer(1, 20))
     
     # Quote Info
@@ -2967,7 +2970,7 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     
     # Header
     elements.append(Paragraph("🦁 Déco Touché", styles['CMGHeader']))
-    elements.append(Paragraph("Montréal & Rive-Sud | 514-386-1743 | cmgeorges.cie@gmail.com", styles['CMGSubHeader']))
+    elements.append(Paragraph("Montréal & Rive-Sud | {BRAND.PHONE_DISPLAY} | {BRAND.EMAIL}", styles['CMGSubHeader']))
     elements.append(Spacer(1, 20))
     
     # Invoice Info
@@ -3049,9 +3052,9 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     # Payment Info
     elements.append(Paragraph("MÉTHODES DE PAIEMENT", styles['CMGTitle']))
     elements.append(Paragraph("""
-    • Virement Interac: cmgeorges.cie@gmail.com<br/>
+    • Virement Interac: {BRAND.EMAIL}<br/>
     • Comptant<br/>
-    • Chèque à l'ordre de Déco Touché
+    • Chèque à l'ordre de {BRAND.NAME}
     """, styles['Normal']))
     
     # Footer
@@ -3168,7 +3171,7 @@ async def create_client_portal_access(client_id: str, background_tasks: Backgrou
             <p>Si vous n'avez pas demandé cet accès, veuillez ignorer ce courriel.</p>
         </div>
         <div class="footer">
-            <p>Déco Touché - Montréal & Rive-Sud | 514-386-1743</p>
+            <p>{BRAND.NAME} - {BRAND.ADDRESS} | {BRAND.PHONE_DISPLAY}</p>
         </div>
     </body>
     </html>
@@ -3646,10 +3649,10 @@ async def send_invoice_by_email(invoice_id: str, request: Request, user: dict = 
     <strong>Montant total:</strong> {invoice['total']:.2f}$<br>
     <strong>Date d'échéance:</strong> {due_date_str}
     </div>
-    <p>Pour toute question, contactez-nous au 514-386-1743 ou cmgeorges.cie@gmail.com</p>
+    <p>Pour toute question, contactez-nous au {BRAND.PHONE_DISPLAY} ou {BRAND.EMAIL}</p>
     <p>Merci de votre confiance!</p>
     </div>
-    <div class="footer"><p>Déco Touché | 514-386-1743 | cmgeorges.cie@gmail.com</p></div>
+    <div class="footer"><p>{BRAND.NAME} | {BRAND.PHONE_DISPLAY} | {BRAND.EMAIL}</p></div>
     </body></html>
     """
 
@@ -3750,12 +3753,12 @@ async def send_invoice_signature_link(invoice_id: str, request: Request, user: d
         
         <p>Pour toute question, contactez-nous:</p>
         <ul>
-            <li>📞 514-386-1743</li>
-            <li>✉️ cmgeorges.cie@gmail.com</li>
+            <li>📞 {BRAND.PHONE_DISPLAY}</li>
+            <li>✉️ {BRAND.EMAIL}</li>
         </ul>
     </div>
     <div class="footer">
-        <p>Déco Touché | Montréal & Rive-Sud</p>
+        <p>{BRAND.NAME} | {BRAND.ADDRESS}</p>
         <p>Ce lien est unique et sécurisé. Ne le partagez pas.</p>
     </div>
     </body></html>
@@ -3845,7 +3848,7 @@ async def send_quote_signature_link(quote_id: str, request: Request, user: dict 
         <p class="expires">⏱️ Ce lien expire dans 72 heures.</p>
     </div>
     <div class="footer">
-        <p>Déco Touché | 514-386-1743 | cmgeorges.cie@gmail.com</p>
+        <p>Déco Touché | {BRAND.PHONE_DISPLAY} | {BRAND.EMAIL}</p>
     </div>
     </body></html>
     """
@@ -3903,10 +3906,10 @@ async def send_quote_by_email(quote_id: str, request: Request, user: dict = Depe
     <strong>Montant total (taxes incluses):</strong> {quote['total_with_tax']:.2f}$<br>
     <strong>Validité:</strong> 30 jours
     </div>
-    <p>Pour accepter ou pour toute question, contactez-nous au 514-386-1743 ou cmgeorges.cie@gmail.com</p>
+    <p>Pour accepter ou pour toute question, contactez-nous au {BRAND.PHONE_DISPLAY} ou {BRAND.EMAIL}</p>
     <p>Merci de votre confiance!</p>
     </div>
-    <div class="footer"><p>Déco Touché | 514-386-1743 | cmgeorges.cie@gmail.com</p></div>
+    <div class="footer"><p>{BRAND.NAME} | {BRAND.PHONE_DISPLAY} | {BRAND.EMAIL}</p></div>
     </body></html>
     """
 

@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { BRAND } from '@/config/brand';
 
 export default function FAQPage() {
   const faqs = [
@@ -15,7 +16,7 @@ export default function FAQPage() {
         },
         {
           q: "Comment puis-je obtenir une soumission?",
-          a: "Vous pouvez demander une soumission gratuite via notre formulaire en ligne, par téléphone au 514-386-1743, ou par courriel à cmgeorges.cie@gmail.com. Nous vous répondrons sous 24h."
+          a: `Vous pouvez demander une soumission gratuite via notre formulaire en ligne, par téléphone au ${BRAND.phone.display}, ou par courriel à ${BRAND.email}. Nous vous répondrons sous 24h.`
         }
       ]
     },
@@ -148,16 +149,16 @@ export default function FAQPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="tel:+15143861743" 
+                href={BRAND.phone.link} 
                 className="inline-flex items-center justify-center px-6 py-3 bg-[#d4af37] text-[#1a365d] font-bold rounded-lg hover:bg-[#d4af37]/90 transition-colors"
               >
-                📞 514-386-1743
+                📞 {BRAND.phone.display}
               </a>
               <a 
-                href="mailto:cmgeorges.cie@gmail.com" 
+                href={`mailto:${BRAND.email}`} 
                 className="inline-flex items-center justify-center px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-[#1a365d] transition-colors"
               >
-                ✉️ cmgeorges.cie@gmail.com
+                ✉️ {BRAND.email}
               </a>
             </div>
           </div>

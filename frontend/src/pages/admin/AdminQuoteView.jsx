@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { adminApi } from '@/lib/api';
 import { formatDate, formatCurrency } from '@/lib/utils';
+import { BRAND, BRAND_LOGO_URL } from '@/config/brand';
 import { toast } from 'sonner';
 import { ArrowLeft, Printer, Download, Send } from 'lucide-react';
 
@@ -116,18 +117,18 @@ export default function AdminQuoteView() {
           <div className="flex justify-between items-start mb-8 pb-8 border-b border-gray-200">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-[#1a365d] rounded-lg flex items-center justify-center">
-                  <span className="text-[#d4af37] text-2xl">🦁</span>
+                <div className="w-12 h-12 rounded-lg bg-[#1a365d] flex items-center justify-center overflow-hidden">
+                  <img src={BRAND_LOGO_URL} alt={BRAND.name} className="h-10 w-10 object-contain" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#1a365d] font-['Outfit']">Déco Touché</h2>
-                  <p className="text-xs text-gray-500">Services professionnels</p>
+                  <h2 className="text-xl font-bold text-[#1a365d] font-['Outfit']">{BRAND.name}</h2>
+                  <p className="text-xs text-gray-500">{BRAND.tagline}</p>
                 </div>
               </div>
               <div className="text-sm text-gray-600">
-                <p>Montréal & Rive-Sud, QC</p>
-                <p>514-386-1743</p>
-                <p>cmgeorges.cie@gmail.com</p>
+                <p>{BRAND.address}</p>
+                <p>{BRAND.phone.display}</p>
+                <p>{BRAND.email}</p>
               </div>
             </div>
             <div className="text-right">
@@ -252,13 +253,13 @@ export default function AdminQuoteView() {
           {/* Terms */}
           <div className="mt-8 pt-6 border-t border-gray-200 text-xs text-gray-500">
             <p>• Soumission valide 30 jours • Dépôt requis pour confirmer • Garantie satisfaction incluse</p>
-            <p className="mt-2">TPS: 123456789 RT0001 | TVQ: 1234567890 TQ0001</p>
+            <p className="mt-2">TPS: {BRAND.taxes.gst} | TVQ: {BRAND.taxes.qst}</p>
           </div>
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-[#d4af37] text-center">
-            <p className="text-[#1a365d] font-semibold">Merci de faire confiance à Déco Touché!</p>
-            <p className="text-xs text-gray-400 mt-1">514-386-1743 | cmgeorges.cie@gmail.com</p>
+            <p className="text-[#1a365d] font-semibold">Merci de faire confiance à {BRAND.name}!</p>
+            <p className="text-xs text-gray-400 mt-1">{BRAND.phone.display} | {BRAND.email}</p>
           </div>
         </CardContent>
       </Card>

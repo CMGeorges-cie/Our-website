@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CheckCircle, ArrowRight, MapPin, Phone } from 'lucide-react';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
+import { BRAND } from '@/config/brand';
 
 const cityData = {
   'montreal': {
@@ -71,10 +72,10 @@ export default function SEOCityPage({ city: propCity }) {
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": "Déco Touché",
+    "name": BRAND.name,
     "description": data.description || '',
-    "telephone": "+1-514-386-1743",
-    "email": "cmgeorges.cie@gmail.com",
+    "telephone": `+1-${BRAND.phone.display}`,
+    "email": BRAND.email,
     "address": {
       "@type": "PostalAddress",
       "addressLocality": data.name || 'Montréal',

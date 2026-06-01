@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
+import { BRAND, BRAND_LOGO_URL } from '@/config/brand';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, Download, Printer, Send, User, Calendar, Receipt, 
@@ -17,7 +18,7 @@ import {
 import { SignatureDialog, SignatureDisplay } from '@/components/ui/signature-pad';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
+const SERVICEFLOW_LOGO = BRAND_LOGO_URL;
 
 const paymentMethods = [
   { value: 'cash', label: 'Espèces', icon: Banknote },
@@ -287,14 +288,14 @@ export default function AdminInvoiceDetail() {
           <div className="flex flex-col md:flex-row justify-between gap-6">
             {/* Company Info */}
             <div className="flex items-start gap-4">
-              <img src={SERVICEFLOW_LOGO} alt="Logo" className="w-16 h-16 rounded-xl" />
+              <img src={BRAND_LOGO_URL} alt="Logo" className="w-16 h-16 rounded-xl" />
               <div>
-                <h2 className="text-xl font-bold text-foreground">Déco Touché</h2>
-                <p className="text-sm text-muted-foreground">Services de rénovation & design</p>
+                <h2 className="text-xl font-bold text-foreground">{BRAND.name}</h2>
+                <p className="text-sm text-muted-foreground">{BRAND.tagline}</p>
                 <div className="mt-2 text-sm text-muted-foreground space-y-0.5">
-                  <p className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> Montréal, QC</p>
-                  <p className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> (514) 555-0123</p>
-                  <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> cmgeorges.cie@gmail.com</p>
+                  <p className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5" /> {BRAND.address}</p>
+                  <p className="flex items-center gap-2"><Phone className="h-3.5 w-3.5" /> {BRAND.phone.display}</p>
+                  <p className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> {BRAND.email}</p>
                 </div>
               </div>
             </div>

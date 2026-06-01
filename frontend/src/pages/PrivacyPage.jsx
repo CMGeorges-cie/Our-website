@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { BRAND } from '@/config/brand';
 
 export default function PrivacyPage() {
   return (
@@ -119,10 +120,10 @@ export default function PrivacyPage() {
                 Pour toute question concernant cette politique ou pour exercer vos droits, contactez-nous:
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="text-gray-700"><strong>Déco Touché</strong></p>
-                <p className="text-gray-600">Courriel: cmgeorges.cie@gmail.com</p>
-                <p className="text-gray-600">Téléphone: 514-386-1743</p>
-                <p className="text-gray-600">Montréal, QC, Canada</p>
+                <p className="text-gray-700"><strong>{BRAND.legalName}</strong></p>
+                <p className="text-gray-600">Courriel: {BRAND.email}</p>
+                <p className="text-gray-600">Téléphone: {BRAND.phone.display}</p>
+                <p className="text-gray-600">{BRAND.address.replace(' & Rive-Sud, QC', ', QC, Canada')}</p>
               </div>
             </div>
 

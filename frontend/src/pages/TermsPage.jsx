@@ -1,4 +1,5 @@
 import { Helmet } from 'react-helmet-async';
+import { BRAND } from '@/config/brand';
 
 export default function TermsPage() {
   return (
@@ -157,9 +158,9 @@ export default function TermsPage() {
                 Pour toute question concernant ces conditions:
               </p>
               <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p className="text-gray-700"><strong>Déco Touché</strong></p>
-                <p className="text-gray-600">Courriel: cmgeorges.cie@gmail.com</p>
-                <p className="text-gray-600">Téléphone: 514-386-1743</p>
+                <p className="text-gray-700"><strong>{BRAND.legalName}</strong></p>
+                <p className="text-gray-600">Courriel: {BRAND.email}</p>
+                <p className="text-gray-600">Téléphone: {BRAND.phone.display}</p>
               </div>
             </div>
           </div>
@@ -168,3 +169,4 @@ export default function TermsPage() {
     </div>
   );
 }
+

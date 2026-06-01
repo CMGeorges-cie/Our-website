@@ -17,8 +17,7 @@ import {
   BarChart3,
   Smartphone
 } from 'lucide-react';
-
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
+import { BRAND_LOGO_URL as SERVICEFLOW_LOGO, BRAND } from '@/config/brand';
 
 const problems = [
   { icon: MessageSquare, text: 'Messages clients dispersés' },
@@ -62,11 +61,11 @@ export default function ServiceFlowPage() {
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 rounded-full px-4 py-2 mb-8">
               <span className="text-white/60 text-sm">Développé par</span>
               <img 
-                src="https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg" 
-                alt="CMGeorges"
+                src={SERVICEFLOW_LOGO} 
+                alt={BRAND.name}
                 className="h-5 w-auto brightness-0 invert opacity-80"
               />
-              <span className="text-white/80 text-sm font-medium">CMGeorges</span>
+              <span className="text-white/80 text-sm font-medium">{BRAND.name}</span>
             </div>
             
             {/* Logo */}
@@ -268,13 +267,13 @@ export default function ServiceFlowPage() {
               {/* Floating badge */}
               <div className="absolute -bottom-4 -right-4 bg-white rounded-xl p-4 shadow-xl flex items-center gap-3">
                 <img 
-                  src="https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg" 
-                  alt="CMGeorges"
+                  src={SERVICEFLOW_LOGO} 
+                  alt={BRAND.name}
                   className="h-8 w-auto"
                 />
                 <div className="text-xs">
-                  <div className="font-bold text-[#1a365d]">Built by CMGeorges</div>
-                  <div className="text-gray-500">Montréal, QC</div>
+                  <div className="font-bold text-[#1a365d]">Built by {BRAND.name}</div>
+                  <div className="text-gray-500">{BRAND.address}</div>
                 </div>
               </div>
             </div>

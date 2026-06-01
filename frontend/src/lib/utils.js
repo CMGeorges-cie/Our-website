@@ -136,9 +136,12 @@ export function clearAuthData() {
 }
 
 // Phone number for CMGeorges
-export const CMGEORGES_PHONE = '514-386-1743';
-export const CMGEORGES_PHONE_LINK = 'tel:+15143861743';
+// Backwards-compatible aliases — the canonical brand source is /src/config/brand.js
+import { BRAND } from '@/config/brand';
+
+export const CMGEORGES_PHONE = BRAND.phone.display;
+export const CMGEORGES_PHONE_LINK = BRAND.phone.link;
 
 // Brand assets — single source of truth for the official logo
-export const DECOTOUCHE_LOGO_URL = 'https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg';
+export const DECOTOUCHE_LOGO_URL = BRAND.logoUrl;
 

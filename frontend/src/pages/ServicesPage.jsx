@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle } from 'lucide-react';
+import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Trash2 } from 'lucide-react';
 
 const services = [
   {
@@ -39,6 +39,15 @@ const services = [
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
     features: ['Assemblage IKEA', 'Montage mural', 'Déménagement léger', 'Organisation'],
     priceFrom: 'À partir de 80$/meuble',
+  },
+  {
+    icon: Trash2,
+    title: 'Démolition résidentielle & commerciale',
+    description: 'Avant de rénover, on démolit tout — proprement, rapidement, professionnellement. Cuisine, salle de bain, sous-sol, planchers.',
+    href: '/services/demolition',
+    image: 'https://images.unsplash.com/photo-1581094488379-6b3c4e9c98f1?w=600',
+    features: ['Cuisine complète', 'Salle de bain', 'Sous-sol & cloisons', 'Évacuation débris'],
+    priceFrom: 'À partir de 200$',
   },
 ];
 

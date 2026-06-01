@@ -7,8 +7,7 @@ import { authApi, clientPortalApi } from '@/lib/api';
 import { setAuthData, isAuthenticated, getCurrentUser } from '@/lib/utils';
 import { toast } from 'sonner';
 import { LogIn, Users, Briefcase, ArrowLeft } from 'lucide-react';
-
-const SERVICEFLOW_LOGO = "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png";
+import { BRAND_LOGO_URL as SERVICEFLOW_LOGO } from '@/config/brand';
 const CMGEORGES_LOGO = SERVICEFLOW_LOGO; // Use same logo for consistency
 
 export default function LoginPage() {

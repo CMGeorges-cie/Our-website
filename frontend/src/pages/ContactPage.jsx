@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { BRAND } from '@/config/brand';
 import { 
   Phone, 
   Mail, 
@@ -68,10 +69,10 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold text-[#1a365d] mb-1">Courriel</h3>
                       <a 
-                        href="mailto:cmgeorges.cie@gmail.com"
+                        href={`mailto:${BRAND.email}`}
                         className="text-lg text-[#d4af37] font-bold hover:underline"
                       >
-                        cmgeorges.cie@gmail.com
+                        {BRAND.email}
                       </a>
                       <p className="text-sm text-gray-500 mt-1">
                         Réponse sous 24h
@@ -88,7 +89,7 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold text-[#1a365d] mb-1">Zone de service</h3>
                       <p className="text-lg text-gray-700">
-                        Montréal & Rive-Sud
+                        {BRAND.serviceArea}
                       </p>
                       <p className="text-sm text-gray-500 mt-1">
                         Longueuil, Brossard, Saint-Hubert, Laval...

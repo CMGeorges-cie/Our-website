@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import { BRAND_LOGO_URL } from '@/config/brand';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -26,7 +27,7 @@ export default function PaymentSuccessPage() {
       <Card className="max-w-md w-full border-0 shadow-xl">
         <CardContent className="p-8 text-center">
           <img 
-            src="https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg" 
+            src={BRAND_LOGO_URL} 
             alt="Déco Touché" className="h-10 mx-auto mb-6"
           />
           {status === 'checking' ? (

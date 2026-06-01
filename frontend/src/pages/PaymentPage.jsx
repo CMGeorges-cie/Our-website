@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Receipt, CreditCard, CheckCircle, Loader2, DollarSign, Shield } from 'lucide-react';
 import axios from 'axios';
+import { BRAND, BRAND_LOGO_URL } from '@/config/brand';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -88,7 +89,7 @@ export default function PaymentPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <img 
-            src="https://customer-assets.emergentagent.com/job_9d041269-feaf-4cbb-a5f7-16135f256136/artifacts/lzun575u_Logo%20officiel.svg" 
+            src={BRAND_LOGO_URL} 
             alt="Déco Touché" className="h-12 mx-auto mb-3"
           />
           <h1 className="text-2xl font-bold text-[#1a365d] font-['Outfit']">Paiement sécurisé</h1>

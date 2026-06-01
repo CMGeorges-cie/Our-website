@@ -315,7 +315,7 @@ export default function HomePage() {
             </Link>
             <a href={CMGEORGES_PHONE_LINK}>
               <Button variant="outline" className="text-lg px-8 py-6 border-[#1a365d] text-[#1a365d] hover:bg-[#1a365d] hover:text-white">
-                <Phone className="mr-2 h-5 w-5" /> 514-386-1743
+                <Phone className="mr-2 h-5 w-5" /> {CMGEORGES_PHONE}
               </Button>
             </a>
           </div>

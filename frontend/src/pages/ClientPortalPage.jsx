@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { adminApi } from '@/lib/api';
 import { formatDateShort, formatCurrency } from '@/lib/utils';
+import { BRAND } from '@/config/brand';
 import { 
   FileText, 
   Receipt, 
@@ -366,16 +367,16 @@ export default function ClientPortalPage() {
             <CardContent className="p-6 text-center">
               <p className="text-gray-600 mb-4">Des questions? Contactez-nous!</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="tel:+15143861743">
+                <a href={BRAND.phone.link}>
                   <Button variant="outline">
                     <Phone className="h-4 w-4 mr-2" />
-                    514-386-1743
+                    {BRAND.phone.display}
                   </Button>
                 </a>
-                <a href="mailto:cmgeorges.cie@gmail.com">
+                <a href={`mailto:${BRAND.email}`}>
                   <Button variant="outline">
                     <Mail className="h-4 w-4 mr-2" />
-                    cmgeorges.cie@gmail.com
+                    {BRAND.email}
                   </Button>
                 </a>
               </div>

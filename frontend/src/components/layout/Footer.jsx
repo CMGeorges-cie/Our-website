@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, Shield } from 'lucide-react';
-import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK, DECOTOUCHE_LOGO_URL } from '@/lib/utils';
+import { Phone, Mail, MapPin, Shield, Instagram, Facebook } from 'lucide-react';
+import { DECOTOUCHE_LOGO_URL } from '@/lib/utils';
+import { BRAND } from '@/config/brand';
 
 export default function Footer() {
   return (
@@ -58,22 +59,51 @@ export default function Footer() {
             <h4 className="font-semibold text-[#d4af37] mb-4 font-['Outfit']">Contact</h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href={CMGEORGES_PHONE_LINK} className="flex items-center gap-2 text-white/70 hover:text-white transition-colors" data-testid="footer-phone">
+                <a href={BRAND.phone.link} className="flex items-center gap-2 text-white/70 hover:text-white transition-colors" data-testid="footer-phone">
                   <Phone className="h-4 w-4 text-[#d4af37]" />
-                  {CMGEORGES_PHONE}
+                  {BRAND.phone.display}
                 </a>
               </li>
               <li>
-                <a href="mailto:cmgeorges.cie@gmail.com" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
+                <a href={`mailto:${BRAND.email}`} className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
                   <Mail className="h-4 w-4 text-[#d4af37]" />
-                  cmgeorges.cie@gmail.com
+                  {BRAND.email}
                 </a>
               </li>
               <li className="flex items-start gap-2 text-white/70">
                 <MapPin className="h-4 w-4 text-[#d4af37] mt-0.5 flex-shrink-0" />
-                <span>Montréal & Rive-Sud, QC</span>
+                <span>{BRAND.address}</span>
               </li>
             </ul>
+            {/* Social icons */}
+            {(BRAND.social.instagram || BRAND.social.facebook) && (
+              <div className="flex items-center gap-3 mt-4" data-testid="footer-socials">
+                {BRAND.social.instagram && (
+                  <a
+                    href={BRAND.social.instagram}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Instagram"
+                    data-testid="footer-instagram"
+                    className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#d4af37] hover:text-[#1a365d] text-white/80 flex items-center justify-center transition-colors"
+                  >
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                )}
+                {BRAND.social.facebook && (
+                  <a
+                    href={BRAND.social.facebook}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Facebook"
+                    data-testid="footer-facebook"
+                    className="w-9 h-9 rounded-full bg-white/5 hover:bg-[#d4af37] hover:text-[#1a365d] text-white/80 flex items-center justify-center transition-colors"
+                  >
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -81,7 +111,7 @@ export default function Footer() {
         <div className="border-t border-white/10 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
             <p className="text-white/50 text-sm">
-              &copy; {new Date().getFullYear()} Déco Touché. Tous droits réservés.
+              &copy; {new Date().getFullYear()} {BRAND.legalName}. Tous droits réservés.
             </p>
             <div className="flex gap-6 text-sm text-white/50">
               <Link to="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>
@@ -89,8 +119,8 @@ export default function Footer() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-6 text-xs text-white/40 text-center" data-testid="footer-tax-numbers">
-            <span>TPS&nbsp;: 714767027RT0001</span>
-            <span>TVQ&nbsp;: 4023795081TQ0001</span>
+            <span>TPS&nbsp;: {BRAND.taxes.gst}</span>
+            <span>TVQ&nbsp;: {BRAND.taxes.qst}</span>
           </div>
         </div>
       </div>
