@@ -21,15 +21,15 @@ const services = [
 const guarantees = [
   'Travail propre et sécuritaire',
   'Débris regroupés et évacuation disponible',
-  'Aucune licence RBQ requise pour la démolition',
   'Estimé écrit avant chaque travail',
+  'Délais respectés (1-3 jours selon le chantier)',
   'Résidentiel & Commercial bienvenus',
 ];
 
 const faqs = [
   {
-    q: `Avez-vous besoin d'une licence RBQ pour la démolition${NBSP}?`,
-    a: `Non. La démolition résidentielle ne requiert pas de licence RBQ au Québec. ${BRAND.name} peut intervenir légalement sur tous les travaux de démolition intérieure.`,
+    q: `Combien de temps prend une démolition${NBSP}?`,
+    a: `La plupart des démolitions intérieures résidentielles se font en 1 à 3 jours selon la pièce. Une cuisine ou salle de bain prend généralement 1 journée; un sous-sol complet peut prendre 2 à 3 jours. Nous précisons toujours le délai exact dans l'estimé.`,
   },
   {
     q: `Évacuez-vous les débris${NBSP}?`,
@@ -37,7 +37,7 @@ const faqs = [
   },
   {
     q: `Travaillez-vous pour les entrepreneurs généraux${NBSP}?`,
-    a: `Absolument. Nous sommes disponibles comme sous-traitant de démolition pour les contracteurs, promoteurs et gestionnaires d'immeubles.`,
+    a: `Absolument. Nous sommes disponibles comme sous-traitant de démolition pour les contracteurs, promoteurs et gestionnaires d'immeubles. Tarifs adaptés pour les projets récurrents.`,
   },
   {
     q: `Quelles zones desservez-vous${NBSP}?`,
