@@ -1332,7 +1332,7 @@ async def get_pricing():
 # ==================== AUTH ENDPOINTS ====================
 @v1_router.post("/auth/login", response_model=TokenResponse)
 async def login(credentials: UserLogin, request: Request):
-    """Admin/Staff login"""
+    """Admin/Staff login (legacy single-step). For 2FA flow use /auth/login/challenge."""
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not verify_password(credentials.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -1340,6 +1340,25 @@ async def login(credentials: UserLogin, request: Request):
     if not user.get("is_active", True):
         raise HTTPException(status_code=401, detail="Account disabled")
     
+    # Enforce temporary password 48h expiry
+    if user.get("password_is_temporary") and user.get("password_must_change_before"):
+        try:
+            expiry = datetime.fromisoformat(user["password_must_change_before"].replace("Z", "+00:00"))
+            if datetime.now(timezone.utc) > expiry:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Mot de passe temporaire expiré. Utilisez 'Mot de passe oublié' pour le réinitialiser.",
+                )
+        except (ValueError, AttributeError):
+            pass
+
+    # Block legacy login if 2FA is enabled — force user through /auth/login/challenge
+    if user.get("two_factor_enabled"):
+        raise HTTPException(
+            status_code=400,
+            detail="2FA activée — utilisez le nouveau flux de connexion (/auth/login/challenge)",
+        )
+
     access_token = create_access_token(user["id"], user["email"], user["role"])
     refresh_token = create_refresh_token(user["id"])
     
@@ -4882,6 +4901,19 @@ v2_router.include_router(projects_v2_router)
 v2_router.include_router(mobile_router)
 v2_router.include_router(catalog_router)
 
+# Auth extensions (password change, forgot/reset, 2FA, login challenge) — must be
+# added to v1_router BEFORE api_router.include_router(v1_router) below
+from routers.auth_extensions import build_auth_router  # noqa: E402
+auth_ext_router = build_auth_router(
+    db=db,
+    get_current_user=get_current_user,
+    create_access_token=create_access_token,
+    create_refresh_token=create_refresh_token,
+    create_audit_log=create_audit_log,
+    frontend_url=os.environ.get("FRONTEND_URL", "https://cmgeorges.ca"),
+)
+v1_router.include_router(auth_ext_router)
+
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)
 
@@ -4913,3 +4945,23 @@ async def startup_run_migrations():
             logger.info(f"portfolio_migration result: {result}")
     except Exception as e:
         logger.error(f"portfolio_migration failed: {e}")
+    try:
+        from migrations.admin_seed import run_admin_seed
+        from config.brand import Brand
+        result = await run_admin_seed(
+            db,
+            brand_email=Brand.EMAIL,
+            brand_name=Brand.NAME,
+            frontend_url=os.environ.get("FRONTEND_URL", "https://cmgeorges.ca"),
+        )
+        logger.info(f"admin_seed result: {result}")
+    except Exception as e:
+        logger.error(f"admin_seed failed: {e}")
+    # Indexes for auth-extensions collections
+    try:
+        await db.password_reset_tokens.create_index("expires_at")
+        await db.email_2fa_codes.create_index("expires_at")
+        await db.password_reset_attempts.create_index("created_at")
+        await db.users.create_index("email", unique=True)
+    except Exception as e:
+        logger.warning(f"index creation: {e}")

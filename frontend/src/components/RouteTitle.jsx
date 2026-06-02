@@ -48,6 +48,9 @@ const TITLE_MAP = [
   { match: (p) => p === '/admin/catalog', title: 'Admin · Catalogue' },
   { match: (p) => p === '/admin/portfolio', title: 'Admin · Portfolio' },
   { match: (p) => p === '/admin/social', title: 'Admin · Réseaux sociaux' },
+  { match: (p) => p === '/admin/profile', title: 'Admin · Mon profil' },
+  { match: (p) => p === '/mot-de-passe-oublie', title: 'Mot de passe oublié' },
+  { match: (p) => p === '/reinitialiser-mot-de-passe', title: 'Réinitialiser le mot de passe' },
 ];
 
 const SITE_NAME = 'Déco Touché';

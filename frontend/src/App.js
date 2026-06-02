@@ -17,6 +17,9 @@ import PaymentCancelPage from "@/pages/PaymentCancelPage";
 import MobilierPage from "@/pages/MobilierPage";
 import DemolitionPage from "@/pages/DemolitionPage";
 import PortfolioPage from "@/pages/PortfolioPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/ResetPasswordPage";
+import AdminProfile from "@/pages/admin/AdminProfile";
 import SoumissionPage from "@/pages/SoumissionPage";
 import ContactPage from "@/pages/ContactPage";
 import FAQPage from "@/pages/FAQPage";
@@ -190,6 +193,10 @@ function App() {
             {/* Unified Login Page */}
             <Route path="/connexion" element={<LoginPage />} />
             <Route path="/login" element={<LoginPage />} />
+
+            {/* Password reset flow (public) */}
+            <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
+            <Route path="/reinitialiser-mot-de-passe" element={<ResetPasswordPage />} />
             
             {/* Client Portal - New */}
             <Route path="/client/login" element={<ClientLogin />} />
@@ -222,6 +229,7 @@ function App() {
               <Route path="/admin/catalog" element={<AdminCatalog />} />
               <Route path="/admin/portfolio" element={<AdminPortfolio />} />
               <Route path="/admin/social" element={<AdminSocial />} />
+              <Route path="/admin/profile" element={<AdminProfile />} />
             </Route>
           </Routes>
         </BrowserRouter>

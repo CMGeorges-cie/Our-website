@@ -39,6 +39,19 @@ api.interceptors.response.use(
 export const authApi = {
   login: (email, password) => api.post('/auth/login', { email, password }),
   getMe: () => api.get('/auth/me'),
+  // 2FA-aware login flow
+  loginChallenge: (email, password) => api.post('/auth/login/challenge', { email, password }),
+  loginVerify2FA: (challenge_token, code) => api.post('/auth/login/verify-2fa', { challenge_token, code }),
+  // Password management
+  changePassword: (current_password, new_password) => api.post('/auth/change-password', { current_password, new_password }),
+  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
+  resetPassword: (token, new_password) => api.post('/auth/reset-password', { token, new_password }),
+  // 2FA management
+  get2FAStatus: () => api.get('/auth/2fa/status'),
+  setup2FATotp: () => api.post('/auth/2fa/totp/setup'),
+  activate2FATotp: (code) => api.post('/auth/2fa/totp/activate', { code }),
+  activate2FAEmail: () => api.post('/auth/2fa/email/activate'),
+  disable2FA: (current_password, code) => api.post('/auth/2fa/disable', { current_password, code }),
 };
 
 // Public API

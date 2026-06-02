@@ -21,7 +21,8 @@ import {
   Moon,
   Package,
   ImageIcon,
-  Share2
+  Share2,
+  KeyRound
 } from 'lucide-react';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ const sidebarLinks = [
 ];
 
 const settingsLinks = [
+  { href: '/admin/profile', label: 'Mon profil & Sécurité', icon: KeyRound },
   { href: '/admin/users', label: 'Utilisateurs', icon: UserCog },
   { href: '/admin/blog', label: 'Blog', icon: BookOpen },
   { href: '/admin/discounts', label: 'Codes Promo', icon: Tag },

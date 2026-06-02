@@ -60,17 +60,56 @@ export default function AdminLogin() {
     };
   }, []);
 
+  const [challenge, setChallenge] = useState(null); // { challenge_token, method }
+  const [otp, setOtp] = useState('');
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await authApi.login(credentials.email, credentials.password);
-      setAuthData(response.data.access_token, response.data.user);
-      toast.success('Connexion réussie!');
-      navigate('/admin/dashboard');
+      const response = await authApi.loginChallenge(credentials.email, credentials.password);
+      const d = response.data;
+      if (d.challenge_required) {
+        setChallenge({ challenge_token: d.challenge_token, method: d.method });
+        toast.info(d.method === 'email'
+          ? 'Code envoyé par courriel'
+          : 'Entrez le code de votre application TOTP');
+      } else {
+        setAuthData(d.access_token, d.user);
+        if (d.must_change_password) {
+          toast.warning('Vous devez changer votre mot de passe');
+          navigate('/admin/profile');
+        } else {
+          toast.success('Connexion réussie!');
+          navigate('/admin/dashboard');
+        }
+      }
     } catch (error) {
       toast.error('Identifiants invalides', {
         description: error.response?.data?.detail || 'Vérifiez votre email et mot de passe'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify2FA = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await authApi.loginVerify2FA(challenge.challenge_token, otp);
+      const d = response.data;
+      setAuthData(d.access_token, d.user);
+      if (d.must_change_password) {
+        toast.warning('Vous devez changer votre mot de passe');
+        navigate('/admin/profile');
+      } else {
+        toast.success('Connexion réussie!');
+        navigate('/admin/dashboard');
+      }
+    } catch (error) {
+      toast.error('Code invalide', {
+        description: error.response?.data?.detail || 'Vérifiez le code et réessayez'
       });
     } finally {
       setLoading(false);
@@ -121,48 +160,91 @@ export default function AdminLogin() {
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl shadow-2xl p-8" data-testid="login-card">
           <h2 className="text-xl font-semibold text-white mb-6 text-center">Administration</h2>
 
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <Label htmlFor="email" className="text-white/70 text-sm mb-1.5 block">Courriel</Label>
-              <Input
-                id="email"
-                type="email"
-                value={credentials.email}
-                onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
-                placeholder="admin@cmgeorges.com"
-                required
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-yellow-400 focus:ring-yellow-400/20"
-                data-testid="login-email"
-              />
-            </div>
+          <form onSubmit={challenge ? handleVerify2FA : handleLogin} className="space-y-5">
+            {!challenge && (
+              <>
+                <div>
+                  <Label htmlFor="email" className="text-white/70 text-sm mb-1.5 block">Courriel</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={credentials.email}
+                    onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                    placeholder="admin@cmgeorges.com"
+                    required
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-yellow-400 focus:ring-yellow-400/20"
+                    data-testid="login-email"
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="password" className="text-white/70 text-sm mb-1.5 block">Mot de passe</Label>
-              <Input
-                id="password"
-                type="password"
-                value={credentials.password}
-                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                placeholder="••••••••"
-                required
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-yellow-400 focus:ring-yellow-400/20"
-                data-testid="login-password"
-              />
-            </div>
+                <div>
+                  <Label htmlFor="password" className="text-white/70 text-sm mb-1.5 block">Mot de passe</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={credentials.password}
+                    onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                    placeholder="••••••••"
+                    required
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-yellow-400 focus:ring-yellow-400/20"
+                    data-testid="login-password"
+                  />
+                </div>
+              </>
+            )}
+
+            {challenge && (
+              <div>
+                <Label htmlFor="otp" className="text-white/70 text-sm mb-1.5 block">
+                  Code de vérification (6 chiffres) — {challenge.method === 'email' ? 'envoyé par email' : 'application TOTP'}
+                </Label>
+                <Input
+                  id="otp"
+                  type="text"
+                  inputMode="numeric"
+                  autoFocus
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  required
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-yellow-400 focus:ring-yellow-400/20 text-center text-2xl tracking-widest"
+                  data-testid="login-otp"
+                />
+              </div>
+            )}
 
             <Button
               type="submit"
               className="w-full bg-yellow-400 hover:bg-yellow-300 text-[#23153c] font-bold py-3 rounded-xl transition-all duration-200 shadow-lg shadow-yellow-400/20 hover:shadow-yellow-400/40 hover:scale-[1.01]"
               disabled={loading}
-              data-testid="login-submit-btn"
+              data-testid={challenge ? "login-verify-btn" : "login-submit-btn"}
             >
               {loading ? (
-                <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-[#23153c] border-t-transparent rounded-full animate-spin"></div>Connexion...</span>
+                <span className="flex items-center gap-2"><div className="w-4 h-4 border-2 border-[#23153c] border-t-transparent rounded-full animate-spin"></div>{challenge ? 'Vérification...' : 'Connexion...'}</span>
               ) : (
-                <span className="flex items-center justify-center gap-2"><LogIn className="h-4 w-4" />Se connecter</span>
+                <span className="flex items-center justify-center gap-2"><LogIn className="h-4 w-4" />{challenge ? 'Vérifier le code' : 'Se connecter'}</span>
               )}
             </Button>
+
+            {challenge && (
+              <button
+                type="button"
+                onClick={() => { setChallenge(null); setOtp(''); }}
+                className="w-full text-white/50 hover:text-white text-xs"
+              >
+                ← Recommencer
+              </button>
+            )}
           </form>
+
+          {!challenge && (
+            <div className="mt-3 text-center">
+              <Link to="/mot-de-passe-oublie" className="text-white/60 hover:text-yellow-400 text-sm" data-testid="forgot-password-link">
+                Mot de passe oublié ?
+              </Link>
+            </div>
+          )}
 
           {/* Client Portal Link */}
           <div className="mt-4 text-center">
