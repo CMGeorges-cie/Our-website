@@ -88,7 +88,7 @@ export default function AdminLogin() {
     } catch (error) {
       if (error.response?.data?.message === 'Database already seeded') {
         toast.info('Base de données déjà initialisée');
-        setCredentials({ email: 'admin@cmgeorges.com', password: 'strongpassword123' });
+        // No hardcoded fallback — user must enter their own credentials
       } else {
         toast.error('Erreur lors de l\'initialisation');
       }

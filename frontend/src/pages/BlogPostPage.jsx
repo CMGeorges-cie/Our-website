@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { blogApi } from '@/lib/api';
@@ -116,10 +117,10 @@ export default function BlogPostPage() {
                 </p>
               )}
               
-              {/* Content */}
+              {/* Content (HTML sanitized via DOMPurify to prevent XSS) */}
               <div 
                 className="prose prose-lg max-w-none prose-headings:text-[#1a365d] prose-a:text-[#d4af37]"
-                dangerouslySetInnerHTML={{ __html: post.content || '' }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }}
               />
               
               {/* Tags */}
