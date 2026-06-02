@@ -4901,3 +4901,15 @@ app.add_middleware(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+@app.on_event("startup")
+async def startup_run_migrations():
+    """Run idempotent migrations on every backend startup."""
+    try:
+        from migrations.portfolio_migration import run_portfolio_migration
+        result = await run_portfolio_migration(db)
+        if result:
+            logger.info(f"portfolio_migration result: {result}")
+    except Exception as e:
+        logger.error(f"portfolio_migration failed: {e}")
