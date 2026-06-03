@@ -44,6 +44,7 @@ export const authApi = {
   loginVerify2FA: (challenge_token, code) => api.post('/auth/login/verify-2fa', { challenge_token, code }),
   // Password management
   changePassword: (current_password, new_password) => api.post('/auth/change-password', { current_password, new_password }),
+  changeEmail: (current_password, new_email) => api.post('/auth/change-email', { current_password, new_email }),
   forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
   resetPassword: (token, new_password) => api.post('/auth/reset-password', { token, new_password }),
   // 2FA management

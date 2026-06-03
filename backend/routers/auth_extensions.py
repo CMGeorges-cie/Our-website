@@ -50,6 +50,11 @@ SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
 
 # ---- Pydantic models --------------------------------------------------------
 
+class ChangeEmailRequest(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_email: EmailStr
+
+
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(min_length=1)
     new_password: str = Field(min_length=8, max_length=200)
@@ -203,6 +208,47 @@ def build_auth_router(db, get_current_user, create_access_token, create_refresh_
         )
         await create_audit_log("password_changed", "user", user["id"], user=user, request=request)
         return {"success": True, "message": "Mot de passe mis à jour"}
+
+    # ---- Change email (authenticated) ---------------------------------------
+
+    @router.post("/change-email")
+    async def change_email(body: ChangeEmailRequest, request: Request,
+                            user: dict = Depends(get_current_user)):
+        db_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        if not verify_password(body.current_password, db_user.get("password_hash", "")):
+            raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect")
+
+        new_email = body.new_email.strip().lower()
+        if new_email == (db_user.get("email") or "").lower():
+            raise HTTPException(status_code=400, detail="Le nouveau courriel est identique à l'actuel")
+
+        # Reject if already used by another user
+        existing = await db.users.find_one({"email": new_email, "id": {"$ne": user["id"]}}, {"_id": 0, "id": 1})
+        if existing:
+            raise HTTPException(status_code=409, detail="Ce courriel est déjà utilisé")
+
+        old_email = db_user.get("email")
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$set": {"email": new_email, "email_changed_at": _now().isoformat()}},
+        )
+        await create_audit_log("email_changed", "user", user["id"], user=user, request=request)
+
+        # Best-effort notification to the OLD email so the user is aware
+        if old_email:
+            html = f"""
+            <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;">
+              <h2 style="color:#1a365d;">Adresse courriel modifiée</h2>
+              <p>Le courriel associé à votre compte {Brand.NAME} vient d'être changé pour&nbsp;: <strong>{new_email}</strong>.</p>
+              <p style="color:#c0392b;">Si vous n'êtes pas à l'origine de cette modification, contactez immédiatement le support.</p>
+              <p style="color:#999;font-size:11px;">{Brand.NAME} · {Brand.PHONE_DISPLAY} · {Brand.EMAIL}</p>
+            </div>
+            """
+            await _send_email(old_email, f"Adresse courriel modifiée — {Brand.NAME}", html)
+
+        return {"success": True, "email": new_email}
 
     # ---- Forgot / Reset password --------------------------------------------
 

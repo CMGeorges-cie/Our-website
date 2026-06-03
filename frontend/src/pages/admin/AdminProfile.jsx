@@ -5,8 +5,68 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { authApi } from '@/lib/api';
-import { Lock, Shield, Smartphone, Mail, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Lock, Mail, Shield, Smartphone, Loader2, CheckCircle, AlertCircle, AtSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { getCurrentUser, setAuthData } from '@/lib/utils';
+
+function ChangeEmailCard() {
+  const [currentEmail, setCurrentEmail] = useState(getCurrentUser()?.email || '');
+  const [newEmail, setNewEmail] = useState('');
+  const [pwd, setPwd] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!newEmail || !pwd) return;
+    setLoading(true);
+    try {
+      const { data } = await authApi.changeEmail(pwd, newEmail);
+      toast.success('Courriel mis à jour');
+      // Refresh local user object so the sidebar/UI reflects the change
+      const user = getCurrentUser() || {};
+      const token = localStorage.getItem('access_token') || localStorage.getItem('token') || '';
+      setAuthData(token, { ...user, email: data.email });
+      setCurrentEmail(data.email);
+      setNewEmail(''); setPwd('');
+    } catch (err) {
+      const detail = err.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Erreur');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <Card className="bg-card border-border" data-testid="change-email-card">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><AtSign className="h-5 w-5" /> Adresse courriel</CardTitle>
+        <CardDescription>
+          Changez l'adresse associée à votre compte administrateur.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground mb-3">
+          Courriel actuel : <strong className="text-foreground">{currentEmail}</strong>
+        </p>
+        <form onSubmit={submit} className="space-y-3">
+          <div>
+            <Label>Nouveau courriel</Label>
+            <Input type="email" required value={newEmail} onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="nouveau@email.com" data-testid="ce-new" />
+          </div>
+          <div>
+            <Label>Mot de passe actuel (sécurité)</Label>
+            <Input type="password" required value={pwd} onChange={(e) => setPwd(e.target.value)}
+              data-testid="ce-pwd" />
+          </div>
+          <Button type="submit" disabled={loading} className="bg-gold-500 hover:bg-gold-600 text-background"
+            data-testid="ce-submit">
+            {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            Mettre à jour le courriel
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
 
 function ChangePasswordCard() {
   const [cur, setCur] = useState('');
@@ -226,8 +286,11 @@ export default function AdminProfile() {
         <p className="text-muted-foreground">Gérez votre mot de passe et la double authentification.</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChangeEmailCard />
         <ChangePasswordCard />
-        <TwoFactorCard />
+        <div className="lg:col-span-2">
+          <TwoFactorCard />
+        </div>
       </div>
     </div>
   );
