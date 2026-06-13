@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Hammer, CheckCircle, ArrowRight, Phone } from 'lucide-react';
-import { CMGEORGES_PHONE_LINK } from '@/lib/utils';
+import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
 const services = [
   'Pose et remplacement de planchers (flottant, vinyle)',

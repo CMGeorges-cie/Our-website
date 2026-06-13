@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Wrench, CheckCircle, ArrowRight, Phone } from 'lucide-react';
-import { CMGEORGES_PHONE_LINK } from '@/lib/utils';
+import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
 const services = [
   'Réparations mineures (trous, fissures, bosses)',
