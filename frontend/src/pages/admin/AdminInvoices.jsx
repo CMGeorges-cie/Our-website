@@ -9,13 +9,13 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { adminApi, apiV2 } from '@/lib/api';
+import { adminApi, apiV2, aiApi } from '@/lib/api';
 import { formatDateShort, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { 
   Eye, Plus, Trash2, Download, Printer, Send, Search, 
   Package, DollarSign, Percent, FileText, User, Calendar,
-  CheckCircle, Clock, AlertCircle, X, Copy, ArrowRight
+  CheckCircle, Clock, AlertCircle, X, Copy, ArrowRight, Sparkles, Loader2
 } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -101,6 +101,8 @@ export default function AdminInvoices() {
   const [sendingId, setSendingId] = useState(null);
   const [activeTab, setActiveTab] = useState('manual');
   const [catalogSearch, setCatalogSearch] = useState('');
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
   
   // Form state
   const [form, setForm] = useState({
@@ -262,6 +264,37 @@ export default function AdminInvoices() {
 
   // Line management
   const addLine = () => setForm(f => ({ ...f, lines: [...f.lines, { ...emptyLine }] }));
+  const handleAIInvoiceDraft = async () => {
+    if (!form.client_id) { toast.error('Sélectionnez un client avant'); return; }
+    setAiLoading(true);
+    try {
+      const res = await aiApi.draftInvoice({
+        client_id: form.client_id || null,
+        prompt: aiPrompt || null,
+      });
+      const draft = res.data;
+      if (draft.lines && draft.lines.length > 0) {
+        setForm(f => ({
+          ...f,
+          lines: draft.lines.map(l => ({
+            description: l.description || '',
+            quantity: l.quantity || 1,
+            unit_price: l.unit_price || 0,
+            line_type: l.line_type === 'material' ? 'material' : 'service',
+            catalog_id: null,
+          })),
+          notes: draft.notes || f.notes,
+          payment_terms: draft.payment_terms === 'Net 15' ? 'net15' : draft.payment_terms === 'Net 30' ? 'net30' : f.payment_terms,
+        }));
+      }
+      toast.success("Brouillon généré par Claude. Vérifiez avant d'enregistrer.");
+    } catch (error) {
+      const detail = error.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Erreur lors de la génération IA');
+    } finally {
+      setAiLoading(false);
+    }
+  };
   const removeLine = (i) => setForm(f => ({ ...f, lines: f.lines.filter((_, idx) => idx !== i) }));
   const updateLine = (i, field, value) => setForm(f => ({ 
     ...f, 
@@ -607,7 +640,18 @@ export default function AdminInvoices() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <Label className="text-sm font-medium">Articles et services</Label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAIInvoiceDraft}
+                    disabled={aiLoading || !form.client_id}
+                    className="border-purple-500/40 text-purple-400 hover:bg-purple-500/10"
+                    data-testid="ai-draft-invoice-btn"
+                  >
+                    {aiLoading ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> IA...</> : <><Sparkles className="h-4 w-4 mr-1" /> Générer avec IA</>}
+                  </Button>
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -629,6 +673,17 @@ export default function AdminInvoices() {
                     Ligne
                   </Button>
                 </div>
+              </div>
+
+              <div className="mb-3">
+                <Textarea
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  rows={2}
+                  placeholder="Optionnel — précisions pour l'IA (ex: peinture salon + cuisine, 2 couches, 4 portes, 8h). Sinon, le client suffit."
+                  className="text-sm border-purple-500/20 bg-purple-500/5"
+                  data-testid="ai-invoice-prompt"
+                />
               </div>
 
               <div className="bg-background rounded-lg border border-border overflow-hidden">

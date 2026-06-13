@@ -15,10 +15,11 @@ const services = [
 ];
 
 const pricing = [
-  { service: 'Visite d\'entretien (2h min)', price: 'À partir de 120$', note: 'Petites réparations' },
+  { service: 'Visite d\'entretien (2h min)', price: 'À partir de 140$', note: 'Petites réparations' },
   { service: 'Calfeutrage complet', price: 'À partir de 200$', note: 'Résidentiel' },
   { service: 'Nettoyage après travaux', price: 'Sur devis', note: 'Selon surface' },
-  { service: 'Forfait entretien mensuel', price: 'Sur devis', note: 'Contrat annuel disponible' },
+  { service: 'Forfait entretien — Basique', price: 'À partir de 200$', note: 'Mensuel · 1 visite · réparations mineures incluses' },
+  { service: 'Forfait entretien — Premium', price: 'À partir de 450$', note: 'Mensuel · 2 visites · priorité d\'intervention' },
 ];
 
 export default function EntretienPage() {

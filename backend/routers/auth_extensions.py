@@ -351,7 +351,7 @@ def build_auth_router(db, get_current_user, create_access_token, create_refresh_
             }},
         )
         await create_audit_log("password_reset", "user", user["id"], user=user, request=request)
-        return {"success": True, "message": "Mot de passe réinitialisé"}
+        return {"success": True, "message": "Mot de passe réinitialisé", "role": user.get("role", "client")}
 
     # ---- 2FA setup / verify --------------------------------------------------
 

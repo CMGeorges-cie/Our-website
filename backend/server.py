@@ -4914,6 +4914,11 @@ auth_ext_router = build_auth_router(
 )
 v1_router.include_router(auth_ext_router)
 
+# AI-assisted drafting for quotes & invoices (Claude Sonnet 4.5 via Emergent LLM key)
+from routers.ai_drafts import build_ai_drafts_router  # noqa: E402
+ai_drafts_router = build_ai_drafts_router(db=db, get_current_user=get_current_user)
+v1_router.include_router(ai_drafts_router)
+
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)
 

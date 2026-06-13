@@ -131,6 +131,11 @@ export default function ClientLogin() {
               <Button type="submit" disabled={loading} className="w-full bg-yellow-400 hover:bg-yellow-300 text-[#23153c] font-bold py-3 rounded-xl" data-testid="client-login-submit">
                 {loading ? 'Connexion...' : <span className="flex items-center justify-center gap-2"><LogIn className="h-4 w-4" />Se connecter</span>}
               </Button>
+              <div className="text-center pt-1">
+                <Link to="/mot-de-passe-oublie?from=client" className="text-white/60 hover:text-yellow-400 text-sm" data-testid="client-forgot-password-link">
+                  Mot de passe oublié ?
+                </Link>
+              </div>
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">

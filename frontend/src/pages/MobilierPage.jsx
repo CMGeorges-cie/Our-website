@@ -31,15 +31,15 @@ const steps = [
 ];
 
 const pricing = [
-  { item: 'Lit (simple/double)', price: '75$', time: '1-2h' },
-  { item: 'Lit King/Queen avec tiroirs', price: '95-125$', time: '2-3h' },
-  { item: 'Commode (3-6 tiroirs)', price: '65$', time: '1h' },
-  { item: 'Garde-robe PAX (1 section)', price: '100$', time: '2h' },
-  { item: 'Garde-robe PAX (2+ sections)', price: '150-250$', time: '3-5h' },
-  { item: 'Bureau', price: '50-75$', time: '45min-1h' },
-  { item: 'Table à manger', price: '50-75$', time: '1h' },
-  { item: 'Étagère KALLAX/BILLY', price: '40-60$', time: '30-45min' },
-  { item: 'Ancrage mural (par meuble)', price: '25$', time: '15min' },
+  { item: 'Lit (simple/double)', price: 'À partir de 75$', time: '1-2h' },
+  { item: 'Lit King/Queen avec tiroirs', price: 'À partir de 95$', time: '2-3h' },
+  { item: 'Commode (3-6 tiroirs)', price: 'À partir de 65$', time: '1h' },
+  { item: 'Garde-robe PAX (1 section)', price: 'À partir de 100$', time: '2h' },
+  { item: 'Garde-robe PAX (2+ sections)', price: 'À partir de 150$', time: '3-5h' },
+  { item: 'Bureau', price: 'À partir de 50$', time: '45min-1h' },
+  { item: 'Table à manger', price: 'À partir de 50$', time: '1h' },
+  { item: 'Étagère KALLAX/BILLY', price: 'À partir de 40$', time: '30-45min' },
+  { item: 'Ancrage mural (par meuble)', price: 'À partir de 25$', time: '15min' },
 ];
 
 const faqs = [

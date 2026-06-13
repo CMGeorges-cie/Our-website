@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Hammer, CheckCircle, ArrowRight, Phone } from 'lucide-react';
+import { Hammer, CheckCircle, ArrowRight, Phone, Tv, Sun } from 'lucide-react';
 import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
 const services = [
@@ -12,11 +12,12 @@ const services = [
   'Pose de céramique (petites surfaces)',
   'Remplacement de portes intérieures',
   'Installation d\'étagères et rangements',
+  'Installation de TV murale (support fourni ou par le client)',
   'Retouches après déménagement',
 ];
 
 const pricing = [
-  { service: 'Pose de plancher flottant', price: 'À partir de 3$/pi²', note: 'Matériaux en sus' },
+  { service: 'Pose de plancher flottant', price: 'À partir de 3.50$/pi²', note: 'Matériaux en sus' },
   { service: 'Installation de moulures', price: 'À partir de 5$/pi linéaire', note: 'Matériaux inclus' },
   { service: 'Réparation gyproc', price: 'À partir de 150$', note: 'Par ouverture' },
   { service: 'Calfeutrage complet', price: 'À partir de 200$', note: 'Portes et fenêtres' },
@@ -73,6 +74,45 @@ export default function RenovationPage() {
             ))}
           </div>
           <p className="text-center text-xs text-gray-400 mt-6">* TPS et TVQ en sus. Acompte de 30 à 50% requis.</p>
+        </div>
+      </section>
+
+      {/* Summer TV mount Promo */}
+      <section className="py-12 bg-gradient-to-br from-[#1a365d] via-[#23153c] to-[#1a365d]" data-testid="tv-promo-section">
+        <div className="container-main">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-md border border-yellow-400/30 p-8 sm:p-10 shadow-2xl">
+              <div className="absolute top-0 right-0 -mt-4 -mr-4">
+                <span className="inline-flex items-center gap-1.5 bg-[#E07A5F] text-white text-xs font-bold uppercase px-4 py-2 rounded-full shadow-lg">
+                  <Sun className="h-3.5 w-3.5" /> Promo été 2026
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                <div className="w-20 h-20 rounded-2xl bg-yellow-400/20 flex items-center justify-center flex-shrink-0">
+                  <Tv className="h-10 w-10 text-yellow-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2 font-['Outfit']">
+                    Installation TV murale — <span className="text-yellow-400">Promo été</span>
+                  </h3>
+                  <p className="text-white/80 text-sm sm:text-base mb-4">
+                    Pose murale propre et sécuritaire pour toutes tailles d&apos;écran. Câblage dissimulé, ancrage adapté à votre mur, niveau garanti. Support fourni ou installation du vôtre.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <span className="inline-flex items-center gap-2 bg-yellow-400 text-[#1a365d] font-bold px-4 py-2 rounded-lg text-sm" data-testid="tv-promo-price">
+                      Tarif spécial sur demande
+                    </span>
+                    <Link to="/soumission?service=tv-murale">
+                      <Button className="bg-[#E07A5F] hover:bg-[#E07A5F]/90 text-white" data-testid="tv-promo-cta">
+                        Réserver ma promo <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                  <p className="text-white/50 text-xs mt-3">* Offre valable durant la saison estivale 2026. Devis personnalisé selon le type de mur et la taille du téléviseur.</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

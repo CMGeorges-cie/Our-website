@@ -1,0 +1,50 @@
+{
+  "summary": "Iteration 12 — Validated password-reset (admin + client + rate-limit + role-on-success) and the new Claude AI draft endpoints (/ai/draft-quote, /ai/draft-invoice). All 10 new pytest cases pass. Frontend sanity passes on RenovationPage TV promo, ClientLogin forgot-link, MobilierPage 'À partir de' rows, and EntretienPage prices (140$/200$/450$).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "MobilierPage /services/mobilier",
+        "issues": [
+          "React hydration warning: a <span data-ve-dynamic> wrapper (visual-editor instrumentation) is rendered between <tbody> and <tr>, producing 'In HTML, <span> cannot be a child of <tbody>' console errors. Not user-visible but pollutes console and risks hydration mismatches. Likely originates from the static-imported pricing array wrapper."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_auth_reset_and_ai_drafts.py",
+    "/app/test_reports/pytest/auth_ai_drafts_results.xml"
+  ],
+  "action_items": [
+    "(Optional, minor) Suppress the <span data-ve-dynamic> wrapper inside <tbody> on MobilierPage to clear the hydration warning; the same pattern may exist on other tabular pages."
+  ],
+  "critical_code_review_comments": [
+    "auth_extensions: rate-limit window is 15 min and threshold is 3 (RATE_LIMIT_RESET_MAX=3), so the 4th request correctly yields 429 — confirmed by test.",
+    "reset-password correctly returns {success, message, role} (defaults to 'client' if role is unset). Frontend can branch on role to pick admin vs. client login.",
+    "ai_drafts: prompt-only path works end-to-end with the seeded EMERGENT_LLM_KEY; Claude returns valid JSON parsed by AIQuoteDraft/AIInvoiceDraft Pydantic models. No 500/502s observed in ~20s round-trips.",
+    "_extract_json fallback handles ```json fenced replies — good defensive parsing.",
+    "Reset-password endpoint scans all unused/non-expired tokens with bcrypt.checkpw — O(n) but bounded to 200 docs; acceptable for current scale.",
+    "Tests deliberately reset admin password back to ADMIN_PASSWORD so the seeded credential remains valid for subsequent runs (idempotent)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_auth_reset_and_ai_drafts.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 new tests passed)",
+    "frontend": "100% (4/4 page checks passed)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@cmgeorges.com",
+    "admin_password": "strongpassword123"
+  },
+  "seed_data_creation": "Test inserts a temporary password_reset_tokens doc for the admin user (used immediately and marked used_at). Also creates a TEST_client_*@example.com client via /api/v1/client/register; left in DB (harmless).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "New test file /app/backend/tests/test_auth_reset_and_ai_drafts.py is reusable as a regression. It depends on MONGO_URL and DB_NAME being in the backend env (which they are). The reset-password test resets admin password to the SAME value to keep the seeded login working. AI tests take ~15-25s due to live Claude calls.",
+  "rca of the issue": "No bugs found in the under-test features. The only console-level issue is a pre-existing React hydration warning on MobilierPage caused by the visual-editor's <span data-ve-dynamic> wrapper inside <tbody> — not introduced by this iteration's work."
+}

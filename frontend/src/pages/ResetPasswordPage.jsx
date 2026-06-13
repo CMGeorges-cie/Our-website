@@ -27,9 +27,10 @@ export default function ResetPasswordPage() {
     if (pwd !== pwd2) return toast.error('Les deux mots de passe ne correspondent pas');
     setLoading(true);
     try {
-      await authApi.resetPassword(token, pwd);
+      const res = await authApi.resetPassword(token, pwd);
+      const role = res?.data?.role;
       toast.success('Mot de passe réinitialisé. Vous pouvez vous connecter.');
-      navigate('/admin/login');
+      navigate(role && role !== 'admin' && role !== 'ceo' && role !== 'manager' && role !== 'staff' ? '/client/login' : '/admin/login');
     } catch (err) {
       const detail = err.response?.data?.detail;
       toast.error(typeof detail === 'string' ? detail : 'Lien invalide ou expiré');

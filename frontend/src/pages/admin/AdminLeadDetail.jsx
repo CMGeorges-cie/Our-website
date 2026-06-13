@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { adminApi } from '@/lib/api';
+import { adminApi, aiApi } from '@/lib/api';
 import { 
   formatDate, 
   formatCurrency, 
@@ -30,7 +30,9 @@ import {
   Clock,
   Package,
   Plus,
-  Trash2
+  Trash2,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 
 const statusOptions = [
@@ -67,6 +69,8 @@ export default function AdminLeadDetail() {
   const [urgencyFee, setUrgencyFee] = useState(0);
   const [quoteNotes, setQuoteNotes] = useState('');
   const [creatingQuote, setCreatingQuote] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -205,8 +209,39 @@ export default function AdminLeadDetail() {
     };
   };
 
-  const handleCreateQuote = async () => {
-    setCreatingQuote(true);
+  const handleAIDraft = async () => {
+    setAiLoading(true);
+    try {
+      const res = await aiApi.draftQuote({
+        lead_id: id,
+        prompt: aiPrompt || null,
+      });
+      const draft = res.data;
+      if (draft.lines && draft.lines.length > 0) {
+        setQuoteLines(draft.lines.map(l => ({
+          description: l.description || '',
+          quantity: l.quantity || 1,
+          unit_price: l.unit_price || 0,
+          market_price: 0,
+          line_type: l.line_type === 'material' ? 'material' : 'labor',
+        })));
+      }
+      if (draft.contingency_percent) {
+        setContingencyPercent(Math.min(20, Math.max(10, draft.contingency_percent)));
+      }
+      if (draft.notes || draft.summary) {
+        setQuoteNotes([draft.summary, draft.notes].filter(Boolean).join('\n\n'));
+      }
+      toast.success("Brouillon généré par Claude. Vérifiez et ajustez les prix avant d'envoyer.");
+    } catch (error) {
+      const detail = error.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Erreur lors de la génération IA');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleCreateQuote = async () => {    setCreatingQuote(true);
     try {
       const response = await adminApi.createQuote({
         lead_id: id,
@@ -409,6 +444,35 @@ export default function AdminLeadDetail() {
                 <CardTitle>Nouvelle soumission</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* AI Assistant */}
+                <div className="rounded-lg border border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50 p-4" data-testid="ai-draft-panel">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-purple-600" />
+                      <span className="font-semibold text-purple-900 text-sm">Assistant IA (Claude)</span>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleAIDraft}
+                      disabled={aiLoading}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                      data-testid="ai-draft-quote-btn"
+                    >
+                      {aiLoading ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Génération...</> : <><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Générer avec IA</>}
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    rows={2}
+                    placeholder="Optionnel : ajoutez des précisions (ex. : peinture 2 couches, 3 chambres, plafond inclus). Laissez vide pour utiliser uniquement les infos du lead."
+                    className="bg-white border-purple-200 text-sm"
+                    data-testid="ai-draft-prompt"
+                  />
+                  <p className="text-xs text-purple-700/70 mt-2">L&apos;IA pré-remplit les lignes à partir du lead et de votre prompt. Vérifiez toujours les prix avant d&apos;envoyer.</p>
+                </div>
+
                 {/* Lines */}
                 <div>
                   <div className="flex items-center justify-between mb-4">

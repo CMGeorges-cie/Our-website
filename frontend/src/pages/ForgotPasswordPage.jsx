@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,9 @@ import { Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ForgotPasswordPage() {
+  const [params] = useSearchParams();
+  const fromClient = params.get('from') === 'client';
+  const backTo = fromClient ? '/client/login' : '/admin/login';
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -47,8 +50,8 @@ export default function ForgotPasswordPage() {
                 Si <strong>{email}</strong> est associé à un compte, vous recevrez un courriel dans quelques minutes.
               </p>
               <p className="text-sm text-gray-500">Le lien est valide pendant 60 minutes et ne peut être utilisé qu'une seule fois.</p>
-              <Link to="/admin/login" className="inline-block mt-6">
-                <Button variant="outline"><ArrowLeft className="h-4 w-4 mr-2" /> Retour à la connexion</Button>
+              <Link to={backTo} className="inline-block mt-6">
+                <Button variant="outline" data-testid="forgot-password-back-btn"><ArrowLeft className="h-4 w-4 mr-2" /> Retour à la connexion</Button>
               </Link>
             </div>
           ) : (
@@ -78,7 +81,7 @@ export default function ForgotPasswordPage() {
                 {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 Envoyer le lien de réinitialisation
               </Button>
-              <Link to="/admin/login" className="block text-center text-sm text-gray-500 hover:text-[#1a365d]">
+              <Link to={backTo} className="block text-center text-sm text-gray-500 hover:text-[#1a365d]">
                 <ArrowLeft className="h-3 w-3 inline mr-1" /> Retour à la connexion
               </Link>
             </form>

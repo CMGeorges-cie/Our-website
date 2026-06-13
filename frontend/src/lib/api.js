@@ -223,6 +223,12 @@ export const saasApi = {
 // Seed API (dev)
 export const seedDatabase = () => axios.post(`${BACKEND_URL}/api/seed`);
 
+// AI drafting (Claude Sonnet 4.5) — admin only
+export const aiApi = {
+  draftQuote: (data) => api.post('/ai/draft-quote', data),
+  draftInvoice: (data) => api.post('/ai/draft-invoice', data),
+};
+
 // V2 API instance (mobile-ready endpoints)
 const apiV2 = axios.create({
   baseURL: `${BACKEND_URL}/api/v2`,
