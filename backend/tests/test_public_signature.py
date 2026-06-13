@@ -14,9 +14,8 @@ import os
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://serviceflow-preview.preview.emergentagent.com')
 
 # Test credentials
-ADMIN_EMAIL = "admin@cmgeorges.com"
-ADMIN_PASSWORD = "strongpassword123"
-
+ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "admin@cmgeorges.com")
+ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "strongpassword123")
 # Test invoice ID and token from the review request
 TEST_INVOICE_ID = "e103555e-113b-4551-b3e6-fc8bd7e61154"
 TEST_SIGNATURE_TOKEN = "8987aaa5a8266cb7ccdeceb9879a900d"

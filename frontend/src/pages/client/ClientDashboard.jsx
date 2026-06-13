@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,13 +23,7 @@ export default function ClientDashboard() {
   const [profile, setProfile] = useState({ full_name: '', email: '', phone: '', address: '' });
   const [savingProfile, setSavingProfile] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem('cmgeorges_token');
-    if (!token) { navigate('/connexion'); return; }
-    loadData();
-  }, [navigate]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [dashRes, projRes, invRes, profRes] = await Promise.allSettled([
         clientPortalApi.getDashboard(),
@@ -46,9 +40,16 @@ export default function ClientDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('cmgeorges_token');
+    if (!token) { navigate('/connexion'); return; }
+    loadData();
+  }, [navigate, loadData]);
 
   const handleLogout = () => {
+    clientPortalApi.logout().catch(() => {});
     localStorage.removeItem('cmgeorges_token');
     localStorage.removeItem('cmgeorges_user');
     navigate('/connexion');

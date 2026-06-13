@@ -26,7 +26,7 @@ import jwt
 import pyotp
 import qrcode
 import resend
-from fastapi import APIRouter, HTTPException, Request, Depends, status
+from fastapi import APIRouter, HTTPException, Request, Response, Depends, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field
 
@@ -156,7 +156,8 @@ async def _send_email(to: str, subject: str, html: str) -> bool:
 # ---- Router factory ---------------------------------------------------------
 
 def build_auth_router(db, get_current_user, create_access_token, create_refresh_token,
-                     create_audit_log, frontend_url: str) -> APIRouter:
+                     create_audit_log, frontend_url: str,
+                     set_auth_cookies=None, clear_auth_cookies=None) -> APIRouter:
     """
     Build the auth-extensions router. We accept dependencies as args to avoid
     a circular import with server.py.
@@ -482,7 +483,7 @@ def build_auth_router(db, get_current_user, create_access_token, create_refresh_
         await _send_email(u["email"], f"Code de vérification — {Brand.NAME}", html)
 
     @router.post("/login/challenge")
-    async def login_challenge(body: LoginChallengeRequest, request: Request):
+    async def login_challenge(body: LoginChallengeRequest, request: Request, response: Response):
         """First step of the 2FA-aware login. Returns either a session OR a challenge."""
         u = await db.users.find_one({"email": body.email}, {"_id": 0})
         if not u or not verify_password(body.password, u.get("password_hash", "")):
@@ -495,6 +496,8 @@ def build_auth_router(db, get_current_user, create_access_token, create_refresh_
             # No 2FA → normal session
             access = create_access_token(u["id"], u["email"], u["role"])
             refresh = create_refresh_token(u["id"])
+            if set_auth_cookies:
+                set_auth_cookies(response, access, refresh)
             await create_audit_log("user_login", "user", u["id"], user=u, request=request)
             user_response = {k: v for k, v in u.items() if k != "password_hash"}
             return {
@@ -517,7 +520,7 @@ def build_auth_router(db, get_current_user, create_access_token, create_refresh_
         }
 
     @router.post("/login/verify-2fa")
-    async def login_verify_2fa(body: LoginChallengeVerifyRequest, request: Request):
+    async def login_verify_2fa(body: LoginChallengeVerifyRequest, request: Request, response: Response):
         payload = _decode_challenge_token(body.challenge_token)
         if not payload:
             raise HTTPException(status_code=400, detail="Session de vérification expirée")
@@ -528,6 +531,8 @@ def build_auth_router(db, get_current_user, create_access_token, create_refresh_
             raise HTTPException(status_code=400, detail="Code de vérification invalide")
         access = create_access_token(u["id"], u["email"], u["role"])
         refresh = create_refresh_token(u["id"])
+        if set_auth_cookies:
+            set_auth_cookies(response, access, refresh)
         await create_audit_log("user_login_2fa", "user", u["id"], user=u, request=request)
         user_response = {k: v for k, v in u.items() if k != "password_hash"}
         return {

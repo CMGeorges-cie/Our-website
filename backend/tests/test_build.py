@@ -8,10 +8,8 @@ import asyncio
 import os
 
 BASE_URL = os.environ.get("TEST_URL", "http://localhost:8001")
-ADMIN_EMAIL = "admin@cmgeorges.com"
-ADMIN_PASSWORD = "strongpassword123"
-
-
+ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "admin@cmgeorges.com")
+ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "strongpassword123")
 @pytest.fixture(scope="module")
 def event_loop():
     loop = asyncio.new_event_loop()

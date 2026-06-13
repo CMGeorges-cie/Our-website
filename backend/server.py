@@ -76,7 +76,44 @@ api_router = APIRouter(prefix="/api")
 v1_router = APIRouter(prefix="/v1")
 admin_router = APIRouter(prefix="/admin")
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
+
+# Cookie names for httpOnly token storage (security hardening — protects against XSS token theft)
+COOKIE_ACCESS_TOKEN = "dt_access_token"
+COOKIE_REFRESH_TOKEN = "dt_refresh_token"
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "true").lower() == "true"
+COOKIE_SAMESITE = os.environ.get("COOKIE_SAMESITE", "lax")  # lax works for same-site, none for cross-site (requires Secure)
+COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN") or None  # leave None for host-only
+
+def set_auth_cookies(response, access_token: str, refresh_token: str | None = None):
+    """Set httpOnly auth cookies on the response (xss-safe)."""
+    from datetime import timedelta
+    response.set_cookie(
+        key=COOKIE_ACCESS_TOKEN,
+        value=access_token,
+        max_age=int(timedelta(hours=24).total_seconds()),
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+        domain=COOKIE_DOMAIN,
+        path="/",
+    )
+    if refresh_token:
+        response.set_cookie(
+            key=COOKIE_REFRESH_TOKEN,
+            value=refresh_token,
+            max_age=int(timedelta(days=30).total_seconds()),
+            httponly=True,
+            secure=COOKIE_SECURE,
+            samesite=COOKIE_SAMESITE,
+            domain=COOKIE_DOMAIN,
+            path="/",
+        )
+
+def clear_auth_cookies(response):
+    """Clear auth cookies on logout."""
+    response.delete_cookie(COOKIE_ACCESS_TOKEN, path="/", domain=COOKIE_DOMAIN)
+    response.delete_cookie(COOKIE_REFRESH_TOKEN, path="/", domain=COOKIE_DOMAIN)
 
 # Configure logging
 logging.basicConfig(
@@ -780,9 +817,22 @@ def create_refresh_token(user_id: str) -> str:
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+def _extract_token(request: Request, credentials: HTTPAuthorizationCredentials | None) -> str | None:
+    """Extract JWT from Authorization header (preferred) or httpOnly cookie."""
+    if credentials and credentials.credentials:
+        return credentials.credentials
+    return request.cookies.get(COOKIE_ACCESS_TOKEN)
+
+
+async def get_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict:
+    token = _extract_token(request, credentials)
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         if payload.get("type") != "access":
             raise HTTPException(status_code=401, detail="Invalid token type")
         user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
@@ -799,10 +849,16 @@ async def require_admin(user: dict = Depends(get_current_user)) -> dict:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
-async def get_current_client(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
-    """Get the current client from JWT token and return their client record"""
+async def get_current_client(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> dict:
+    """Get the current client from JWT token (cookie or header) and return their client record"""
+    token = _extract_token(request, credentials)
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     try:
-        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         if payload.get("type") != "access":
             raise HTTPException(status_code=401, detail="Invalid token type")
         
@@ -1331,7 +1387,7 @@ async def get_pricing():
 
 # ==================== AUTH ENDPOINTS ====================
 @v1_router.post("/auth/login", response_model=TokenResponse)
-async def login(credentials: UserLogin, request: Request):
+async def login(credentials: UserLogin, request: Request, response: Response):
     """Admin/Staff login (legacy single-step). For 2FA flow use /auth/login/challenge."""
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not verify_password(credentials.password, user.get("password_hash", "")):
@@ -1361,13 +1417,24 @@ async def login(credentials: UserLogin, request: Request):
 
     access_token = create_access_token(user["id"], user["email"], user["role"])
     refresh_token = create_refresh_token(user["id"])
-    
+
+    # Set httpOnly cookies (defense against XSS token theft)
+    set_auth_cookies(response, access_token, refresh_token)
+
     # Audit log
     await create_audit_log("user_login", "user", user["id"], user=user, request=request)
     
     user_response = {k: v for k, v in user.items() if k != "password_hash"}
     
     return TokenResponse(access_token=access_token, refresh_token=refresh_token, user=user_response)
+
+
+@v1_router.post("/auth/logout")
+async def logout(response: Response):
+    """Clear httpOnly auth cookies."""
+    clear_auth_cookies(response)
+    return {"success": True}
+
 
 @v1_router.post("/auth/refresh", response_model=TokenResponse)
 async def refresh_token(request: RefreshTokenRequest):
@@ -4063,7 +4130,7 @@ class ClientLogin(BaseModel):
 client_router = APIRouter(prefix="/client")
 
 @client_router.post("/register")
-async def client_register(data: ClientRegister):
+async def client_register(data: ClientRegister, response: Response):
     """Register a new client portal user"""
     existing = await db.users.find_one({"email": data.email})
     if existing:
@@ -4096,10 +4163,11 @@ async def client_register(data: ClientRegister):
     }
     await db.clients.insert_one(client_record)
     token = create_access_token(user_id, data.email, "client")
+    set_auth_cookies(response, token)
     return {"access_token": token, "user": {"id": user_id, "email": data.email, "full_name": data.full_name, "role": "client"}}
 
 @client_router.post("/login")
-async def client_login(credentials: ClientLogin):
+async def client_login(credentials: ClientLogin, response: Response):
     """Client portal login"""
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user:
@@ -4112,7 +4180,13 @@ async def client_login(credentials: ClientLogin):
     if not user.get("is_active", True):
         raise HTTPException(status_code=403, detail="Compte désactivé")
     token = create_access_token(user["id"], user["email"], user.get("role", "client"))
+    set_auth_cookies(response, token)
     return {"access_token": token, "user": {"id": user["id"], "email": user["email"], "full_name": user.get("full_name", ""), "role": user.get("role", "client")}}
+
+@client_router.post("/logout")
+async def client_logout(response: Response):
+    clear_auth_cookies(response)
+    return {"success": True}
 
 @client_router.get("/dashboard")
 async def client_dashboard(user: dict = Depends(get_current_user)):
@@ -4911,6 +4985,8 @@ auth_ext_router = build_auth_router(
     create_refresh_token=create_refresh_token,
     create_audit_log=create_audit_log,
     frontend_url=os.environ.get("FRONTEND_URL", "https://cmgeorges.ca"),
+    set_auth_cookies=set_auth_cookies,
+    clear_auth_cookies=clear_auth_cookies,
 )
 v1_router.include_router(auth_ext_router)
 

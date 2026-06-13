@@ -4,14 +4,18 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API_BASE = `${BACKEND_URL}/api/v1`;
 
 // Create axios instance
+// withCredentials: true → browser sends httpOnly cookies (dt_access_token) automatically.
+// The Authorization header is still set when a localStorage token is present (backward compat
+// during migration; will be removed once all tokens flow via cookies).
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
-// Add auth token to requests
+// Backward-compat: still send Bearer token if it exists in localStorage
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('cmgeorges_token');
   if (token) {
@@ -38,6 +42,7 @@ api.interceptors.response.use(
 // Auth API
 export const authApi = {
   login: (email, password) => api.post('/auth/login', { email, password }),
+  logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
   // 2FA-aware login flow
   loginChallenge: (email, password) => api.post('/auth/login/challenge', { email, password }),
@@ -203,6 +208,7 @@ export const blogApi = {
 export const clientPortalApi = {
   register: (data) => api.post('/client/register', data),
   login: (email, password) => api.post('/client/login', { email, password }),
+  logout: () => api.post('/client/logout'),
   getDashboard: () => api.get('/client/dashboard'),
   getProjects: () => api.get('/client/projects'),
   getInvoices: () => api.get('/client/invoices'),
@@ -235,6 +241,7 @@ const apiV2 = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Add auth token to v2 requests

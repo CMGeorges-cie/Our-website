@@ -12,10 +12,8 @@ from datetime import datetime
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
 # Test credentials
-ADMIN_EMAIL = "admin@cmgeorges.com"
-ADMIN_PASSWORD = "strongpassword123"
-
-
+ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "admin@cmgeorges.com")
+ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "strongpassword123")
 class TestV2Authentication:
     """Tests for /api/v2/auth/* endpoints"""
     

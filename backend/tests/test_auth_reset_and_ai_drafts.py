@@ -24,10 +24,8 @@ if not BASE_URL:
 
 API = f"{BASE_URL}/api/v1"
 
-ADMIN_EMAIL = "admin@cmgeorges.com"
-ADMIN_PASSWORD = "strongpassword123"
-
-
+ADMIN_EMAIL = os.environ.get("TEST_ADMIN_EMAIL", "admin@cmgeorges.com")
+ADMIN_PASSWORD = os.environ.get("TEST_ADMIN_PASSWORD", "strongpassword123")
 # ---------------------- fixtures ---------------------------------------------
 
 @pytest.fixture(scope="module")
@@ -191,7 +189,9 @@ class TestResetPassword:
 
 class TestAIDrafts:
     def test_draft_quote_requires_auth(self, session):
-        r = session.post(f"{API}/ai/draft-quote", json={"prompt": "test"}, timeout=10)
+        # Use a fresh client without any session cookies to test true unauth path
+        import requests
+        r = requests.post(f"{API}/ai/draft-quote", json={"prompt": "test"}, timeout=10)
         assert r.status_code in (401, 403), f"expected 401/403, got {r.status_code}"
 
     def test_draft_quote_empty_body_returns_400(self, admin_client):

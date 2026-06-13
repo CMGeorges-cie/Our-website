@@ -5,6 +5,8 @@ import uuid
 from datetime import datetime
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+TEST_ADMIN_EMAIL = os.environ.get('TEST_ADMIN_EMAIL', 'admin@cmgeorges.com')
+TEST_ADMIN_PASSWORD = os.environ.get('TEST_ADMIN_PASSWORD', 'strongpassword123')
 
 @pytest.fixture
 def api_client():
@@ -17,8 +19,8 @@ def api_client():
 def auth_token(api_client):
     """Get authentication token"""
     response = api_client.post(f"{BASE_URL}/api/v1/auth/login", json={
-        "email": "admin@cmgeorges.com",
-        "password": "strongpassword123"
+        "email": TEST_ADMIN_EMAIL,
+        "password": TEST_ADMIN_PASSWORD
     })
     if response.status_code == 200:
         return response.json().get("access_token")

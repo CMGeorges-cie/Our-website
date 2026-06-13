@@ -24,6 +24,7 @@ import {
   Share2,
   KeyRound
 } from 'lucide-react';
+import { authApi } from '@/lib/api';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import LoadingLion from '@/components/LoadingLion';
@@ -89,6 +90,7 @@ export default function AdminLayout() {
   };
 
   const handleLogout = () => {
+    authApi.logout().catch(() => {});
     clearAuthData();
     navigate('/admin/login');
   };

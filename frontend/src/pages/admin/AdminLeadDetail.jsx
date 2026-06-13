@@ -51,6 +51,13 @@ const emptyLine = {
   line_type: 'labor'
 };
 
+const BASE_PRICES = {
+  bed: 85, dresser: 65, desk: 60, wardrobe: 125,
+  sofa: 75, table: 60, chair: 35, shelf: 50, other: 50,
+};
+
+const getBasePrice = (itemType) => BASE_PRICES[itemType] || 50;
+
 export default function AdminLeadDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -123,21 +130,6 @@ export default function AdminLeadDetail() {
     };
     fetchData();
   }, [id]);
-
-  const getBasePrice = (itemType) => {
-    const prices = {
-      bed: 85,
-      dresser: 65,
-      desk: 60,
-      wardrobe: 125,
-      sofa: 75,
-      table: 60,
-      chair: 35,
-      shelf: 50,
-      other: 50
-    };
-    return prices[itemType] || 50;
-  };
 
   const handleUpdateLead = async () => {
     setSaving(true);

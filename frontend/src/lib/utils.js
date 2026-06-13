@@ -129,7 +129,7 @@ export function setAuthData(token, user) {
   localStorage.setItem('cmgeorges_user', JSON.stringify(user));
 }
 
-// Clear auth data
+// Clear auth data (clears localStorage; the backend cookie is cleared by calling /auth/logout)
 export function clearAuthData() {
   localStorage.removeItem('cmgeorges_token');
   localStorage.removeItem('cmgeorges_user');

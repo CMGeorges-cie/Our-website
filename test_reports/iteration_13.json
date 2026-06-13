@@ -1,0 +1,51 @@
+{
+  "summary": "Iteration 13 — Validated new httpOnly cookie auth (dt_access_token, dt_refresh_token) on Déco Touché. Created /app/backend/tests/test_cookie_auth.py (6 tests, all passing). Re-ran full regression: 34/34 test_build.py + 9 passing + 1 skipped by design in test_auth_reset_and_ai_drafts.py. Frontend admin login → cookies set with HttpOnly+Secure+SameSite=Lax, dashboard loads with real stats (20 leads, 15 new, 4 quotes), logout cleared cookies (verified via direct fetch: /auth/me returns 401 and dt_* cookies removed).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Admin logout (AdminLayout.handleLogout)",
+        "issue": "handleLogout is fire-and-forget: authApi.logout().catch(()=>{}); navigate('/admin/login') — navigation runs before the logout request settles, so the Set-Cookie response that clears dt_* cookies may not always be applied before the user is redirected. Backend logout endpoint itself works correctly (verified). Suggest awaiting authApi.logout() (or using .finally) so cookies are deterministically cleared before navigation, to avoid any window where a back-button or refresh could land on a still-cookie'd state.",
+        "affected_selectors": ["[data-testid=\"admin-logout-btn\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_cookie_auth.py",
+    "/app/test_reports/pytest/cookie_auth_results.xml",
+    "/app/test_reports/pytest/regression_iter13.xml"
+  ],
+  "action_items": [
+    "(Optional, minor) In /app/frontend/src/components/layout/AdminLayout.jsx handleLogout, await authApi.logout() (or .finally(navigate)) so the Set-Cookie clearing response is honored before redirect — current backend behaviour works but the UX race is non-deterministic. Same pattern in ClientDashboard.handleLogout."
+  ],
+  "critical_code_review_comments": [
+    "set_auth_cookies correctly sets HttpOnly=true, Secure=COOKIE_SECURE(true by default), SameSite=lax, path=/, with 24h access TTL and 30d refresh TTL — matches the auth playbook.",
+    "_extract_token prefers Authorization Bearer header over cookie — correct order for backward compatibility (existing API clients and tests keep working).",
+    "/auth/logout and /client/logout are clean, idempotent (no auth required) — good: even an expired session can log out without throwing 401.",
+    "axios api & apiV2 both have withCredentials:true — matches CORS allow_credentials posture.",
+    "Backend test_logout_clears_cookies confirms Max-Age=0 on both Set-Cookie headers — browser jar clears properly when the request is awaited.",
+    "AdminLayout.handleLogout fires logout async and navigates synchronously — minor race; not a security issue (server-side cookie is still being invalidated on the response), but could leave a stale cookie in the jar if the response is in-flight when the SPA unmounts. Recommend awaiting.",
+    "test_login_challenge_no_2fa_sets_cookie passed — confirms admin currently has no 2FA enabled in preview; if 2FA is later enabled on this account, the test gracefully short-circuits."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_cookie_auth.py (new — 6 cookie regression tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6 new cookie tests + 34/34 test_build + 9/9 reset+AI passing — 1 pre-existing skip by design)",
+    "frontend": "100% (login → cookies → dashboard → logout → cookies cleared, all verified)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@cmgeorges.com",
+    "admin_password": "strongpassword123"
+  },
+  "seed_data_creation": "test_client_login_sets_cookie creates one TEST_cookie_<uuid>@example.com client portal user (harmless leftover, no admin user touched).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Reusable regression: /app/backend/tests/test_cookie_auth.py — runs in ~2s, covers cookie set on /auth/login, /auth/login/challenge (no-2FA path), /client/login, plus cookie-only /auth/me access, Bearer backward-compat, and /auth/logout cookie clearing. Set REACT_APP_BACKEND_URL env var. The client register payload uses field name 'full_name' (NOT 'name') — this caught me on the first run.",
+  "rca of the issue": "No bugs found in the cookie-auth implementation. The only minor improvement is the fire-and-forget logout pattern in AdminLayout/ClientDashboard (race between async logout request and synchronous navigate). Backend cookie clearing is verified correct via direct fetch from browser context (dt_* cookies removed and /auth/me returns 401 after logout)."
+}
