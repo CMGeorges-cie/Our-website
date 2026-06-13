@@ -89,8 +89,8 @@ export default function AdminLayout() {
     }
   };
 
-  const handleLogout = () => {
-    authApi.logout().catch(() => {});
+  const handleLogout = async () => {
+    try { await authApi.logout(); } catch (_) { /* ignore */ }
     clearAuthData();
     navigate('/admin/login');
   };

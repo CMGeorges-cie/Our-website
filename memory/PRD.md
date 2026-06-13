@@ -13,54 +13,53 @@
 - Config centralisée: `/app/frontend/src/config/brand.js` & `/app/backend/config/brand.py`
 
 ### Pages de services (tarifs « À partir de X$ »)
-- `/services/peinture` — Peinture intérieure & extérieure
-- `/services/renovation` — Rénovation légère (plancher flottant **3.50$/pi²**) + **Promo TV murale été 2026**
-- `/services/entretien` — Visite 140$, Forfait Basique 200$, Forfait Premium 450$
-- `/services/mobilier` — Assemblage IKEA/PAX/etc., tarifs préfixés « À partir de »
-- `/services/demolition` — Démolition légère
+- `/services/peinture`, `/services/renovation` (+**Promo TV murale été 2026**), `/services/entretien` (Visite 140$, Forfait Basique 200$, Premium 450$), `/services/mobilier`, `/services/demolition`
 
 ### CRM Admin
 - Leads, Clients, Projets, Devis, Factures (CRUD complet)
 - Dashboard CEO avec stats et revenus
-- **NEW (juin 2026)** Assistant IA Claude Sonnet 4.5 pour brouillons de devis et factures
+- **Assistant IA Claude Sonnet 4.5** pour brouillons de devis et factures (boutons "Générer avec IA")
 
-### Authentification sécurisée (admin + client)
+### Authentification sécurisée
+- **httpOnly cookies** (`dt_access_token`, `dt_refresh_token`, HttpOnly + Secure + SameSite=Lax) — protection XSS
+- Backward compat avec Authorization: Bearer header
 - JWT + bcrypt
-- **2FA** (TOTP via QR code ou code par email)
-- **Mot de passe oublié** — flow public rate-limité (3 req / 15 min) pour admins ET clients
-  - Lien email valide 60 min, à usage unique
-  - Reset retourne le rôle pour rediriger correctement
-- **Changement de mot de passe / email** dans `/admin/profile`
+- **2FA** (TOTP via QR ou code par email)
+- **Mot de passe oublié** — flow rate-limité 3 req / 15 min pour admins ET clients
+- **Changement mot de passe/email** dans `/admin/profile`
 - Mot de passe temporaire expirable 48h pour admin nouvellement provisionné
 
 ### Facturation
-- Création, PDF, envoi email
-- Calcul TPS/TVQ automatique
-- Signature électronique (in-app + DocuSign public)
-- Lien de paiement Stripe LIVE (dépôt 30-50%)
+- Création, PDF, envoi email, signature électronique
+- Stripe LIVE (dépôt 30-50%, signatures DocuSign style)
 
-### Portfolio
-- 5 vrais projets avec carrousel multi-photos
-- Tag automatique Avant/Après sur les 2 dernières photos
-- Admin: gestion ordre / ajout / suppression
+### Portfolio (7 projets)
+1. Porte intérieure — Réparation moulures
+2. Peinture mur jaune → blanc
+3. Réparation gypse + peinture
+4. Remplacement robinet de cuisine
+5. Rénovation chambre - lit & plancher
+6. **NEW** Changement de comptoir de cuisine (5 photos carrousel)
+7. **NEW** Installation TV murale (3 photos carrousel)
 
 ### Portail Client
-- Connexion/Inscription
-- Dashboard (projets, factures, stats)
-- Mon profil + paiement factures en ligne
-- **Mot de passe oublié** depuis `/client/login` (lien `?from=client`)
+- Connexion/Inscription/Mot de passe oublié
+- Dashboard (projets, factures, profil)
+- Paiement factures en ligne
 
-### Tests
-- 34 tests pytest backend (`/app/backend/tests/test_build.py`)
-- 10 nouveaux tests (`test_auth_reset_and_ai_drafts.py`) couvrant reset + IA
+### Tests automatisés
+- 34 tests `tests/test_build.py`
+- 10 tests `tests/test_auth_reset_and_ai_drafts.py` (reset + IA)
+- 6 tests `tests/test_cookie_auth.py` (cookies httpOnly)
+- Total : 50 tests backend passants
 
 ---
 
-## Intégrations
-- **Stripe** (LIVE) — paiements & dépôts
-- **Resend** — emails (reset, 2FA, notifications)
-- **Claude Sonnet 4.5** via Emergent LLM Key — brouillons devis/factures
-- reCAPTCHA (à réactiver sur /leads)
+## Intégrations actives
+- **Stripe LIVE** — paiements & dépôts
+- **Resend** — emails transactionnels
+- **Claude Sonnet 4.5** via Emergent LLM Key — brouillons IA
+- reCAPTCHA (désactivé temporairement, à réactiver)
 
 ---
 
@@ -74,17 +73,28 @@
 ## Backlog
 
 ### P0
-- [ ] Object Storage (S3/R2) pour photos uploadées (actuellement éphémère sur /uploads)
+- [ ] Object Storage (S3/R2) pour photos uploadées (uploads éphémères sur k8s pod)
 
 ### P1
-- [ ] Réactiver vérification reCAPTCHA backend sur /api/leads
+- [ ] Réactiver vérification reCAPTCHA backend sur `/api/leads`
 - [ ] Isolation multi-tenant complète (`tenantId` scoping)
-- [ ] Print & Send des PDF facture/devis
+- [ ] Refactor `AdminInvoices.jsx` (935 lignes → composants séparés)
+- [ ] Refactor `build_auth_router` (383 lignes → fonctions séparées)
+- [ ] Refactor `server.py` monolithique (~5000 lignes → `/routers`)
+- [ ] Audit dépendances React hooks (50 warnings — corriger au cas par cas)
+- [ ] Remplacer key={index} par stable ID (47 instances)
+- [ ] Print & Send PDF facture/devis
 
 ### P2
-- [ ] Site séparé CMGeorges Tech
 - [ ] App React Native mobile
 - [ ] Dashboard Analytics avancé
 - [ ] Migration PostgreSQL
-- [ ] Refactor server.py (~5000 lignes → /routers)
-- [ ] Suppression du warning React hydration `<span data-ve-dynamic>` dans `<tbody>` sur MobilierPage
+- [ ] Site séparé CMGeorges Tech
+- [ ] Suppression warning React hydration `<span data-ve-dynamic>` dans `<tbody>` (MobilierPage)
+
+---
+
+## Historique des sécurisations majeures
+- **13 Juin 2026**: httpOnly cookies (dt_access_token + dt_refresh_token), test passwords env vars, hook deps fix (ClientDashboard, AdminLeadDetail)
+- **5 Juin 2026**: 2FA TOTP+Email, Forgot Password, Profile management
+- **2 Juin 2026**: Portfolio multi-carousel, brand centralization, DOMPurify XSS protection

@@ -48,8 +48,8 @@ export default function ClientDashboard() {
     loadData();
   }, [navigate, loadData]);
 
-  const handleLogout = () => {
-    clientPortalApi.logout().catch(() => {});
+  const handleLogout = async () => {
+    try { await clientPortalApi.logout(); } catch (_) { /* ignore */ }
     localStorage.removeItem('cmgeorges_token');
     localStorage.removeItem('cmgeorges_user');
     navigate('/connexion');
