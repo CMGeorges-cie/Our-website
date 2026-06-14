@@ -111,8 +111,8 @@ const FINISHES = [
   { name: 'Blanc Texturé', desc: 'Peinture mate blanc cassé avec moulures décoratives en relief.', model: 'MOD-B', img: '/portfolio/murs/mod-b-blanc-classique.jpg' },
   { name: 'Béton Ciré', desc: 'Enduit microtopping effet béton lissé. Industriel et sophistiqué.', model: 'MOD-C', img: '/portfolio/murs/mod-c-beton-industriel.jpg' },
   { name: 'Pierre Empilée', desc: 'Ledgestone reconstituée légère. Ambiance chalet luxe ou manoir.', model: 'MOD-D', img: '/portfolio/murs/mod-d-pierre-naturelle.jpg' },
-  { name: 'Porcelaine Marbre', desc: 'Carreaux 24×48" effet marbre. Élégance intemporelle.', model: 'Sur demande', img: 'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=400&q=70' },
-  { name: 'Briques Parement', desc: 'Briques légères ou carreaux briques. Style rustique chaleureux.', model: 'Sur demande', img: 'https://images.unsplash.com/photo-1551410224-699683e15636?w=400&q=70' },
+  { name: 'Porcelaine Marbre', desc: 'Carreaux 24×48" effet marbre. Élégance intemporelle.', model: 'Sur demande', img: '/portfolio/murs/finish-marble.jpg' },
+  { name: 'Briques Parement', desc: 'Briques légères ou carreaux briques. Style rustique chaleureux.', model: 'Sur demande', img: '/portfolio/murs/finish-brick.jpg' },
 ];
 
 const PROCESS = [

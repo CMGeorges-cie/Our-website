@@ -17,7 +17,8 @@ import {
   Camera,
   Upload,
   X,
-  Loader2
+  Loader2,
+  Flame
 } from 'lucide-react';
 import { publicApi } from '@/lib/api';
 import { toast } from 'sonner';
@@ -29,6 +30,7 @@ const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY;
 
 const serviceTypes = [
   { value: 'manual', label: 'Peinture & Rénovation', icon: Paintbrush },
+  { value: 'murs-accent', label: 'Mur Accent — Cheminée & TV', icon: Flame },
   { value: 'furniture', label: 'Installation de mobilier', icon: Sofa },
 ];
 
@@ -229,6 +231,15 @@ export default function SoumissionPage() {
       addItem();
     }
   }, [isFurniture]);
+
+  // Pre-select service from ?service=XXX URL parameter (deep-link from service pages)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const presetService = params.get('service');
+    if (presetService && ['manual', 'furniture', 'murs-accent'].includes(presetService)) {
+      setFormData(prev => prev.service_type ? prev : { ...prev, service_type: presetService });
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]" data-testid="soumission-page">

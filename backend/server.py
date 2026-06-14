@@ -127,6 +127,7 @@ class ServiceType(str, Enum):
     MANUAL = "manual"
     FURNITURE = "furniture"
     TECH = "tech"
+    MURS_ACCENT = "murs-accent"
 
 class UrgencyLevel(str, Enum):
     NORMAL = "normal"
