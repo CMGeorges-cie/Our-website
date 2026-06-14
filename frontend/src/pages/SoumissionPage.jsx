@@ -18,7 +18,8 @@ import {
   Upload,
   X,
   Loader2,
-  Flame
+  Flame,
+  Hammer
 } from 'lucide-react';
 import { publicApi } from '@/lib/api';
 import { toast } from 'sonner';
@@ -32,6 +33,7 @@ const serviceTypes = [
   { value: 'manual', label: 'Peinture & Rénovation', icon: Paintbrush },
   { value: 'murs-accent', label: 'Mur Accent — Cheminée & TV', icon: Flame },
   { value: 'furniture', label: 'Installation de mobilier', icon: Sofa },
+  { value: 'demolition', label: 'Démolition légère', icon: Hammer },
 ];
 
 const itemTypes = [
@@ -236,7 +238,7 @@ export default function SoumissionPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const presetService = params.get('service');
-    if (presetService && ['manual', 'furniture', 'murs-accent'].includes(presetService)) {
+    if (presetService && ['manual', 'furniture', 'murs-accent', 'demolition'].includes(presetService)) {
       setFormData(prev => prev.service_type ? prev : { ...prev, service_type: presetService });
     }
   }, []);
@@ -270,7 +272,7 @@ export default function SoumissionPage() {
                 {/* Service Type */}
                 <div className="form-group">
                   <Label className="form-label">Type de service *</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-2">
                     {serviceTypes.map((service) => {
                       const Icon = service.icon;
                       const isSelected = formData.service_type === service.value;
