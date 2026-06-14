@@ -1,8 +1,9 @@
 # Test Credentials — Déco Touché
 
 ## Admin (preview/dev)
-- Email: `admin@cmgeorges.com` (override via `TEST_ADMIN_EMAIL`)
-- Password: `strongpassword123` (override via `TEST_ADMIN_PASSWORD`)
+- Primary: `admin@cmgeorges.com` / `strongpassword123`
+- Brand: `cmgeorges.cie@gmail.com` / `strongpassword123` (same password in preview)
+- Both have full admin role. Override email via `TEST_ADMIN_EMAIL`, password via `TEST_ADMIN_PASSWORD`.
 
 ## Production admin
 - Created at first deploy via `migrations/admin_seed.py` (idempotent)
