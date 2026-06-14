@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { adminApi, apiV2, aiApi } from '@/lib/api';
+import InvoiceCatalogDialog from '@/components/admin/invoices/InvoiceCatalogDialog';
+import ConvertQuoteDialog from '@/components/admin/invoices/ConvertQuoteDialog';
+import DeleteInvoiceDialog from '@/components/admin/invoices/DeleteInvoiceDialog';
 import { formatDateShort, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 import { 
@@ -908,109 +911,32 @@ export default function AdminInvoices() {
       </Dialog>
 
       {/* Catalog Modal */}
-      <Dialog open={showCatalog} onOpenChange={setShowCatalog}>
-        <DialogContent className="bg-card border-border text-foreground max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-gold-500" />
-              Catalogue de services
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={catalogSearch}
-              onChange={e => setCatalogSearch(e.target.value)}
-              placeholder="Rechercher un service..."
-              className="pl-10 bg-background"
-            />
-          </div>
-
-          <div className="flex-1 overflow-y-auto space-y-2">
-            {filteredCatalog.map(service => (
-              <div 
-                key={service.id}
-                className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:border-gold-500/50 transition-colors cursor-pointer"
-                onClick={() => addFromCatalog(service)}
-              >
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{service.name}</p>
-                  <p className="text-sm text-muted-foreground">{service.description?.substring(0, 60)}...</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gold-500">{formatCurrency(service.base_price)}</p>
-                  <p className="text-xs text-muted-foreground">{service.unit}</p>
-                </div>
-              </div>
-            ))}
-            {filteredCatalog.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                Aucun service trouvé
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <InvoiceCatalogDialog
+        open={showCatalog}
+        onOpenChange={setShowCatalog}
+        services={filteredCatalog}
+        search={catalogSearch}
+        onSearchChange={setCatalogSearch}
+        onPick={addFromCatalog}
+      />
 
       {/* Convert Quote Modal */}
-      <Dialog open={showConvertQuote} onOpenChange={setShowConvertQuote}>
-        <DialogContent className="bg-card border-border text-foreground max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Copy className="h-5 w-5 text-gold-500" />
-              Convertir un devis en facture
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-2 max-h-[400px] overflow-y-auto">
-            {pendingQuotes.map(quote => {
-              const client = clients.find(c => c.id === quote.client_id);
-              return (
-                <div 
-                  key={quote.id}
-                  className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:border-gold-500/50 transition-colors cursor-pointer"
-                  onClick={() => convertQuoteToInvoice(quote)}
-                >
-                  <div>
-                    <p className="font-medium text-foreground">{quote.quote_number || `Devis #${quote.id.slice(0,8)}`}</p>
-                    <p className="text-sm text-muted-foreground">{client?.full_name}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-semibold text-gold-500">{formatCurrency(quote.total || 0)}</span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ConvertQuoteDialog
+        open={showConvertQuote}
+        onOpenChange={setShowConvertQuote}
+        pendingQuotes={pendingQuotes}
+        clients={clients}
+        onConvert={convertQuoteToInvoice}
+      />
 
       {/* Delete Modal */}
-      <Dialog open={showDelete} onOpenChange={setShowDelete}>
-        <DialogContent className="bg-card border-border text-foreground max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-red-400">Supprimer la facture</DialogTitle>
-          </DialogHeader>
-          <p className="text-muted-foreground">
-            Êtes-vous sûr de vouloir supprimer la facture <strong className="text-foreground">{selectedInvoice?.invoice_number}</strong> ?
-          </p>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDelete(false)}>
-              Annuler
-            </Button>
-            <Button 
-              onClick={handleDelete} 
-              disabled={saving} 
-              className="bg-red-600 hover:bg-red-700 text-white"
-              data-testid="confirm-delete-invoice"
-            >
-              {saving ? 'Suppression...' : 'Supprimer'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteInvoiceDialog
+        open={showDelete}
+        onOpenChange={setShowDelete}
+        invoice={selectedInvoice}
+        onConfirm={handleDelete}
+        saving={saving}
+      />
     </div>
   );
 }
