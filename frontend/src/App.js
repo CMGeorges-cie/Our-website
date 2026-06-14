@@ -16,6 +16,7 @@ import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 import PaymentCancelPage from "@/pages/PaymentCancelPage";
 import MobilierPage from "@/pages/MobilierPage";
 import DemolitionPage from "@/pages/DemolitionPage";
+import MursAccentPage from "@/pages/MursAccentPage";
 import PortfolioPage from "@/pages/PortfolioPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
@@ -158,6 +159,8 @@ function App() {
               <Route path="/mobilier" element={<MobilierPage />} />
               <Route path="/services/demolition" element={<DemolitionPage />} />
               <Route path="/demolition" element={<DemolitionPage />} />
+              <Route path="/services/murs-accent" element={<MursAccentPage />} />
+              <Route path="/murs-accent" element={<MursAccentPage />} />
               <Route path="/portfolio" element={<PortfolioPage />} />
               <Route path="/soumission" element={<SoumissionPage />} />
               <Route path="/paiement" element={<PaymentPage />} />

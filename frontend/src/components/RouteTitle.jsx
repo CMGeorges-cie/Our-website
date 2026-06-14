@@ -11,6 +11,7 @@ const TITLE_MAP = [
   { match: (p) => p === '/services/entretien', title: 'Entretien général' },
   { match: (p) => p === '/services/mobilier' || p === '/mobilier', title: 'Installation de mobilier' },
   { match: (p) => p === '/services/demolition' || p === '/demolition', title: 'Démolition résidentielle & commerciale' },
+  { match: (p) => p === '/services/murs-accent' || p === '/murs-accent', title: 'Murs Accent · Cheminée & Télé sur mesure' },
   { match: (p) => p === '/portfolio', title: 'Portfolio' },
   { match: (p) => p === '/soumission', title: 'Soumission gratuite' },
   { match: (p) => p === '/paiement', title: 'Paiement de dépôt' },

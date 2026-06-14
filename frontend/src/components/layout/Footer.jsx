@@ -35,9 +35,11 @@ export default function Footer() {
             <h4 className="font-semibold text-[#d4af37] mb-4 font-['Outfit']">Nos Services</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/services/peinture" className="text-white/70 hover:text-white transition-colors">Peinture intérieure/extérieure</Link></li>
+              <li><Link to="/murs-accent" className="text-white/70 hover:text-white transition-colors">Murs Accent (Cheminée & TV)</Link></li>
               <li><Link to="/services/renovation" className="text-white/70 hover:text-white transition-colors">Rénovation légère</Link></li>
               <li><Link to="/services/entretien" className="text-white/70 hover:text-white transition-colors">Entretien général</Link></li>
               <li><Link to="/services/mobilier" className="text-white/70 hover:text-white transition-colors">Installation de mobilier</Link></li>
+              <li><Link to="/services/demolition" className="text-white/70 hover:text-white transition-colors">Démolition</Link></li>
             </ul>
           </div>
 
