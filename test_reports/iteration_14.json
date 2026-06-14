@@ -1,0 +1,52 @@
+{
+  "summary": "Iteration 14 — Sanity check for new feature: Murs Accent service page (/murs-accent) + ServiceType.MURS_ACCENT enum + lead intake. Created /app/backend/tests/test_murs_accent.py (4 tests, all passing). Ran Playwright UI tests for: /murs-accent page (testid + title + 4 model cards + Inclus modal with 7 items + 6 finishes with image-load verification for finish-marble.jpg & finish-brick.jpg + 5 process steps + 6 guarantees + CTA → /soumission?service=murs-accent). Verified soumission pre-selection (gold #d4af37 border on service-type-murs-accent) and service switching (murs→manual→murs). Verified HomePage + Footer + ServicesPage all link to /murs-accent. Regression: 34/34 test_build.py still passing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "/soumission",
+        "issues": [
+          "Form labels and service-tile text use dark gray on a dark navy background (low contrast). The 3 service-tile labels (Peinture & Rénovation / Mur Accent — Cheminée & TV / Installation de mobilier) are nearly invisible against the dark card background. Recommend using a light text colour (e.g. text-white or text-gray-200) for tile labels and form section headings when the page background is dark. This is pre-existing and not caused by the murs-accent addition, but newly noticeable now that 3 tiles share the row."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_murs_accent.py",
+    "/app/test_reports/pytest/murs_accent.xml"
+  ],
+  "action_items": [
+    "(Optional, design) Improve contrast of service-type tile labels on /soumission so they are readable on the dark navy background.",
+    "(No functional bugs) — the murs-accent feature is fully wired end-to-end."
+  ],
+  "critical_code_review_comments": [
+    "Backend ServiceType.MURS_ACCENT = 'murs-accent' is added cleanly to the existing enum; lead creation (POST /api/v1/leads) and admin listing (GET /api/v1/admin/leads?service_type=murs-accent) both accept and persist the new value.",
+    "Public lead endpoint correctly lives at /api/v1/leads (NOT /api/leads); SoumissionPage POSTs to /api/v1/leads as expected. No legacy /api/leads route exists — confirmed via 404 test.",
+    "MursAccentPage.jsx data-testid coverage is complete: murs-accent-page, model-card-mod-{a..d}, model-included-btn-mod-{a..d}, model-included-modal, finish-{slug}, process-step-{N}, guarantee-{slug}, murs-accent-soumission-btn. Good test surface.",
+    "Finish tile slugs contain non-ASCII chars (é, û): e.g. finish-rainuré-noir, finish-béton-ciré. CSS attribute selectors with ^= work correctly in browser but caused a Playwright Python selector escaping issue in my first script — verified count=6 via page.evaluate JS. Not a functional problem, but if other agents want to target individual finishes they should use page.evaluate or escape the unicode in the selector.",
+    "SoumissionPage URL preset logic (useEffect reading ?service=) is guarded by `prev.service_type ? prev : { ...prev, service_type: presetService }` — correct (does not overwrite user choice on remount/navigation).",
+    "Footer + HomePage + ServicesPage all wire to /murs-accent with text 'Murs Accent (Cheminée & TV)' — consistent labelling.",
+    "Confirmation email is sent to lead.email via BackgroundTasks; no blocking on the request — good pattern. The new service_type value gets included in the audit log details and notification email."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_murs_accent.py (new — 4 tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (4/4 new murs-accent tests + 34/34 test_build regression)",
+    "frontend": "100% (page load, modal, finishes, process steps, guarantees, CTA nav, pre-selection, service switching, HomePage/Footer/ServicesPage links — all verified)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@cmgeorges.com",
+    "admin_password": "strongpassword123"
+  },
+  "seed_data_creation": "test_lead_create_with_murs_accent_service_type creates one TEST lead (full_name='TEST Murs Accent <8-char-hex>', email='test_murs_<hex>@example.com', service_type='murs-accent'). Harmless leftover in db.leads; can be filtered/cleaned by prefix 'TEST'.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Reusable: /app/backend/tests/test_murs_accent.py covers (a) POST /api/v1/leads accepts service_type='murs-accent', (b) admin GET filter by service_type returns the created lead, (c) invalid enum is rejected with 422, (d) no /api/leads legacy route. The public lead endpoint is /api/v1/leads (the public form). Admin lead list filter param is `service_type=<enum-value>`. Playwright CSS selectors with non-ASCII characters (é, û) in data-testid may behave inconsistently in Playwright Python; use page.evaluate(JS) for robustness on the murs-accent finish tiles.",
+  "rca of the issue": "No bugs found. The murs-accent feature works end-to-end: ServiceType enum extension → public lead POST accepts it → admin list returns it → page renders all sections → modal opens with 7 items → all images load including local /portfolio/murs/finish-marble.jpg and finish-brick.jpg → CTA navigates to /soumission?service=murs-accent → pre-selection lights up the gold border → manual switching toggles cleanly. The only suggestion is a contrast tweak on the dark soumission form labels (pre-existing)."
+}
