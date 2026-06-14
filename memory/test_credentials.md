@@ -46,6 +46,13 @@
 - `COOKIE_SAMESITE` (default `lax`)
 - `COOKIE_DOMAIN` (default: host-only) — leave empty unless you serve frontend + API on different subdomains
 
+## Cloudflare R2 storage (photos persistantes)
+- Bucket: `deco-touche-photos`
+- Endpoint: `https://6562d7e5415906caa76d77bc7888e56a.r2.cloudflarestorage.com`
+- Frontend embeds photos via `/api/v1/r2/photo/<key>` (backend proxy, no expiration)
+- To switch to direct CDN delivery later: set `R2_PUBLIC_BASE_URL=https://pub-xxxxx.r2.dev` or your custom domain
+- All client photo uploads via `/soumission` form now go to R2 automatically; legacy /uploads still works as fallback
+
 ## Notes
 - Brand info centralized: `/app/frontend/src/config/brand.js` & `/app/backend/config/brand.py`
 - Stripe in LIVE mode — do not use test cards

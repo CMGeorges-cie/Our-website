@@ -73,7 +73,7 @@
 ## Backlog
 
 ### P0
-- [ ] Object Storage (S3/R2) pour photos uploadées (uploads éphémères sur k8s pod)
+- [x] Object Storage Cloudflare R2 — DONE (14 Juin 2026)
 
 ### P1
 - [ ] Réactiver vérification reCAPTCHA backend sur `/api/leads`

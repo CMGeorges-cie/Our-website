@@ -1206,53 +1206,84 @@ async def get_next_invoice_number() -> str:
 # ==================== FILE UPLOAD ====================
 import shutil
 from typing import List as TypingList
+from storage import r2 as r2_storage
 
-UPLOAD_DIR = "/app/frontend/public/uploads"
+UPLOAD_DIR = "/app/frontend/public/uploads"  # legacy fallback only
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @v1_router.post("/upload/photos")
 async def upload_photos(files: TypingList[UploadFile] = File(...)):
-    """Upload photos for soumission form (max 5 files, 10MB each)"""
+    """Upload photos for soumission form (max 5 files, 10MB each).
+
+    Stores in Cloudflare R2 if configured; falls back to local /uploads otherwise.
+    HEIC/HEIF inputs are auto-converted to JPEG before upload.
+    """
     if len(files) > 5:
         raise HTTPException(status_code=400, detail="Maximum 5 photos autorisées")
-    
+
+    allowed_types = {"image/jpeg", "image/png", "image/heic", "image/webp", "image/heif"}
+    use_r2 = r2_storage.is_configured()
     uploaded_urls = []
+
     for file in files:
         if file.size and file.size > 10 * 1024 * 1024:
             raise HTTPException(status_code=400, detail=f"Fichier {file.filename} trop volumineux (max 10MB)")
-        
-        # Validate file type
-        allowed_types = ["image/jpeg", "image/png", "image/heic", "image/webp", "image/heif"]
         if file.content_type and file.content_type not in allowed_types:
             raise HTTPException(status_code=400, detail=f"Type de fichier non supporté: {file.content_type}")
-        
-        # Generate unique filename
-        ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-        unique_name = f"{uuid.uuid4().hex[:12]}.{ext}"
-        file_path = os.path.join(UPLOAD_DIR, unique_name)
-        
-        with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        
-        # Convert HEIC to JPEG if needed
-        if ext.lower() in ("heic", "heif"):
+
+        content = await file.read()
+        ext = (file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg").lower()
+        content_type = file.content_type or "image/jpeg"
+
+        # Auto-convert HEIC/HEIF to JPEG for browser compatibility
+        if ext in ("heic", "heif"):
             try:
                 import pillow_heif
                 pillow_heif.register_heif_opener()
                 from PIL import Image
-                img = Image.open(file_path)
-                jpeg_name = f"{uuid.uuid4().hex[:12]}.jpg"
-                jpeg_path = os.path.join(UPLOAD_DIR, jpeg_name)
-                img.convert("RGB").save(jpeg_path, "JPEG", quality=85)
-                os.remove(file_path)
-                unique_name = jpeg_name
-            except Exception:
-                pass  # Keep original if conversion fails
-        
-        uploaded_urls.append(f"/uploads/{unique_name}")
-    
+                im = Image.open(BytesIO(content)).convert("RGB")
+                buf = BytesIO()
+                im.save(buf, "JPEG", quality=85, optimize=True)
+                content = buf.getvalue()
+                ext = "jpg"
+                content_type = "image/jpeg"
+            except Exception as e:
+                logging.warning(f"HEIC conversion failed for {file.filename}: {e}")
+
+        if use_r2:
+            key = r2_storage.make_key("leads", f"x.{ext}")
+            try:
+                url = r2_storage.upload_bytes(content, key, content_type=content_type)
+            except Exception as e:
+                logging.error(f"R2 upload failed, falling back to local: {e}")
+                use_r2 = False  # fall through to local for this and subsequent files
+
+        if not use_r2:
+            unique_name = f"{uuid.uuid4().hex[:12]}.{ext}"
+            file_path = os.path.join(UPLOAD_DIR, unique_name)
+            with open(file_path, "wb") as fh:
+                fh.write(content)
+            url = f"/uploads/{unique_name}"
+
+        uploaded_urls.append(url)
+
     return {"urls": uploaded_urls}
+
+
+@v1_router.get("/r2/photo/{key:path}")
+async def r2_proxy_photo(key: str):
+    """Stream a photo from R2 (used when no R2_PUBLIC_BASE_URL is configured)."""
+    if not r2_storage.is_configured():
+        raise HTTPException(status_code=404, detail="R2 not configured")
+    result = r2_storage.get_object_stream(key)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    body, content_type, length = result
+    headers = {"Cache-Control": "public, max-age=604800"}  # 7 days
+    if length:
+        headers["Content-Length"] = str(length)
+    return StreamingResponse(body.iter_chunks(chunk_size=64 * 1024), media_type=content_type, headers=headers)
+
 
 
 # ==================== PUBLIC ENDPOINTS ====================
