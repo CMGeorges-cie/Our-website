@@ -30,7 +30,7 @@ const services = [
     title: 'Murs Accent — Cheminée & TV',
     description: 'Transformez votre salon en un weekend. Panneaux rainurés, pierre, béton ciré — cheminée électrique CSA incluse.',
     href: '/murs-accent',
-    image: 'https://images.unsplash.com/photo-1565182999561-18d7dc61c393?w=600',
+    image: '/portfolio/murs/mod-a-noir-rainure.jpg',
     features: ['4 modèles', 'Cheminée CSA incluse', 'Support TV mural', 'À partir de 2 800$']
   },
   {

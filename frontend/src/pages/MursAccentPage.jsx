@@ -12,7 +12,7 @@ import {
   Sparkles, Star
 } from 'lucide-react';
 
-const HERO_IMG = 'https://images.unsplash.com/photo-1565182999561-18d7dc61c393?w=1600&auto=format&fit=crop&q=70';
+const HERO_IMG = '/portfolio/murs/hero-beton.jpg';
 
 const MODELS = [
   {
@@ -20,7 +20,7 @@ const MODELS = [
     code: 'MOD-A',
     name: 'Noir Rainuré Classic',
     badge: { label: 'Populaire', color: 'bg-[#1B3A8C] text-white' },
-    image: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=900&auto=format&fit=crop&q=70',
+    image: '/portfolio/murs/mod-a-noir-rainure.jpg',
     desc: 'Panneaux MDF rainurés noir mat, cheminée électrique encastrée, intégration TV. Impact maximum, exécution nette.',
     price: 'À partir de 2 800$',
     duration: 'Forfait tout inclus · 1 weekend · taxes en sus',
@@ -42,7 +42,7 @@ const MODELS = [
     code: 'MOD-B',
     name: 'Blanc Classique & Foyer',
     badge: { label: 'Élégant', color: 'bg-[#D4A017] text-[#0A0C14]' },
-    image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=900&auto=format&fit=crop&q=70',
+    image: '/portfolio/murs/mod-b-blanc-classique.jpg',
     desc: 'Mur blanc cassé texturé, tablette de foyer, moulures décoratives. Style cottage chic intemporel.',
     price: 'À partir de 3 200$',
     duration: 'Forfait tout inclus · 1 à 2 weekends · taxes en sus',
@@ -64,7 +64,7 @@ const MODELS = [
     code: 'MOD-C',
     name: 'Béton & Acier Industriel',
     badge: { label: 'Premium', color: 'bg-[#1B3A8C] text-white' },
-    image: 'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?w=900&auto=format&fit=crop&q=70',
+    image: '/portfolio/murs/mod-c-beton-industriel.jpg',
     desc: 'Enduit béton ciré, profilés acier brossé, cheminée 60" grand format, ruban LED intégré.',
     price: 'À partir de 4 800$',
     duration: 'Forfait tout inclus · ≥2 weekends · taxes en sus',
@@ -87,7 +87,7 @@ const MODELS = [
     code: 'MOD-D',
     name: 'Pierre & Quartz Naturel',
     badge: { label: 'Nouveau', color: 'bg-[#D4A017] text-[#0A0C14]' },
-    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=900&auto=format&fit=crop&q=70',
+    image: '/portfolio/murs/mod-d-pierre-naturelle.jpg',
     desc: 'Panneaux Ledgestone empilé ou pierre reconstituée légère. Ambiance chalet luxe ou manoir. Le look le plus haut de gamme.',
     price: 'À partir de 3 800$',
     duration: 'Forfait tout inclus · 1 à 2 weekends · taxes en sus',
@@ -107,10 +107,10 @@ const MODELS = [
 ];
 
 const FINISHES = [
-  { name: 'Rainuré Noir', desc: 'MDF rainuré teinté noir mat. Le look moderne le plus tendance.', model: 'MOD-A', img: 'https://images.unsplash.com/photo-1604578762246-41134e37f9cc?w=400&q=70' },
-  { name: 'Blanc Texturé', desc: 'Peinture mate blanc cassé avec moulures décoratives en relief.', model: 'MOD-B', img: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=400&q=70' },
-  { name: 'Béton Ciré', desc: 'Enduit microtopping effet béton lissé. Industriel et sophistiqué.', model: 'MOD-C', img: 'https://images.unsplash.com/photo-1615873968403-89e068629265?w=400&q=70' },
-  { name: 'Pierre Empilée', desc: 'Ledgestone reconstituée légère. Ambiance chalet luxe ou manoir.', model: 'MOD-D', img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=400&q=70' },
+  { name: 'Rainuré Noir', desc: 'MDF rainuré teinté noir mat. Le look moderne le plus tendance.', model: 'MOD-A', img: '/portfolio/murs/mod-a-noir-rainure.jpg' },
+  { name: 'Blanc Texturé', desc: 'Peinture mate blanc cassé avec moulures décoratives en relief.', model: 'MOD-B', img: '/portfolio/murs/mod-b-blanc-classique.jpg' },
+  { name: 'Béton Ciré', desc: 'Enduit microtopping effet béton lissé. Industriel et sophistiqué.', model: 'MOD-C', img: '/portfolio/murs/mod-c-beton-industriel.jpg' },
+  { name: 'Pierre Empilée', desc: 'Ledgestone reconstituée légère. Ambiance chalet luxe ou manoir.', model: 'MOD-D', img: '/portfolio/murs/mod-d-pierre-naturelle.jpg' },
   { name: 'Porcelaine Marbre', desc: 'Carreaux 24×48" effet marbre. Élégance intemporelle.', model: 'Sur demande', img: 'https://images.unsplash.com/photo-1615529182904-14819c35db37?w=400&q=70' },
   { name: 'Briques Parement', desc: 'Briques légères ou carreaux briques. Style rustique chaleureux.', model: 'Sur demande', img: 'https://images.unsplash.com/photo-1551410224-699683e15636?w=400&q=70' },
 ];
