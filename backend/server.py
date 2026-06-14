@@ -1290,11 +1290,13 @@ async def r2_proxy_photo(key: str):
 @v1_router.post("/leads", response_model=Lead)
 async def create_lead(lead_data: LeadCreate, background_tasks: BackgroundTasks, request: Request):
     """Create a new lead from the public form"""
-    # Verify reCAPTCHA
-    if lead_data.recaptcha_token:
+    # Enforce reCAPTCHA verification when configured
+    if RECAPTCHA_SECRET_KEY:
+        if not lead_data.recaptcha_token:
+            raise HTTPException(status_code=400, detail="reCAPTCHA requis. Veuillez cocher la case « Je ne suis pas un robot ».")
         is_valid = await verify_recaptcha(lead_data.recaptcha_token)
         if not is_valid:
-            raise HTTPException(status_code=400, detail="reCAPTCHA verification failed")
+            raise HTTPException(status_code=400, detail="Échec de la vérification reCAPTCHA. Veuillez réessayer.")
     
     lead = Lead(**lead_data.model_dump(exclude={"items", "recaptcha_token"}))
     
@@ -1320,11 +1322,13 @@ async def create_lead(lead_data: LeadCreate, background_tasks: BackgroundTasks, 
 @v1_router.post("/contact")
 async def submit_contact(form: ContactForm, background_tasks: BackgroundTasks, request: Request):
     """Handle contact form submission"""
-    # Verify reCAPTCHA
-    if form.recaptcha_token:
+    # Enforce reCAPTCHA verification when configured
+    if RECAPTCHA_SECRET_KEY:
+        if not form.recaptcha_token:
+            raise HTTPException(status_code=400, detail="reCAPTCHA requis. Veuillez cocher la case « Je ne suis pas un robot ».")
         is_valid = await verify_recaptcha(form.recaptcha_token)
         if not is_valid:
-            raise HTTPException(status_code=400, detail="reCAPTCHA verification failed")
+            raise HTTPException(status_code=400, detail="Échec de la vérification reCAPTCHA. Veuillez réessayer.")
     
     # Save to database
     contact_doc = {
