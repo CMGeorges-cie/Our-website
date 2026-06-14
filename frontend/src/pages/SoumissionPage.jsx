@@ -281,13 +281,13 @@ export default function SoumissionPage() {
                           onClick={() => handleChange('service_type', service.value)}
                           className={`p-4 rounded-lg border-2 transition-all text-left ${
                             isSelected 
-                              ? 'border-[#d4af37] bg-[#d4af37]/10' 
-                              : 'border-gray-200 hover:border-gray-300'
+                              ? 'border-[#d4af37] bg-[#d4af37]/15 shadow-lg' 
+                              : 'border-white/15 bg-white/5 hover:border-[#d4af37]/50 hover:bg-white/10'
                           }`}
                           data-testid={`service-type-${service.value}`}
                         >
-                          <Icon className={`h-6 w-6 mb-2 ${isSelected ? 'text-[#d4af37]' : 'text-gray-400'}`} />
-                          <span className={`text-sm font-medium ${isSelected ? 'text-[#1a365d]' : 'text-gray-700'}`}>
+                          <Icon className={`h-6 w-6 mb-2 ${isSelected ? 'text-[#d4af37]' : 'text-white/70'}`} />
+                          <span className={`text-sm font-semibold ${isSelected ? 'text-[#d4af37]' : 'text-white'}`}>
                             {service.label}
                           </span>
                         </button>
