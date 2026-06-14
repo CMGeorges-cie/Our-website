@@ -203,7 +203,7 @@ export default function MursAccentPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {MODELS.map((m) => (
-              <Card key={m.id} className={`overflow-hidden border-2 ${m.accent} hover:shadow-2xl transition-all hover:-translate-y-1 flex flex-col`} data-testid={`model-card-${m.id}`}>
+              <Card key={m.id} className={`overflow-hidden border-2 ${m.accent} bg-[#0F1729] hover:shadow-2xl transition-all hover:-translate-y-1 flex flex-col`} data-testid={`model-card-${m.id}`}>
                 <div className="relative h-48 overflow-hidden">
                   <img src={m.image} alt={m.name} className="w-full h-full object-cover" />
                   <span className={`absolute top-3 left-3 px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full shadow-md ${m.badge.color}`}>
@@ -211,12 +211,12 @@ export default function MursAccentPage() {
                   </span>
                 </div>
                 <CardContent className="p-5 flex-1 flex flex-col">
-                  <span className="text-xs font-bold text-gray-500 tracking-wider">{m.code}</span>
-                  <h3 className="text-xl font-bold text-[#0A0C14] mt-1 mb-3 font-['Outfit']">{m.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4 flex-1">{m.desc}</p>
-                  <div className="text-lg font-bold text-[#1B3A8C] mb-1">{m.price}</div>
-                  <p className="text-xs text-gray-500 mb-3">{m.duration}</p>
-                  <span className="inline-flex items-center gap-1 text-xs text-gray-700 mb-4">
+                  <span className="text-xs font-bold text-[#D4A017] tracking-wider">{m.code}</span>
+                  <h3 className="text-xl font-bold text-white mt-1 mb-3 font-['Outfit']">{m.name}</h3>
+                  <p className="text-sm text-white/75 mb-4 flex-1">{m.desc}</p>
+                  <div className="text-lg font-bold text-[#F0C040] mb-1">{m.price}</div>
+                  <p className="text-xs text-white/60 mb-3">{m.duration}</p>
+                  <span className="inline-flex items-center gap-1 text-xs text-white/70 mb-4">
                     <Calendar className="h-3 w-3" /> {m.solo}
                   </span>
                   <Button
@@ -349,7 +349,7 @@ export default function MursAccentPage() {
 
       {/* MODAL Inclusions */}
       <Dialog open={!!openModel} onOpenChange={() => setOpenModel(null)}>
-        <DialogContent className="max-w-lg" data-testid="model-included-modal">
+        <DialogContent className="max-w-lg bg-white text-[#0A0C14]" data-testid="model-included-modal">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-[#0A0C14] font-['Outfit']">
               {openModel?.name}
