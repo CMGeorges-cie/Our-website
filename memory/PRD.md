@@ -51,9 +51,10 @@
 - 34 tests `tests/test_build.py`
 - 10 tests `tests/test_auth_reset_and_ai_drafts.py` (reset + IA)
 - 6 tests `tests/test_cookie_auth.py` (cookies httpOnly)
-- 30 tests `tests/test_router_refactor.py` (blog/policies/pricing/discounts extraits + reCAPTCHA + CORS)
+- 30 tests `tests/test_router_refactor.py` (blog/policies/pricing/discounts + reCAPTCHA + CORS)
 - 40 tests `tests/test_iter16_refactor.py` (leads/contact/clients + auth_ext modulaire)
-- Total : 120 tests backend passants
+- 35 tests `tests/test_iter17_refactor.py` (quotes/invoices + PDF + 2FA hardening)
+- Total : 155 tests backend passants
 
 ---
 
@@ -81,12 +82,11 @@
 ### P1
 - [ ] Isolation multi-tenant complète (`tenantId` scoping)
 - [ ] Refactor `AdminInvoices.jsx` (935 lignes → composants séparés)
-- [ ] Continuer le découpage de `server.py` (~4268 lignes restantes) — quotes, invoices, projects, signatures
-- [ ] Hardening `/api/v1/auth/2fa/email/activate` (exiger `current_password`)
+- [ ] Continuer le découpage de `server.py` (~3544 lignes restantes) — **PROJECTS router** (~600 l, 13+ endpoints avec photos/tasks/timeline/messages/reports)
+- [ ] Configurer Resend domain `cmgeorges.ca` pour envoyer aux emails autres que `cmgeorges.cie@gmail.com` (https://resend.com/domains)
 - [ ] Audit dépendances React hooks (50 warnings)
 - [ ] Remplacer `key={index}` par stable ID (47 instances)
 - [ ] Print & Send PDF facture/devis
-- [ ] Mettre à jour les tests stale `test_cmgeorges_api.py` / `test_notifications.py` pour reCAPTCHA actif
 
 ### P2
 - [ ] App React Native mobile
@@ -98,8 +98,9 @@
 ---
 
 ## Historique des sécurisations majeures
-- **15 Juin 2026 (round 2)**: Refactor `server.py` round 2 — extraction de leads/contact/clients (-235 lignes) + modèles partagés Lead/Client/ContactForm vers `models/__init__.py` (-154 lignes). Refactor `auth_extensions.py` (556 lignes monolithiques) → 4 sous-modules dans `routers/auth_ext/` (common, password, two_factor, login_challenge). `server.py` passé de 5137 → 4268 lignes (-17%). 70/70 tests passent.
-- **15 Juin 2026 (round 1)**: Refactor `server.py` — extraction de 4 routers (`blog`, `policies`, `pricing`, `discounts`) → 520 lignes en moins. Suit le pattern `build_xxx_router(db, deps)`. Réactivation `reCAPTCHA` sur `/api/leads` + `/api/contact` (avec fix v2/v3 compatible). Fix CORS critique (allow_origins explicite + regex preview, compatible httpOnly cookies). 100% des 30 nouveaux tests passent.
-- **13 Juin 2026**: httpOnly cookies (dt_access_token + dt_refresh_token), test passwords env vars, hook deps fix (ClientDashboard, AdminLeadDetail)
+- **15 Juin 2026 (round 3)**: Refactor `server.py` round 3 — extraction des PDF generators vers `services/pdf.py` (326 lignes) + routers `quotes.py` (220 l) et `invoices.py` (314 l). Modèles Quote/Invoice/Signature déplacés vers `models/__init__.py`. Hardening `/2fa/email/activate` exige `current_password`. Bug pré-existant corrigé : placeholders `{BRAND.EMAIL}` non-interpolés dans les PDFs (affichaient le texte littéral aux clients). `server.py` passé de 4268 → **3544 lignes (-31% au total depuis le début)**. 105/105 tests passent.
+- **15 Juin 2026 (round 2)**: Refactor `server.py` round 2 — extraction de leads/contact/clients (-235 lignes) + modèles partagés Lead/Client/ContactForm vers `models/__init__.py`. Refactor `auth_extensions.py` (556 lignes monolithiques) → 4 sous-modules dans `routers/auth_ext/`. 70/70 tests passent.
+- **15 Juin 2026 (round 1)**: Refactor `server.py` — extraction de 4 routers (blog/policies/pricing/discounts) → 520 lignes en moins. Réactivation reCAPTCHA + Fix CORS critique.
+- **13 Juin 2026**: httpOnly cookies (dt_access_token + dt_refresh_token), test passwords env vars, hook deps fix
 - **5 Juin 2026**: 2FA TOTP+Email, Forgot Password, Profile management
 - **2 Juin 2026**: Portfolio multi-carousel, brand centralization, DOMPurify XSS protection

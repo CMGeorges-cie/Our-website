@@ -23,6 +23,8 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from config.brand import Brand
+
 
 # ---- Shared style helpers ---------------------------------------------------
 def _build_dt_styles():
@@ -146,7 +148,7 @@ def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
     elements.append(Paragraph("🦁 Déco Touché", styles["CMGHeader"]))
     elements.append(
         Paragraph(
-            "Montréal & Rive-Sud | {BRAND.PHONE_DISPLAY} | {BRAND.EMAIL}",
+            f"Montréal & Rive-Sud | {Brand.PHONE_DISPLAY} | {Brand.EMAIL}",
             styles["CMGSubHeader"],
         )
     )
@@ -252,7 +254,7 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     elements.append(Paragraph("🦁 Déco Touché", styles["CMGHeader"]))
     elements.append(
         Paragraph(
-            "Montréal & Rive-Sud | {BRAND.PHONE_DISPLAY} | {BRAND.EMAIL}",
+            f"Montréal & Rive-Sud | {Brand.PHONE_DISPLAY} | {Brand.EMAIL}",
             styles["CMGSubHeader"],
         )
     )
@@ -308,11 +310,9 @@ def generate_invoice_pdf(invoice: dict, client: dict) -> BytesIO:
     elements.append(Paragraph("MÉTHODES DE PAIEMENT", styles["CMGTitle"]))
     elements.append(
         Paragraph(
-            """
-    • Virement Interac: {BRAND.EMAIL}<br/>
-    • Comptant<br/>
-    • Chèque à l'ordre de {BRAND.NAME}
-    """,
+            f"• Virement Interac: {Brand.EMAIL}<br/>"
+            f"• Comptant<br/>"
+            f"• Chèque à l'ordre de {Brand.NAME}",
             styles["Normal"],
         )
     )
