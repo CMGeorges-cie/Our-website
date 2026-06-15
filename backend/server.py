@@ -633,48 +633,7 @@ class CEODashboard(BaseModel):
     conversion_rate: float
 
 # ==================== BLOG MODELS ====================
-class BlogPostStatus(str, Enum):
-    DRAFT = "draft"
-    PUBLISHED = "published"
-    ARCHIVED = "archived"
-
-class BlogPostBase(BaseModel):
-    title: str
-    slug: str
-    excerpt: str = ""
-    content: str
-    featured_image: Optional[str] = None
-    category: str = "general"
-    tags: List[str] = []
-    meta_title: Optional[str] = None
-    meta_description: Optional[str] = None
-
-class BlogPostCreate(BlogPostBase):
-    pass
-
-class BlogPost(BlogPostBase):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    status: BlogPostStatus = BlogPostStatus.DRAFT
-    author_id: Optional[str] = None
-    author_name: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    published_at: Optional[datetime] = None
-    view_count: int = 0
-
-class BlogPostUpdate(BaseModel):
-    title: Optional[str] = None
-    slug: Optional[str] = None
-    excerpt: Optional[str] = None
-    content: Optional[str] = None
-    featured_image: Optional[str] = None
-    category: Optional[str] = None
-    tags: Optional[List[str]] = None
-    status: Optional[BlogPostStatus] = None
-    meta_title: Optional[str] = None
-    meta_description: Optional[str] = None
-
+# (moved to routers/) — removed block starting with 'class BlogPostStatus(str, Enum):'
 # ==================== CLIENT PORTAL MODELS ====================
 class ClientPortalAccess(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -696,104 +655,9 @@ class ClientPortalData(BaseModel):
     invoices: List[dict]
     projects: List[dict]
 
-# ==================== DISCOUNT CODES MODELS ====================
-class DiscountType(str, Enum):
-    PERCENTAGE = "percentage"
-    FIXED = "fixed"
-
-class DiscountCodeBase(BaseModel):
-    code: str
-    description: str = ""
-    discount_type: DiscountType = DiscountType.PERCENTAGE
-    discount_value: float  # Percentage (0-100) or fixed amount
-    min_order_amount: float = 0
-    max_uses: Optional[int] = None
-    valid_from: Optional[datetime] = None
-    valid_until: Optional[datetime] = None
-    applicable_services: List[str] = []  # Empty = all services
-
-class DiscountCodeCreate(DiscountCodeBase):
-    pass
-
-class DiscountCode(DiscountCodeBase):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    is_active: bool = True
-    times_used: int = 0
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class DiscountCodeUpdate(BaseModel):
-    description: Optional[str] = None
-    discount_type: Optional[DiscountType] = None
-    discount_value: Optional[float] = None
-    min_order_amount: Optional[float] = None
-    max_uses: Optional[int] = None
-    valid_from: Optional[datetime] = None
-    valid_until: Optional[datetime] = None
-    applicable_services: Optional[List[str]] = None
-    is_active: Optional[bool] = None
-
-# ==================== PRICING MODELS ====================
-class PricingItemBase(BaseModel):
-    name: str
-    description: str = ""
-    service_type: str  # manual, furniture, tech
-    category: str = "general"
-    unit: str = "unité"  # unité, heure, pied carré, etc.
-    base_price: float
-    min_price: Optional[float] = None
-    max_price: Optional[float] = None
-
-class PricingItemCreate(PricingItemBase):
-    pass
-
-class PricingItem(PricingItemBase):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    is_active: bool = True
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class PricingItemUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    category: Optional[str] = None
-    unit: Optional[str] = None
-    base_price: Optional[float] = None
-    min_price: Optional[float] = None
-    max_price: Optional[float] = None
-    is_active: Optional[bool] = None
-
-# ==================== POLICIES MODELS ====================
-class PolicyType(str, Enum):
-    TERMS = "terms"
-    PRIVACY = "privacy"
-    WARRANTY = "warranty"
-    CANCELLATION = "cancellation"
-    PAYMENT = "payment"
-
-class PolicyBase(BaseModel):
-    policy_type: PolicyType
-    title: str
-    content: str
-    version: str = "1.0"
-
-class PolicyCreate(PolicyBase):
-    pass
-
-class Policy(PolicyBase):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    is_active: bool = True
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class PolicyUpdate(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None
-    version: Optional[str] = None
-    is_active: Optional[bool] = None
-
+# (moved to routers/) — removed block starting with '# ==================== DISCOUNT CODES MODELS ===================='
+# (moved to routers/) — removed block starting with '# ==================== PRICING MODELS ===================='
+# (moved to routers/) — removed block starting with '# ==================== POLICIES MODELS ===================='
 # ==================== AUTH HELPERS ====================
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -990,25 +854,38 @@ def get_lead_confirmation_html(lead: dict) -> str:
 
 # ==================== RECAPTCHA HELPER ====================
 async def verify_recaptcha(token: str) -> bool:
-    """Verify reCAPTCHA token"""
+    """Verify reCAPTCHA token.
+
+    Supports both reCAPTCHA v2 (checkbox, no score) and v3 (score-based).
+    - v2: only `success` is returned by Google → we accept on success=true.
+    - v3: also returns `score` → we additionally require score >= 0.5.
+    """
     if not RECAPTCHA_SECRET_KEY:
         logger.warning("reCAPTCHA secret key not configured, skipping verification")
         return True
-    
+
     if not token:
         return False
-    
+
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
                 "https://www.google.com/recaptcha/api/siteverify",
                 data={
                     "secret": RECAPTCHA_SECRET_KEY,
-                    "response": token
-                }
+                    "response": token,
+                },
             )
             result = response.json()
-            return result.get("success", False) and result.get("score", 0) >= 0.5
+            success = bool(result.get("success", False))
+            if not success:
+                logger.warning(f"reCAPTCHA failed: {result.get('error-codes')}")
+                return False
+            # If a score is present (v3), enforce a minimum threshold.
+            if "score" in result:
+                return float(result.get("score", 0)) >= 0.5
+            # v2 checkbox response — success alone is enough.
+            return True
     except Exception as e:
         logger.error(f"reCAPTCHA verification failed: {str(e)}")
         return False
@@ -2818,146 +2695,7 @@ async def seed_database():
     
     return {"message": "Database seeded successfully", "admin_email": "admin@cmgeorges.com", "admin_password": "admin123"}
 
-# ==================== BLOG PUBLIC ENDPOINTS ====================
-@v1_router.get("/blog", response_model=List[BlogPost])
-async def get_published_blog_posts(category: Optional[str] = None, tag: Optional[str] = None, limit: int = 10):
-    """Get published blog posts for public view"""
-    query = {"status": "published"}
-    if category:
-        query["category"] = category
-    if tag:
-        query["tags"] = tag
-    
-    posts = await db.blog_posts.find(query, {"_id": 0}).sort("published_at", -1).limit(limit).to_list(limit)
-    
-    for post in posts:
-        if isinstance(post.get('created_at'), str):
-            post['created_at'] = datetime.fromisoformat(post['created_at'])
-        if isinstance(post.get('updated_at'), str):
-            post['updated_at'] = datetime.fromisoformat(post['updated_at'])
-        if isinstance(post.get('published_at'), str):
-            post['published_at'] = datetime.fromisoformat(post['published_at'])
-    
-    return posts
-
-@v1_router.get("/blog/{slug}")
-async def get_blog_post_by_slug(slug: str):
-    """Get a single blog post by slug and increment view count"""
-    post = await db.blog_posts.find_one({"slug": slug, "status": "published"}, {"_id": 0})
-    if not post:
-        raise HTTPException(status_code=404, detail="Article non trouvé")
-    
-    # Increment view count
-    await db.blog_posts.update_one({"slug": slug}, {"$inc": {"view_count": 1}})
-    
-    if isinstance(post.get('created_at'), str):
-        post['created_at'] = datetime.fromisoformat(post['created_at'])
-    if isinstance(post.get('updated_at'), str):
-        post['updated_at'] = datetime.fromisoformat(post['updated_at'])
-    if isinstance(post.get('published_at'), str):
-        post['published_at'] = datetime.fromisoformat(post['published_at'])
-    
-    return post
-
-@v1_router.get("/blog-categories")
-async def get_blog_categories():
-    """Get all blog categories with post counts"""
-    pipeline = [
-        {"$match": {"status": "published"}},
-        {"$group": {"_id": "$category", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}}
-    ]
-    categories = await db.blog_posts.aggregate(pipeline).to_list(100)
-    return [{"category": c["_id"], "count": c["count"]} for c in categories]
-
-# ==================== ADMIN BLOG ENDPOINTS ====================
-@admin_router.get("/blog", response_model=List[BlogPost])
-async def admin_get_blog_posts(status: Optional[BlogPostStatus] = None, user: dict = Depends(get_current_user)):
-    """Get all blog posts for admin"""
-    query = {}
-    if status:
-        query["status"] = status
-    
-    posts = await db.blog_posts.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    
-    for post in posts:
-        if isinstance(post.get('created_at'), str):
-            post['created_at'] = datetime.fromisoformat(post['created_at'])
-        if isinstance(post.get('updated_at'), str):
-            post['updated_at'] = datetime.fromisoformat(post['updated_at'])
-        if isinstance(post.get('published_at'), str):
-            post['published_at'] = datetime.fromisoformat(post['published_at'])
-    
-    return posts
-
-@admin_router.post("/blog", response_model=BlogPost)
-async def create_blog_post(post_data: BlogPostCreate, request: Request, user: dict = Depends(get_current_user)):
-    """Create a new blog post"""
-    # Check for duplicate slug
-    existing = await db.blog_posts.find_one({"slug": post_data.slug})
-    if existing:
-        raise HTTPException(status_code=400, detail="Un article avec ce slug existe déjà")
-    
-    post = BlogPost(
-        **post_data.model_dump(),
-        author_id=user["id"],
-        author_name=user.get("full_name", user["email"])
-    )
-    
-    doc = post.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    doc['updated_at'] = doc['updated_at'].isoformat()
-    if doc.get('published_at'):
-        doc['published_at'] = doc['published_at'].isoformat()
-    
-    await db.blog_posts.insert_one(doc)
-    await create_audit_log("blog_post_created", "blog_post", post.id, user=user, request=request)
-    
-    return post
-
-@admin_router.patch("/blog/{post_id}", response_model=BlogPost)
-async def update_blog_post(post_id: str, update: BlogPostUpdate, request: Request, user: dict = Depends(get_current_user)):
-    """Update a blog post"""
-    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No update data provided")
-    
-    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
-    
-    # If publishing, set published_at
-    if update_data.get("status") == "published":
-        existing = await db.blog_posts.find_one({"id": post_id}, {"_id": 0, "published_at": 1})
-        if not existing or not existing.get("published_at"):
-            update_data["published_at"] = datetime.now(timezone.utc).isoformat()
-    
-    result = await db.blog_posts.update_one({"id": post_id}, {"$set": update_data})
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Article non trouvé")
-    
-    await create_audit_log("blog_post_updated", "blog_post", post_id, user=user, details=update_data, request=request)
-    
-    post = await db.blog_posts.find_one({"id": post_id}, {"_id": 0})
-    if isinstance(post.get('created_at'), str):
-        post['created_at'] = datetime.fromisoformat(post['created_at'])
-    if isinstance(post.get('updated_at'), str):
-        post['updated_at'] = datetime.fromisoformat(post['updated_at'])
-    if isinstance(post.get('published_at'), str):
-        post['published_at'] = datetime.fromisoformat(post['published_at'])
-    
-    return post
-
-@admin_router.delete("/blog/{post_id}")
-async def delete_blog_post(post_id: str, request: Request, user: dict = Depends(require_admin)):
-    """Delete a blog post"""
-    result = await db.blog_posts.delete_one({"id": post_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Article non trouvé")
-    
-    await create_audit_log("blog_post_deleted", "blog_post", post_id, user=user, request=request)
-    return {"message": "Article supprimé"}
-
+# (moved to routers/) — removed block starting with '# ==================== BLOG PUBLIC ENDPOINTS ===================='
 # ==================== PDF GENERATION ====================
 def generate_quote_pdf(quote: dict, lead: dict, client: dict = None) -> BytesIO:
     """Generate PDF for a quote"""
@@ -3442,253 +3180,9 @@ async def get_portal_invoice_pdf(invoice_id: str, token: str):
     )
 
 # ==================== DISCOUNT CODES ENDPOINTS ====================
-@admin_router.get("/discount-codes", response_model=List[DiscountCode])
-async def get_discount_codes(is_active: Optional[bool] = None, user: dict = Depends(get_current_user)):
-    """Get all discount codes"""
-    query = {}
-    if is_active is not None:
-        query["is_active"] = is_active
-    
-    codes = await db.discount_codes.find(query, {"_id": 0}).to_list(1000)
-    return codes
-
-@admin_router.post("/discount-codes", response_model=DiscountCode)
-async def create_discount_code(code_data: DiscountCodeCreate, request: Request, user: dict = Depends(get_current_user)):
-    """Create a new discount code"""
-    # Check for duplicate code
-    existing = await db.discount_codes.find_one({"code": code_data.code.upper()})
-    if existing:
-        raise HTTPException(status_code=400, detail="Ce code existe déjà")
-    
-    discount = DiscountCode(**code_data.model_dump())
-    discount.code = discount.code.upper()
-    
-    doc = discount.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    if doc.get('valid_from'):
-        doc['valid_from'] = doc['valid_from'].isoformat()
-    if doc.get('valid_until'):
-        doc['valid_until'] = doc['valid_until'].isoformat()
-    
-    await db.discount_codes.insert_one(doc)
-    await create_audit_log("discount_code_created", "discount_code", discount.id, user=user, request=request)
-    
-    return discount
-
-@admin_router.patch("/discount-codes/{code_id}", response_model=DiscountCode)
-async def update_discount_code(code_id: str, update: DiscountCodeUpdate, request: Request, user: dict = Depends(get_current_user)):
-    """Update a discount code"""
-    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    
-    if not update_data:
-        raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
-    
-    result = await db.discount_codes.update_one({"id": code_id}, {"$set": update_data})
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Code non trouvé")
-    
-    await create_audit_log("discount_code_updated", "discount_code", code_id, user=user, details=update_data, request=request)
-    
-    code = await db.discount_codes.find_one({"id": code_id}, {"_id": 0})
-    return code
-
-@admin_router.delete("/discount-codes/{code_id}")
-async def delete_discount_code(code_id: str, request: Request, user: dict = Depends(require_admin)):
-    """Delete a discount code"""
-    result = await db.discount_codes.delete_one({"id": code_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Code non trouvé")
-    
-    await create_audit_log("discount_code_deleted", "discount_code", code_id, user=user, request=request)
-    return {"message": "Code supprimé"}
-
-@v1_router.post("/validate-discount")
-async def validate_discount_code(code: str, subtotal: float = 0, service_type: str = ""):
-    """Validate a discount code and return discount amount"""
-    discount = await db.discount_codes.find_one({"code": code.upper(), "is_active": True}, {"_id": 0})
-    
-    if not discount:
-        raise HTTPException(status_code=404, detail="Code invalide")
-    
-    # Check if max uses reached
-    if discount.get("max_uses") and discount.get("times_used", 0) >= discount["max_uses"]:
-        raise HTTPException(status_code=400, detail="Code expiré (limite d'utilisation atteinte)")
-    
-    # Check validity dates
-    now = datetime.now(timezone.utc)
-    if discount.get("valid_from"):
-        valid_from = datetime.fromisoformat(discount["valid_from"]) if isinstance(discount["valid_from"], str) else discount["valid_from"]
-        if now < valid_from:
-            raise HTTPException(status_code=400, detail="Code pas encore actif")
-    
-    if discount.get("valid_until"):
-        valid_until = datetime.fromisoformat(discount["valid_until"]) if isinstance(discount["valid_until"], str) else discount["valid_until"]
-        if now > valid_until:
-            raise HTTPException(status_code=400, detail="Code expiré")
-    
-    # Check minimum order
-    if subtotal < discount.get("min_order_amount", 0):
-        raise HTTPException(status_code=400, detail=f"Commande minimum: {discount['min_order_amount']}$")
-    
-    # Check applicable services
-    if discount.get("applicable_services") and service_type:
-        if service_type not in discount["applicable_services"]:
-            raise HTTPException(status_code=400, detail="Code non applicable pour ce service")
-    
-    # Calculate discount
-    if discount["discount_type"] == "percentage":
-        discount_amount = subtotal * (discount["discount_value"] / 100)
-    else:
-        discount_amount = min(discount["discount_value"], subtotal)
-    
-    return {
-        "valid": True,
-        "code": discount["code"],
-        "discount_type": discount["discount_type"],
-        "discount_value": discount["discount_value"],
-        "discount_amount": round(discount_amount, 2),
-        "description": discount.get("description", "")
-    }
-
-# ==================== PRICING ENDPOINTS ====================
-@admin_router.get("/pricing", response_model=List[PricingItem])
-async def get_pricing_items(service_type: Optional[str] = None, is_active: Optional[bool] = True, user: dict = Depends(get_current_user)):
-    """Get pricing items"""
-    query = {}
-    if service_type:
-        query["service_type"] = service_type
-    if is_active is not None:
-        query["is_active"] = is_active
-    
-    items = await db.pricing_items.find(query, {"_id": 0}).sort("service_type", 1).to_list(1000)
-    return items
-
-@admin_router.post("/pricing", response_model=PricingItem)
-async def create_pricing_item(item_data: PricingItemCreate, request: Request, user: dict = Depends(get_current_user)):
-    """Create a new pricing item"""
-    item = PricingItem(**item_data.model_dump())
-    
-    doc = item.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    doc['updated_at'] = doc['updated_at'].isoformat()
-    
-    await db.pricing_items.insert_one(doc)
-    await create_audit_log("pricing_item_created", "pricing_item", item.id, user=user, request=request)
-    
-    return item
-
-@admin_router.patch("/pricing/{item_id}", response_model=PricingItem)
-async def update_pricing_item(item_id: str, update: PricingItemUpdate, request: Request, user: dict = Depends(get_current_user)):
-    """Update a pricing item"""
-    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    
-    if not update_data:
-        raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
-    
-    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
-    
-    result = await db.pricing_items.update_one({"id": item_id}, {"$set": update_data})
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Item non trouvé")
-    
-    await create_audit_log("pricing_item_updated", "pricing_item", item_id, user=user, details=update_data, request=request)
-    
-    item = await db.pricing_items.find_one({"id": item_id}, {"_id": 0})
-    return item
-
-@admin_router.delete("/pricing/{item_id}")
-async def delete_pricing_item(item_id: str, request: Request, user: dict = Depends(require_admin)):
-    """Delete a pricing item"""
-    result = await db.pricing_items.delete_one({"id": item_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Item non trouvé")
-    
-    await create_audit_log("pricing_item_deleted", "pricing_item", item_id, user=user, request=request)
-    return {"message": "Item supprimé"}
-
-@v1_router.get("/pricing-public")
-async def get_public_pricing():
-    """Get public pricing items grouped by service"""
-    items = await db.pricing_items.find({"is_active": True}, {"_id": 0}).to_list(1000)
-    
-    grouped = {}
-    for item in items:
-        service = item.get("service_type", "other")
-        if service not in grouped:
-            grouped[service] = []
-        grouped[service].append(item)
-    
-    return grouped
-
-# ==================== POLICIES ENDPOINTS ====================
-@admin_router.get("/policies", response_model=List[Policy])
-async def get_policies(policy_type: Optional[PolicyType] = None, user: dict = Depends(get_current_user)):
-    """Get all policies"""
-    query = {}
-    if policy_type:
-        query["policy_type"] = policy_type
-    
-    policies = await db.policies.find(query, {"_id": 0}).to_list(100)
-    return policies
-
-@admin_router.post("/policies", response_model=Policy)
-async def create_policy(policy_data: PolicyCreate, request: Request, user: dict = Depends(get_current_user)):
-    """Create a new policy"""
-    # Deactivate existing policy of same type
-    await db.policies.update_many(
-        {"policy_type": policy_data.policy_type},
-        {"$set": {"is_active": False}}
-    )
-    
-    policy = Policy(**policy_data.model_dump())
-    
-    doc = policy.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    doc['updated_at'] = doc['updated_at'].isoformat()
-    
-    await db.policies.insert_one(doc)
-    await create_audit_log("policy_created", "policy", policy.id, user=user, request=request)
-    
-    return policy
-
-@admin_router.patch("/policies/{policy_id}", response_model=Policy)
-async def update_policy(policy_id: str, update: PolicyUpdate, request: Request, user: dict = Depends(get_current_user)):
-    """Update a policy"""
-    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    
-    if not update_data:
-        raise HTTPException(status_code=400, detail="Aucune donnée à mettre à jour")
-    
-    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
-    
-    result = await db.policies.update_one({"id": policy_id}, {"$set": update_data})
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Politique non trouvée")
-    
-    await create_audit_log("policy_updated", "policy", policy_id, user=user, details=update_data, request=request)
-    
-    policy = await db.policies.find_one({"id": policy_id}, {"_id": 0})
-    return policy
-
-@admin_router.delete("/policies/{policy_id}")
-async def delete_policy(policy_id: str, request: Request, user: dict = Depends(require_admin)):
-    """Delete a policy"""
-    result = await db.policies.delete_one({"id": policy_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Politique non trouvée")
-    
-    await create_audit_log("policy_deleted", "policy", policy_id, user=user, request=request)
-    return {"message": "Politique supprimée"}
-
-@v1_router.get("/policies-public")
-async def get_public_policies():
-    """Get active policies for public view"""
-    policies = await db.policies.find({"is_active": True}, {"_id": 0}).to_list(100)
-    return {p["policy_type"]: p for p in policies}
-
+# (moved to routers/) — removed block starting with '@admin_router.get("/discount-codes"'
+# (moved to routers/) — removed block starting with '# ==================== PRICING ENDPOINTS ===================='
+# (moved to routers/) — removed block starting with '# ==================== POLICIES ENDPOINTS ===================='
 # ==================== FULL CRUD FOR CLIENTS ====================
 @admin_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, request: Request, user: dict = Depends(require_admin)):
@@ -5031,6 +4525,23 @@ v1_router.include_router(auth_ext_router)
 from routers.ai_drafts import build_ai_drafts_router  # noqa: E402
 ai_drafts_router = build_ai_drafts_router(db=db, get_current_user=get_current_user)
 v1_router.include_router(ai_drafts_router)
+
+# Domain routers extracted from server.py (blog, policies, pricing items, discount codes)
+from routers.blog import build_blog_router  # noqa: E402
+from routers.policies import build_policies_router  # noqa: E402
+from routers.pricing import build_pricing_router  # noqa: E402
+from routers.discounts import build_discounts_router  # noqa: E402
+
+_router_deps = dict(
+    db=db,
+    get_current_user=get_current_user,
+    require_admin=require_admin,
+    create_audit_log=create_audit_log,
+)
+v1_router.include_router(build_blog_router(**_router_deps))
+v1_router.include_router(build_policies_router(**_router_deps))
+v1_router.include_router(build_pricing_router(**_router_deps))
+v1_router.include_router(build_discounts_router(**_router_deps))
 
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)

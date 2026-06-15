@@ -438,10 +438,10 @@ class TestClientPortal:
 
 
 class TestLeadSubmissionWithRecaptcha:
-    """Test lead submission form (reCAPTCHA disabled)"""
-    
+    """Test lead submission form (reCAPTCHA RE-ENABLED — iter15)."""
+
     def test_create_lead_without_recaptcha(self):
-        """Test POST /api/v1/leads - Create lead without reCAPTCHA"""
+        """POST /api/v1/leads without recaptcha_token must return 400 (French)."""
         unique_id = uuid.uuid4().hex[:8]
         lead_data = {
             "full_name": f"Test Lead {unique_id}",
@@ -452,25 +452,19 @@ class TestLeadSubmissionWithRecaptcha:
             "city": "Montreal",
             "description": "Test lead submission without reCAPTCHA",
             "urgency_level": "normal",
-            "source": "website"
+            "source": "website",
         }
-        
-        response = requests.post(
-            f"{BASE_URL}/api/v1/leads",
-            json=lead_data
+
+        response = requests.post(f"{BASE_URL}/api/v1/leads", json=lead_data)
+
+        assert response.status_code == 400, (
+            f"Expected 400 (recaptcha required), got {response.status_code}: {response.text}"
         )
-        
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
-        
-        lead = response.json()
-        assert lead["full_name"] == lead_data["full_name"]
-        assert lead["email"] == lead_data["email"]
-        assert lead["status"] == "new"
-        assert "id" in lead
-        print(f"✓ Lead created without reCAPTCHA: {lead['id']}")
-    
+        assert "reCAPTCHA requis" in response.text
+        print("✓ Lead rejected without reCAPTCHA (400)")
+
     def test_create_furniture_lead_with_items(self):
-        """Test POST /api/v1/leads - Create furniture lead with items"""
+        """POST /api/v1/leads with invalid recaptcha_token must return 400 (French)."""
         unique_id = uuid.uuid4().hex[:8]
         lead_data = {
             "full_name": f"Furniture Lead {unique_id}",
@@ -482,37 +476,32 @@ class TestLeadSubmissionWithRecaptcha:
             "description": "Need furniture assembly",
             "urgency_level": "urgent",
             "source": "referral",
+            "recaptcha_token": "invalid-token-xyz",
             "items": [
                 {
                     "item_type": "bed",
                     "brand": "ikea",
                     "model": "MALM",
                     "quantity": 1,
-                    "wall_anchor_required": False
+                    "wall_anchor_required": False,
                 },
                 {
                     "item_type": "wardrobe",
                     "brand": "ikea",
                     "model": "PAX",
                     "quantity": 1,
-                    "wall_anchor_required": True
-                }
-            ]
+                    "wall_anchor_required": True,
+                },
+            ],
         }
-        
-        response = requests.post(
-            f"{BASE_URL}/api/v1/leads",
-            json=lead_data
+
+        response = requests.post(f"{BASE_URL}/api/v1/leads", json=lead_data)
+
+        assert response.status_code == 400, (
+            f"Expected 400 (recaptcha verification failure), got {response.status_code}: {response.text}"
         )
-        
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        
-        lead = response.json()
-        assert lead["service_type"] == "furniture"
-        assert len(lead["items"]) == 2
-        assert lead["items"][0]["item_type"] == "bed"
-        assert lead["items"][1]["wall_anchor_required"] == True
-        print(f"✓ Furniture lead created with items: {lead['id']}")
+        assert "Échec de la vérification reCAPTCHA" in response.text
+        print("✓ Furniture lead rejected with invalid reCAPTCHA (400)")
 
 
 if __name__ == "__main__":
