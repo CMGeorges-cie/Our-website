@@ -122,81 +122,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ==================== ENUMS ====================
-class ServiceType(str, Enum):
-    MANUAL = "manual"
-    FURNITURE = "furniture"
-    TECH = "tech"
-    MURS_ACCENT = "murs-accent"
-    DEMOLITION = "demolition"
+# Shared Pydantic models (extracted from server.py — see backend/models/__init__.py)
+from models import (  # noqa: E402
+    ServiceType, UrgencyLevel, LeadStatus, LeadSource, ItemType, ItemBrand,
+    UserRole, ClientStatus, InvoiceStatus, ProjectStatus, PaymentMethod,
+    LeadItemBase, LeadItem, LeadBase, LeadCreate, Lead, LeadUpdate,
+    ClientBase, ClientCreate, Client, ClientUpdate, ContactForm,
+)
 
-class UrgencyLevel(str, Enum):
-    NORMAL = "normal"
-    URGENT = "urgent"
-
-class LeadStatus(str, Enum):
-    NEW = "new"
-    CONTACTED = "contacted"
-    QUOTED = "quoted"
-    WON = "won"
-    LOST = "lost"
-
-class LeadSource(str, Enum):
-    INSTAGRAM = "instagram"
-    FACEBOOK = "facebook"
-    GOOGLE = "google"
-    REFERRAL = "referral"
-    WEBSITE = "website"
-    OTHER = "other"
-
-class ItemType(str, Enum):
-    BED = "bed"
-    DRESSER = "dresser"
-    DESK = "desk"
-    WARDROBE = "wardrobe"
-    SOFA = "sofa"
-    TABLE = "table"
-    CHAIR = "chair"
-    SHELF = "shelf"
-    OTHER = "other"
-
-class ItemBrand(str, Enum):
-    IKEA = "ikea"
-    JYSK = "jysk"
-    STRUCTUBE = "structube"
-    WAYFAIR = "wayfair"
-    OTHER = "other"
-
-class UserRole(str, Enum):
-    ADMIN = "admin"
-    STAFF = "staff"
-
-class ClientStatus(str, Enum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    PROSPECT = "prospect"
-
-class InvoiceStatus(str, Enum):
-    DRAFT = "draft"
-    SENT = "sent"
-    PAID = "paid"
-    PARTIAL = "partial"
-    OVERDUE = "overdue"
-    CANCELLED = "cancelled"
-
-class ProjectStatus(str, Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ON_HOLD = "on_hold"
-    CANCELLED = "cancelled"
-
-class PaymentMethod(str, Enum):
-    CASH = "cash"
-    ETRANSFER = "etransfer"
-    CREDIT_CARD = "credit_card"
-    CHEQUE = "cheque"
-    OTHER = "other"
 
 # ==================== PRICING CONFIG ====================
 PRICING_CONFIG = {
@@ -278,84 +211,6 @@ class TokenResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
-
-# Lead Item Model
-class LeadItemBase(BaseModel):
-    item_type: ItemType
-    brand: ItemBrand
-    model: str = ""
-    quantity: int = 1
-    wall_anchor_required: bool = False
-
-class LeadItem(LeadItemBase):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-
-# Lead Models
-class LeadBase(BaseModel):
-    full_name: str
-    phone: str
-    email: EmailStr
-    service_type: ServiceType
-    address: str = ""
-    city: str = ""
-    preferred_date: Optional[str] = None
-    urgency_level: UrgencyLevel = UrgencyLevel.NORMAL
-    description: str = ""
-    source: LeadSource = LeadSource.WEBSITE
-    recaptcha_token: Optional[str] = None
-
-class LeadCreate(LeadBase):
-    items: Optional[List[LeadItemBase]] = None
-    photos: List[str] = []  # URLs of uploaded photos
-
-class Lead(LeadBase):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    status: LeadStatus = LeadStatus.NEW
-    items: List[LeadItem] = []
-    photos: List[str] = []
-    notes: str = ""
-    client_id: Optional[str] = None
-
-class LeadUpdate(BaseModel):
-    status: Optional[LeadStatus] = None
-    notes: Optional[str] = None
-    client_id: Optional[str] = None
-
-# Client Model
-class ClientBase(BaseModel):
-    full_name: str
-    email: EmailStr
-    phone: str
-    address: str = ""
-    city: str = ""
-    postal_code: str = ""
-    company_name: Optional[str] = None
-    notes: str = ""
-
-class ClientCreate(ClientBase):
-    pass
-
-class Client(ClientBase):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    status: ClientStatus = ClientStatus.ACTIVE
-    total_revenue: float = 0
-    total_projects: int = 0
-    lead_id: Optional[str] = None
-
-class ClientUpdate(BaseModel):
-    full_name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    city: Optional[str] = None
-    postal_code: Optional[str] = None
-    company_name: Optional[str] = None
-    notes: Optional[str] = None
-    status: Optional[ClientStatus] = None
 
 # Quote Line Model
 class QuoteLineBase(BaseModel):
@@ -573,15 +428,6 @@ class AuditLog(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     details: dict = {}
     ip_address: Optional[str] = None
-
-# Contact Form
-class ContactForm(BaseModel):
-    name: str
-    email: EmailStr
-    phone: str = ""
-    subject: str
-    message: str
-    recaptcha_token: Optional[str] = None
 
 # Portfolio Media
 class PortfolioMedia(BaseModel):
@@ -1164,75 +1010,7 @@ async def r2_proxy_photo(key: str):
 
 
 # ==================== PUBLIC ENDPOINTS ====================
-@v1_router.post("/leads", response_model=Lead)
-async def create_lead(lead_data: LeadCreate, background_tasks: BackgroundTasks, request: Request):
-    """Create a new lead from the public form"""
-    # Enforce reCAPTCHA verification when configured
-    if RECAPTCHA_SECRET_KEY:
-        if not lead_data.recaptcha_token:
-            raise HTTPException(status_code=400, detail="reCAPTCHA requis. Veuillez cocher la case « Je ne suis pas un robot ».")
-        is_valid = await verify_recaptcha(lead_data.recaptcha_token)
-        if not is_valid:
-            raise HTTPException(status_code=400, detail="Échec de la vérification reCAPTCHA. Veuillez réessayer.")
-    
-    lead = Lead(**lead_data.model_dump(exclude={"items", "recaptcha_token"}))
-    
-    if lead_data.items:
-        lead.items = [LeadItem(**item.model_dump()) for item in lead_data.items]
-    
-    doc = lead.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    
-    await db.leads.insert_one(doc)
-    
-    # Create audit log
-    await create_audit_log("lead_created", "lead", lead.id, details={"source": lead.source, "service_type": lead.service_type}, request=request)
-    
-    # Send notification emails + create in-app notification
-    lead_dict = {**doc, "id": lead.id}
-    await notify_new_lead(lead_dict, background_tasks)
-    # Confirmation email to client
-    background_tasks.add_task(send_email, lead.email, "Déco Touché - Confirmation de votre demande", get_lead_confirmation_html(lead_dict))
-    
-    return lead
-
-@v1_router.post("/contact")
-async def submit_contact(form: ContactForm, background_tasks: BackgroundTasks, request: Request):
-    """Handle contact form submission"""
-    # Enforce reCAPTCHA verification when configured
-    if RECAPTCHA_SECRET_KEY:
-        if not form.recaptcha_token:
-            raise HTTPException(status_code=400, detail="reCAPTCHA requis. Veuillez cocher la case « Je ne suis pas un robot ».")
-        is_valid = await verify_recaptcha(form.recaptcha_token)
-        if not is_valid:
-            raise HTTPException(status_code=400, detail="Échec de la vérification reCAPTCHA. Veuillez réessayer.")
-    
-    # Save to database
-    contact_doc = {
-        "id": str(uuid.uuid4()),
-        "name": form.name,
-        "email": form.email,
-        "phone": form.phone,
-        "subject": form.subject,
-        "message": form.message,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "status": "new"
-    }
-    await db.contact_messages.insert_one(contact_doc)
-    
-    # Send notification email
-    html_content = f"""
-    <h2>Nouveau message de contact</h2>
-    <p><strong>De:</strong> {form.name} ({form.email})</p>
-    <p><strong>Téléphone:</strong> {form.phone or 'Non fourni'}</p>
-    <p><strong>Sujet:</strong> {form.subject}</p>
-    <p><strong>Message:</strong></p>
-    <p>{form.message}</p>
-    """
-    background_tasks.add_task(send_email, ADMIN_EMAIL, f"Contact Déco Touché: {form.subject}", html_content)
-    
-    return {"message": "Message envoyé avec succès"}
-
+# (moved to routers/) '@v1_router.post("/leads", response_model=Lead)'
 @v1_router.get("/services", response_model=List[ServiceInfo])
 async def get_services():
     """Get list of available services"""
@@ -1378,156 +1156,8 @@ async def get_me(user: dict = Depends(get_current_user)):
     """Get current user info"""
     return user
 
-# ==================== ADMIN LEADS ENDPOINTS ====================
-@admin_router.get("/leads", response_model=List[Lead])
-async def get_leads(
-    status: Optional[LeadStatus] = None,
-    service_type: Optional[ServiceType] = None,
-    user: dict = Depends(get_current_user)
-):
-    """Get all leads with optional filters"""
-    query = {}
-    if status:
-        query["status"] = status
-    if service_type:
-        query["service_type"] = service_type
-    
-    leads = await db.leads.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    
-    for lead in leads:
-        if isinstance(lead.get('created_at'), str):
-            lead['created_at'] = datetime.fromisoformat(lead['created_at'])
-    
-    return leads
-
-@admin_router.get("/leads/{lead_id}", response_model=Lead)
-async def get_lead(lead_id: str, user: dict = Depends(get_current_user)):
-    """Get a specific lead"""
-    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0})
-    if not lead:
-        raise HTTPException(status_code=404, detail="Lead not found")
-    
-    if isinstance(lead.get('created_at'), str):
-        lead['created_at'] = datetime.fromisoformat(lead['created_at'])
-    
-    return lead
-
-@admin_router.patch("/leads/{lead_id}", response_model=Lead)
-async def update_lead(lead_id: str, update: LeadUpdate, request: Request, user: dict = Depends(get_current_user)):
-    """Update lead status or notes"""
-    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No update data provided")
-    
-    result = await db.leads.update_one({"id": lead_id}, {"$set": update_data})
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Lead not found")
-    
-    await create_audit_log("lead_updated", "lead", lead_id, user=user, details=update_data, request=request)
-    
-    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0})
-    if isinstance(lead.get('created_at'), str):
-        lead['created_at'] = datetime.fromisoformat(lead['created_at'])
-    return lead
-
-@admin_router.post("/leads/{lead_id}/convert-to-client", response_model=Client)
-async def convert_lead_to_client(lead_id: str, request: Request, user: dict = Depends(get_current_user)):
-    """Convert a lead to a client"""
-    lead = await db.leads.find_one({"id": lead_id}, {"_id": 0})
-    if not lead:
-        raise HTTPException(status_code=404, detail="Lead not found")
-    
-    # Check if already converted
-    if lead.get("client_id"):
-        existing_client = await db.clients.find_one({"id": lead["client_id"]}, {"_id": 0})
-        if existing_client:
-            return existing_client
-    
-    # Create client from lead
-    client = Client(
-        full_name=lead["full_name"],
-        email=lead["email"],
-        phone=lead["phone"],
-        address=lead.get("address", ""),
-        city=lead.get("city", ""),
-        lead_id=lead_id
-    )
-    
-    doc = client.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    
-    await db.clients.insert_one(doc)
-    
-    # Update lead with client_id
-    await db.leads.update_one({"id": lead_id}, {"$set": {"client_id": client.id, "status": "won"}})
-    
-    await create_audit_log("lead_converted_to_client", "client", client.id, user=user, details={"lead_id": lead_id}, request=request)
-    
-    return client
-
-# ==================== ADMIN CLIENTS ENDPOINTS ====================
-@admin_router.get("/clients", response_model=List[Client])
-async def get_clients(status: Optional[ClientStatus] = None, user: dict = Depends(get_current_user)):
-    """Get all clients"""
-    query = {}
-    if status:
-        query["status"] = status
-    
-    clients = await db.clients.find(query, {"_id": 0}).sort("created_at", -1).to_list(1000)
-    
-    for client in clients:
-        if isinstance(client.get('created_at'), str):
-            client['created_at'] = datetime.fromisoformat(client['created_at'])
-    
-    return clients
-
-@admin_router.post("/clients", response_model=Client)
-async def create_client(client_data: ClientCreate, request: Request, user: dict = Depends(get_current_user)):
-    """Create a new client"""
-    client = Client(**client_data.model_dump())
-    
-    doc = client.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    
-    await db.clients.insert_one(doc)
-    await create_audit_log("client_created", "client", client.id, user=user, request=request)
-    
-    return client
-
-@admin_router.get("/clients/{client_id}", response_model=Client)
-async def get_client(client_id: str, user: dict = Depends(get_current_user)):
-    """Get a specific client"""
-    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
-    if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
-    
-    if isinstance(client.get('created_at'), str):
-        client['created_at'] = datetime.fromisoformat(client['created_at'])
-    
-    return client
-
-@admin_router.patch("/clients/{client_id}", response_model=Client)
-async def update_client(client_id: str, update: ClientUpdate, request: Request, user: dict = Depends(get_current_user)):
-    """Update client"""
-    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No update data provided")
-    
-    result = await db.clients.update_one({"id": client_id}, {"$set": update_data})
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Client not found")
-    
-    await create_audit_log("client_updated", "client", client_id, user=user, details=update_data, request=request)
-    
-    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
-    if isinstance(client.get('created_at'), str):
-        client['created_at'] = datetime.fromisoformat(client['created_at'])
-    return client
-
+# (moved to routers/) '# ==================== ADMIN LEADS ENDPOINTS ===================='
+# (moved to routers/) '# ==================== ADMIN CLIENTS ENDPOINTS ===================='
 # ==================== ADMIN QUOTES ENDPOINTS ====================
 @admin_router.post("/quotes", response_model=Quote)
 async def create_quote(quote_data: QuoteCreate, request: Request, user: dict = Depends(get_current_user)):
@@ -3183,17 +2813,7 @@ async def get_portal_invoice_pdf(invoice_id: str, token: str):
 # (moved to routers/) — removed block starting with '@admin_router.get("/discount-codes"'
 # (moved to routers/) — removed block starting with '# ==================== PRICING ENDPOINTS ===================='
 # (moved to routers/) — removed block starting with '# ==================== POLICIES ENDPOINTS ===================='
-# ==================== FULL CRUD FOR CLIENTS ====================
-@admin_router.delete("/clients/{client_id}")
-async def delete_client(client_id: str, request: Request, user: dict = Depends(require_admin)):
-    """Delete a client"""
-    result = await db.clients.delete_one({"id": client_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Client non trouvé")
-    
-    await create_audit_log("client_deleted", "client", client_id, user=user, request=request)
-    return {"message": "Client supprimé"}
-
+# (moved to routers/) '# ==================== FULL CRUD FOR CLIENTS ===================='
 # ==================== FULL CRUD FOR INVOICES ====================
 @admin_router.delete("/invoices/{invoice_id}")
 async def delete_invoice(invoice_id: str, request: Request, user: dict = Depends(require_admin)):
@@ -3216,16 +2836,7 @@ async def delete_project(project_id: str, request: Request, user: dict = Depends
     await create_audit_log("project_deleted", "project", project_id, user=user, request=request)
     return {"message": "Projet supprimé"}
 
-# ==================== DELETE LEAD ====================
-@admin_router.delete("/leads/{lead_id}")
-async def delete_lead(lead_id: str, request: Request, user: dict = Depends(require_admin)):
-    """Delete a lead"""
-    result = await db.leads.delete_one({"id": lead_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Lead non trouvé")
-    await create_audit_log("lead_deleted", "lead", lead_id, user=user, request=request)
-    return {"message": "Lead supprimé"}
-
+# (moved to routers/) '# ==================== DELETE LEAD ===================='
 # ==================== SEND INVOICE BY EMAIL ====================
 @admin_router.post("/invoices/{invoice_id}/send-email")
 async def send_invoice_by_email(invoice_id: str, request: Request, user: dict = Depends(get_current_user)):
@@ -4531,6 +4142,9 @@ from routers.blog import build_blog_router  # noqa: E402
 from routers.policies import build_policies_router  # noqa: E402
 from routers.pricing import build_pricing_router  # noqa: E402
 from routers.discounts import build_discounts_router  # noqa: E402
+from routers.leads import build_leads_router  # noqa: E402
+from routers.contact import build_contact_router  # noqa: E402
+from routers.clients import build_clients_router  # noqa: E402
 
 _router_deps = dict(
     db=db,
@@ -4542,6 +4156,26 @@ v1_router.include_router(build_blog_router(**_router_deps))
 v1_router.include_router(build_policies_router(**_router_deps))
 v1_router.include_router(build_pricing_router(**_router_deps))
 v1_router.include_router(build_discounts_router(**_router_deps))
+v1_router.include_router(build_clients_router(**_router_deps))
+v1_router.include_router(
+    build_leads_router(
+        **_router_deps,
+        verify_recaptcha=verify_recaptcha,
+        recaptcha_secret_key=RECAPTCHA_SECRET_KEY or "",
+        notify_new_lead=notify_new_lead,
+        send_email=send_email,
+        get_lead_confirmation_html=get_lead_confirmation_html,
+    )
+)
+v1_router.include_router(
+    build_contact_router(
+        db=db,
+        verify_recaptcha=verify_recaptcha,
+        recaptcha_secret_key=RECAPTCHA_SECRET_KEY or "",
+        send_email=send_email,
+        admin_email=ADMIN_EMAIL,
+    )
+)
 
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)

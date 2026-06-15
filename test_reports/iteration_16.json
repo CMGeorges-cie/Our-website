@@ -1,0 +1,51 @@
+{
+  "summary": "Backend-only regression test for iteration-16 refactor: (1) extracted leads/contact/clients routers from server.py, (2) moved shared Pydantic models to /app/backend/models/__init__.py, (3) split auth_extensions.py (556 lines) into 4 focused sub-modules under routers/auth_ext/ (common, password, two_factor, login_challenge) with the old file kept as 9-line shim. Created /app/backend/tests/test_iter16_refactor.py (40 tests, 100% passing). Also ran iter-15 regression suite (30 tests) — still 100% passing. Verified convert-to-client flow end-to-end (seeded a lead in MongoDB, called POST /admin/leads/{id}/convert-to-client, confirmed Client created, lead.status flipped to 'won', lead.client_id set, idempotent on second call). Verified OpenAPI exposes no duplicate routes, all expected new endpoints registered. Verified server.py reduced from 5137 to 4268 lines (~17%). No regressions detected — all 70 tests across iter-15 and iter-16 suites pass.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/v1/auth/2fa/email/activate", "issue": "Endpoint enables email-2FA for the current user with NO additional check (no password re-prompt, no verification of email ownership). If a stolen access_token is used, attacker can lock the legitimate owner out by activating 2FA on an email they don't control. Existing behavior preserved during refactor — NOT a regression, but worth hardening. Suggest requiring current_password (like 2fa/disable does)."},
+      {"endpoint": "/api/v1/auth/forgot-password", "issue": "Resend rejects emails to 'admin@cmgeorges.com' in test/preview mode (only verified recipient is cmgeorges.cie@gmail.com). Logged as ERROR but endpoint still returns 200 (good for anti-enumeration). Pre-existing infra limitation, not a refactor issue."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter16_refactor.py",
+    "/app/test_reports/pytest/iter16_refactor.xml",
+    "/app/test_reports/pytest/router_refactor_iter16.xml"
+  ],
+  "action_items": [
+    "(Optional hardening) /api/v1/auth/2fa/email/activate should require current_password (same as 2fa/disable) to prevent token-theft -> 2FA-lockout attacks.",
+    "(Test infra) Resend API in preview env only sends to cmgeorges.cie@gmail.com. Password-reset/welcome emails for admin@cmgeorges.com are logged-as-failed but endpoint correctly returns 200. Consider setting RESEND_FROM to a verified domain OR configure preview to use admin email = cmgeorges.cie@gmail.com.",
+    "(No action required for the refactor itself) — all 70 tests pass, no regressions."
+  ],
+  "critical_code_review_comments": [
+    "Extraction of leads/contact/clients is clean and follows the same DI pattern as iter-15 (build_*_router with kwargs: db, get_current_user, require_admin, create_audit_log, and additionally for leads: verify_recaptcha, recaptcha_secret_key, notify_new_lead, send_email, get_lead_confirmation_html). No global module-level imports of server state. Good.",
+    "models/__init__.py is side-effect free (no DB, no logger, no env) — correct, allows safe import from any router. 14 enums + 9 Pydantic classes are shared. Lead.model_config = ConfigDict(extra='ignore') is appropriate so extra fields from old DB docs don't break Pydantic.",
+    "auth_extensions.py shim (9 lines) re-exports build_auth_router from routers.auth_ext — backward compat preserved. The package name 'auth_ext' (NOT 'auth') correctly avoids collision with the pre-existing routers/auth.py used by mobile.py/ServiceFlow.",
+    "auth_ext/common.py contains all helpers (hash_password, verify_password, generate_reset_token, send_resend_email, get_password_reset_html, etc.) — properly scoped. password.py, two_factor.py, login_challenge.py each register their routes via register_*_routes(router, ...) functions called from __init__.py — clean composition.",
+    "convert-to-client flow verified: lead -> client copy preserves full_name/email/phone/address/city + sets lead_id=src_lead, lead.status='won', lead.client_id=new_client.id; idempotent (second call returns existing client). Audit log created.",
+    "leads.py /admin/leads list and get-by-id correctly use {_id: 0} projection (no MongoDB ObjectId serialization issues). created_at correctly converted from ISO string back to datetime on read.",
+    "Pydantic Lead model accepts the full original schema confirmed by sending payload with items + photos + urgency_level + source + preferred_date + city + address + all fields — Pydantic validates pass (no 422), reCAPTCHA gate fires at 400 with French message.",
+    "OpenAPI exposes 139 unique paths / 181 unique (method, path) operations — no duplicates. All required routes present: /leads, /contact, /admin/leads/*, /admin/clients/*, /auth/2fa/*, /auth/login/challenge|verify-2fa, /auth/forgot-password|reset-password|change-password|change-email.",
+    "Server.py is now 4268 lines (down from 5137 = 17%). Still over the 700-line guideline. Future candidates for extraction: invoices (~300 lines), projects, quotes, signature, AI drafts, R2 photo proxy. Not blocking.",
+    "Minor: leads.py PATCH /admin/leads/{lead_id} returns 400 'No update data provided' when nothing changes — semantically debatable, could be 204 No Content; preserved from server.py original behavior.",
+    "(Pre-existing, NOT a refactor regression) /api/v1/auth/2fa/email/activate does not require current_password unlike /2fa/disable. Risk: token-theft -> attacker activates email 2FA on a controlled email -> locks owner out. See action_items."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter16_refactor.py (NEW — 40 tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (40/40 new iter-16 tests + 30/30 iter-15 regression = 70/70)",
+    "frontend": "n/a (backend-only request)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@cmgeorges.com",
+    "admin_password": "strongpassword123",
+    "source": "/app/memory/test_credentials.md"
+  },
+  "seed_data_creation": "Test creates and deletes its own data inline: TEST clients (full CRUD cycle, auto-deleted). One out-of-pytest verification script seeded a lead directly in mongo to exercise convert-to-client, then deleted both lead+client. No leftover seed data.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Reusable assets: /app/backend/tests/test_iter16_refactor.py (40 tests covering leads/contact/clients routers + auth_ext sub-modules + OpenAPI sanity + untouched routes) AND /app/backend/tests/test_router_refactor.py (30 iter-15 tests still 100% passing). IMPORTANT: avoid testing /api/v1/auth/2fa/email/activate without immediate teardown — it actually enables email-2FA on the admin user and will break login-challenge for subsequent tests. I had to manually disable 2FA in mongo (db.users.update_one with two_factor_enabled=False) once during this run. The current admin account is back to 2FA-OFF state. Routes /api/v1/auth/login (legacy direct login) and /api/v1/auth/login/challenge (new) both work and return access_token when 2FA off. The /openapi.json is only exposed on direct backend (localhost:8001), NOT through the public ingress (which only proxies /api/*). Pre-existing stale tests in test_cmgeorges_api.py / test_notifications.py / test_auth_reset_and_ai_drafts.py still exist (called out in iter-15) — not run this iteration to keep focus on the refactor.",
+  "rca of the issue": "No bugs from the iter-16 refactor. The transient ImportError 'cannot import name get_current_user from routers.auth' visible in early backend logs at 04:53-04:54 was during the main agent's intermediate state when the new package was briefly named 'routers/auth' colliding with the pre-existing single file 'routers/auth.py'. The final fix (rename package to 'auth_ext') resolved it cleanly and server has been up since 04:55:31 with no further import errors. Verified explicitly: `ls routers/auth*` shows /app/backend/routers/auth.py (legacy, 7.6 KB, untouched) + /app/backend/routers/auth_ext/ (new package). All 70 tests pass."
+}
