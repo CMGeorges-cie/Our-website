@@ -162,6 +162,15 @@ def build_auth_router(db, get_current_user, create_access_token, create_refresh_
     Build the auth-extensions router. We accept dependencies as args to avoid
     a circular import with server.py.
     """
+    # Safety: never email a reset link pointing to the preview environment.
+    # If FRONTEND_URL is missing or accidentally set to a preview URL, fall back
+    # to the canonical production domain so password reset emails always work.
+    PROD_URL = "https://cmgeorges.ca"
+    if not frontend_url or "preview.emergentagent" in frontend_url or "localhost" in frontend_url:
+        logger.warning(f"[auth] FRONTEND_URL='{frontend_url}' looks non-production; "
+                       f"falling back to {PROD_URL} for password reset emails.")
+        frontend_url = PROD_URL
+
     router = APIRouter(prefix="/auth", tags=["Auth"])
 
     # ---- Login pre-check: enforce temp-password expiry & 2FA -----------------
