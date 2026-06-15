@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { adminApi, aiApi } from '@/lib/api';
+import { adminApi, aiApi, apiV2 } from '@/lib/api';
+import InvoiceCatalogDialog from '@/components/admin/invoices/InvoiceCatalogDialog';
 import { 
   formatDate, 
   formatCurrency, 
@@ -78,6 +79,9 @@ export default function AdminLeadDetail() {
   const [creatingQuote, setCreatingQuote] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
+  const [showCatalog, setShowCatalog] = useState(false);
+  const [catalogServices, setCatalogServices] = useState([]);
+  const [catalogSearch, setCatalogSearch] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -147,6 +151,38 @@ export default function AdminLeadDetail() {
   const addQuoteLine = () => {
     setQuoteLines([...quoteLines, { ...emptyLine }]);
   };
+
+  // Load service catalog on demand (first time the catalog dialog opens).
+  const openCatalog = async () => {
+    if (catalogServices.length === 0) {
+      try {
+        const res = await apiV2.get('/catalog');
+        setCatalogServices(res.data || []);
+      } catch (e) {
+        // Soft fail — catalog stays empty, dialog shows "Aucun service trouvé".
+      }
+    }
+    setShowCatalog(true);
+  };
+
+  // Add a line from the catalog by mapping the service to a quote line.
+  const addFromCatalog = (service) => {
+    setQuoteLines((prev) => [
+      ...prev.filter((l) => l.description),
+      {
+        description: service.name,
+        quantity: 1,
+        unit_price: service.base_price || 0,
+        market_price: 0,
+        line_type: 'labor',
+      },
+    ]);
+    setShowCatalog(false);
+  };
+
+  const filteredCatalog = catalogServices.filter((s) =>
+    !catalogSearch || (s.name || '').toLowerCase().includes(catalogSearch.toLowerCase())
+  );
 
   const updateQuoteLine = (index, field, value) => {
     setQuoteLines(quoteLines.map((line, i) => 
@@ -469,10 +505,16 @@ export default function AdminLeadDetail() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <Label className="text-base font-semibold">Lignes de soumission</Label>
-                    <Button variant="outline" size="sm" onClick={addQuoteLine} data-testid="add-quote-line-btn">
-                      <Plus className="h-4 w-4 mr-1" />
-                      Ajouter
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={openCatalog} data-testid="quote-catalog-btn" className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37]/10">
+                        <Package className="h-4 w-4 mr-1" />
+                        Catalogue
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={addQuoteLine} data-testid="add-quote-line-btn">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Ajouter
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -748,6 +790,16 @@ export default function AdminLeadDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Service catalog picker for quote lines */}
+      <InvoiceCatalogDialog
+        open={showCatalog}
+        onOpenChange={setShowCatalog}
+        services={filteredCatalog}
+        search={catalogSearch}
+        onSearchChange={setCatalogSearch}
+        onPick={addFromCatalog}
+      />
     </div>
   );
 }
