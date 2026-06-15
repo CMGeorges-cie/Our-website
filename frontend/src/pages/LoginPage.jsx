@@ -272,6 +272,16 @@ export default function LoginPage() {
           )}
 
           {/* Back button */}
+          <div className="mt-4 text-center">
+            <Link
+              to={loginType === 'client' ? '/mot-de-passe-oublie?from=client' : '/mot-de-passe-oublie'}
+              className="text-sm text-yellow-400/80 hover:text-yellow-400 underline-offset-2 hover:underline"
+              data-testid="forgot-password-link"
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
+
           <div className="mt-6 pt-5 border-t border-white/10">
             <Button
               variant="ghost"
