@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import pyotp
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from .common import (
     TwoFADisableRequest,
@@ -12,6 +13,11 @@ from .common import (
     verify_2fa_code_for,
     verify_password,
 )
+
+
+class TwoFAEmailActivateRequest(BaseModel):
+    """Require current password to prevent token-theft → 2FA-lockout attacks."""
+    current_password: str = Field(min_length=1)
 
 
 def register_two_factor_routes(router: APIRouter, *, db, get_current_user, create_audit_log) -> None:
@@ -67,7 +73,19 @@ def register_two_factor_routes(router: APIRouter, *, db, get_current_user, creat
         return {"success": True}
 
     @router.post("/2fa/email/activate")
-    async def two_fa_email_activate(request: Request, user: dict = Depends(get_current_user)):
+    async def two_fa_email_activate(
+        body: TwoFAEmailActivateRequest,
+        request: Request,
+        user: dict = Depends(get_current_user),
+    ):
+        # Hardening: require current password to prevent a stolen-token attacker
+        # from enabling 2FA on an email they don't control and locking out the
+        # legitimate owner. Matches the threat model of /2fa/disable.
+        u = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+        if not u:
+            raise HTTPException(status_code=404, detail="User not found")
+        if not verify_password(body.current_password, u.get("password_hash", "")):
+            raise HTTPException(status_code=400, detail="Mot de passe incorrect")
         await db.users.update_one(
             {"id": user["id"]},
             {

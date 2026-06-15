@@ -56,7 +56,7 @@ export const authApi = {
   get2FAStatus: () => api.get('/auth/2fa/status'),
   setup2FATotp: () => api.post('/auth/2fa/totp/setup'),
   activate2FATotp: (code) => api.post('/auth/2fa/totp/activate', { code }),
-  activate2FAEmail: () => api.post('/auth/2fa/email/activate'),
+  activate2FAEmail: (current_password) => api.post('/auth/2fa/email/activate', { current_password }),
   disable2FA: (current_password, code) => api.post('/auth/2fa/disable', { current_password, code }),
 };
 

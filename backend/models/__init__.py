@@ -6,7 +6,7 @@ Keep this module side-effect free: no DB, no logger, no env vars.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import List, Optional
 
@@ -195,3 +195,128 @@ class ContactForm(BaseModel):
     subject: str
     message: str
     recaptcha_token: Optional[str] = None
+
+
+# ==================== QUOTE MODELS ====================
+class QuoteLineBase(BaseModel):
+    description: str
+    quantity: int = 1
+    unit_price: float
+    market_price: Optional[float] = None
+    line_type: str = "labor"
+    cost_price: Optional[float] = None  # For margin calculation
+
+
+class QuoteLine(QuoteLineBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    line_total: float = 0
+    margin_amount: float = 0
+
+
+class QuoteCreate(BaseModel):
+    lead_id: str
+    lines: List[QuoteLineBase]
+    contingency_percent: float = 15.0
+    notes: str = ""
+    delivery_fee: float = 0
+    urgency_fee: float = 0
+    validity_days: int = 30
+
+
+class Quote(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    lead_id: str
+    client_id: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    valid_until: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc) + timedelta(days=30)
+    )
+    lines: List[QuoteLine] = []
+    subtotal_material: float = 0
+    subtotal_labor: float = 0
+    delivery_fee: float = 0
+    urgency_fee: float = 0
+    subtotal_before_contingency: float = 0
+    contingency_percent: float = 15.0
+    contingency_amount: float = 0
+    subtotal_before_tax: float = 0
+    tps_rate: float = 5.0
+    tps_amount: float = 0
+    tvq_rate: float = 9.975
+    tvq_amount: float = 0
+    total_with_tax: float = 0
+    market_price_total: float = 0
+    cmgeorges_savings: float = 0
+    total_cost: float = 0
+    gross_margin: float = 0
+    margin_percent: float = 0
+    deposit_amount: float = 0
+    milestone_amount: float = 0
+    final_amount: float = 0
+    notes: str = ""
+    status: str = "draft"
+
+
+# ==================== SIGNATURE ====================
+class SignatureData(BaseModel):
+    signature_base64: str
+    signer_name: Optional[str] = None
+    signer_email: Optional[str] = None
+
+
+# ==================== INVOICE MODELS ====================
+class InvoiceLineBase(BaseModel):
+    description: str
+    quantity: int = 1
+    unit_price: float
+    line_type: str = "service"
+
+
+class InvoiceLine(InvoiceLineBase):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    line_total: float = 0
+
+
+class InvoiceCreate(BaseModel):
+    client_id: str
+    quote_id: Optional[str] = None
+    project_id: Optional[str] = None
+    lines: List[InvoiceLineBase]
+    notes: str = ""
+    due_date: Optional[str] = None
+    payment_terms: str = "Net 30"
+
+
+class Invoice(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    invoice_number: str = ""
+    client_id: str
+    quote_id: Optional[str] = None
+    project_id: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    due_date: Optional[datetime] = None
+    lines: List[InvoiceLine] = []
+    subtotal: float = 0
+    tps_amount: float = 0
+    tvq_amount: float = 0
+    total: float = 0
+    amount_paid: float = 0
+    balance_due: float = 0
+    status: InvoiceStatus = InvoiceStatus.DRAFT
+    payment_terms: str = "Net 30"
+    notes: str = ""
+    payments: List[dict] = []
+
+
+class InvoiceUpdate(BaseModel):
+    status: Optional[InvoiceStatus] = None
+    notes: Optional[str] = None
+    due_date: Optional[str] = None
+
+
+class PaymentCreate(BaseModel):
+    amount: float
+    method: PaymentMethod
+    notes: str = ""

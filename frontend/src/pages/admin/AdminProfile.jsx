@@ -134,6 +134,9 @@ function TwoFactorCard() {
   const [showDisable, setShowDisable] = useState(false);
   const [disablePwd, setDisablePwd] = useState('');
   const [disableCode, setDisableCode] = useState('');
+  // email-2FA activation state (requires current password)
+  const [showEmailActivate, setShowEmailActivate] = useState(false);
+  const [emailActivatePwd, setEmailActivatePwd] = useState('');
 
   const refresh = async () => {
     try {
@@ -171,13 +174,17 @@ function TwoFactorCard() {
   };
 
   const activateEmail = async () => {
+    if (!emailActivatePwd) return toast.error('Mot de passe requis');
     setSubmitting(true);
     try {
-      await authApi.activate2FAEmail();
+      await authApi.activate2FAEmail(emailActivatePwd);
       toast.success('2FA par email activée');
+      setShowEmailActivate(false);
+      setEmailActivatePwd('');
       refresh();
     } catch (err) {
-      toast.error('Erreur');
+      const detail = err.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Erreur');
     } finally { setSubmitting(false); }
   };
 
@@ -256,21 +263,55 @@ function TwoFactorCard() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <button onClick={startTotp} disabled={submitting}
-              className="text-left p-4 rounded-lg border border-border hover:border-gold-500 hover:bg-gold-500/5 transition-colors"
-              data-testid="enable-totp">
-              <Smartphone className="h-6 w-6 text-gold-500 mb-2" />
-              <p className="font-medium text-foreground">App d'authentification</p>
-              <p className="text-xs text-muted-foreground">QR code Google Authenticator / Authy</p>
-            </button>
-            <button onClick={activateEmail} disabled={submitting}
-              className="text-left p-4 rounded-lg border border-border hover:border-gold-500 hover:bg-gold-500/5 transition-colors"
-              data-testid="enable-email-2fa">
-              <Mail className="h-6 w-6 text-gold-500 mb-2" />
-              <p className="font-medium text-foreground">Code par email</p>
-              <p className="text-xs text-muted-foreground">Code 6 chiffres envoyé à chaque connexion</p>
-            </button>
+          <div className="space-y-3">
+            {showEmailActivate ? (
+              <div className="space-y-3 p-4 border border-border rounded">
+                <p className="text-sm text-amber-500 flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 mt-0.5" />
+                  Confirmez votre mot de passe pour activer la 2FA par email.
+                </p>
+                <Input
+                  type="password"
+                  placeholder="Mot de passe actuel"
+                  value={emailActivatePwd}
+                  onChange={(e) => setEmailActivatePwd(e.target.value)}
+                  data-testid="enable-email-2fa-pwd"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => { setShowEmailActivate(false); setEmailActivatePwd(''); }}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={activateEmail}
+                    disabled={submitting}
+                    className="bg-gold-500 hover:bg-gold-600 text-background"
+                    data-testid="enable-email-2fa-confirm"
+                  >
+                    {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />} Activer
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button onClick={startTotp} disabled={submitting}
+                  className="text-left p-4 rounded-lg border border-border hover:border-gold-500 hover:bg-gold-500/5 transition-colors"
+                  data-testid="enable-totp">
+                  <Smartphone className="h-6 w-6 text-gold-500 mb-2" />
+                  <p className="font-medium text-foreground">App d'authentification</p>
+                  <p className="text-xs text-muted-foreground">QR code Google Authenticator / Authy</p>
+                </button>
+                <button onClick={() => setShowEmailActivate(true)} disabled={submitting}
+                  className="text-left p-4 rounded-lg border border-border hover:border-gold-500 hover:bg-gold-500/5 transition-colors"
+                  data-testid="enable-email-2fa">
+                  <Mail className="h-6 w-6 text-gold-500 mb-2" />
+                  <p className="font-medium text-foreground">Code par email</p>
+                  <p className="text-xs text-muted-foreground">Code 6 chiffres envoyé à chaque connexion</p>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

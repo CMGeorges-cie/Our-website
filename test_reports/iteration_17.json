@@ -1,0 +1,32 @@
+{
+  "summary": "Round 3 refactor + 2FA hardening — backend-only testing. Wrote 35 new pytest tests covering 2FA email/activate hardening, Quotes router (5 endpoints), Invoices router (8 endpoints), PDF magic-bytes, server.py legacy endpoints depending on services.pdf (still wired), and regression on 13 legacy routes. Re-ran iter-15 + iter-16 suites (70 tests) → all green. Total 105/105 passing. Zero regression. OpenAPI: 139 paths, 181 unique operations, no duplicates.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/v1/leads", "issue": "reCAPTCHA enforcement blocks pytest seeding; iter17 fixture inserts leads directly via Mongo as iter16 already does. Not a regression — by-design."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter17_refactor.py",
+    "/app/test_reports/pytest/iter17_refactor.xml",
+    "/app/test_reports/pytest/iter17_regression.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routers/invoices.py:118 — `for task in background_tasks.tasks: asyncio.create_task(task.func(...))` creates ad-hoc BackgroundTasks() inside the handler and schedules them via asyncio.create_task. Works, but bypasses FastAPI's request-scoped lifecycle (no exception swallowing, no app shutdown grace). Prefer accepting BackgroundTasks via DI as create_invoice does at line 187. Low-risk for now since notify_invoice_created is fire-and-forget.",
+    "services/pdf.py:149,255,312 — French strings contain literal `{BRAND.PHONE_DISPLAY}` / `{BRAND.EMAIL}` / `{BRAND.NAME}` placeholders that are never interpolated (no .format() call). The PDF will print the literal `{BRAND.EMAIL}` text. Likely pre-existing copy-paste from server.py but visible to clients in generated PDFs. Quick fix: import BRAND from config.brand and use f-strings.",
+    "routers/quotes.py:201 — Audit detail says 'quote_signed' but route also flips status to 'accepted'; audit log doesn't capture the status transition. Minor traceability gap.",
+    "models/__init__.py:217 — QuoteCreate.lines is List[QuoteLineBase] (no defaults). If client sends empty array, division-by-zero is avoided but the resulting quote has 0 totals and is silently created. Consider min_length=1.",
+    "routers/auth_ext/two_factor.py:75 — Hardening LGTM. Suggestion: also rotate refresh token after enabling 2FA-email, so stolen tokens cannot survive the security event. Threat-model nit."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter17_refactor.py (NEW, 35 tests)"
+  ],
+  "success_rate": {"backend": "100% (105/105)", "frontend": "not tested (backend-only request)"},
+  "test_credentials": "admin@cmgeorges.com / strongpassword123 (from /app/memory/test_credentials.md). Verified post-test login returns access_token (no 2FA challenge) → 2FA cleanup successful.",
+  "seed_data_creation": "TEST_lead_<uuid> inserted directly into Mongo collection `leads` to bypass reCAPTCHA gate. TEST_client_<uuid> created via POST /api/v1/admin/clients. One TEST quote + one TEST invoice with payments + signature persisted (not cleaned up — admin-visible only, won't break next iter).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Use REACT_APP_BACKEND_URL + MONGO_URL + DB_NAME env vars when invoking pytest (conftest.py reads them). To seed a lead, bypass reCAPTCHA by inserting directly via motor (see test_iter17_refactor.py::seed_lead fixture). The 2FA email/activate endpoint now requires {current_password:str}; always disable 2FA via Mongo at the end of any activation test (see test_activate_then_disable_2fa_email_correct_password). Remaining work for future iteration: extract PROJECTS router (~600 lines, 13+ endpoints with photos/tasks/timeline/messages/reports)."
+}
