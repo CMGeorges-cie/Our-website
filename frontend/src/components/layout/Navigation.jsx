@@ -18,7 +18,7 @@ export default function Navigation() {
   const location = useLocation();
 
   return (
-    <nav className="nav-glass sticky top-0 z-50 no-print" data-testid="main-navigation">
+    <nav className="bg-white/85 backdrop-blur-md border-b border-gray-200/60 shadow-sm sticky top-0 z-50 no-print" data-testid="main-navigation">
       <div className="container-main">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center gap-3" data-testid="nav-logo">
