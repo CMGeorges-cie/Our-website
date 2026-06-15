@@ -334,9 +334,9 @@ export default function MursAccentPage() {
                   <Mail className="mr-2 h-4 w-4" /> Demander une soumission gratuite
                 </Button>
               </Link>
-              <a href="mailto:info@cmgeorges.ca">
+              <a href="mailto:cmgeorges.cie@gmail.com">
                 <Button variant="outline" className="border-white/30 bg-white/5 text-white hover:bg-white/15 font-semibold px-6 py-6 text-base">
-                  <Mail className="mr-2 h-4 w-4" /> info@cmgeorges.ca
+                  <Mail className="mr-2 h-4 w-4" /> cmgeorges.cie@gmail.com
                 </Button>
               </a>
             </div>
