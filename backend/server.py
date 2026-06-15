@@ -5040,10 +5040,48 @@ api_router.include_router(public_signature_router)
 
 app.include_router(api_router)
 
+# CORS configuration
+# Note: When allow_credentials=True (required for httpOnly cookie auth),
+# allow_origins MUST NOT contain "*" (browsers reject the response).
+# We always include the canonical production domains and known dev/preview origins,
+# then merge any additional origins from the CORS_ORIGINS env var.
+_default_cors_origins = [
+    "https://cmgeorges.ca",
+    "https://www.cmgeorges.ca",
+    "https://decotouche.com",
+    "https://www.decotouche.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+_env_cors = os.environ.get("CORS_ORIGINS", "")
+_extra_origins = [o.strip() for o in _env_cors.split(",") if o.strip() and o.strip() != "*"]
+
+# Auto-include the configured FRONTEND_URL (preview / prod) if present
+_frontend_url = os.environ.get("FRONTEND_URL", "").strip()
+if _frontend_url:
+    _extra_origins.append(_frontend_url.rstrip("/"))
+
+# Deduplicate while preserving order
+_seen = set()
+_allowed_origins = []
+for _origin in _default_cors_origins + _extra_origins:
+    _norm = _origin.rstrip("/")
+    if _norm and _norm not in _seen:
+        _seen.add(_norm)
+        _allowed_origins.append(_norm)
+
+# Also allow any *.preview.emergentagent.com via regex (dev environments)
+_allowed_origin_regex = r"https://.*\.preview\.emergentagent\.com$"
+
+logger.info(f"CORS allow_origins: {_allowed_origins}")
+logger.info(f"CORS allow_origin_regex: {_allowed_origin_regex}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=_allowed_origins,
+    allow_origin_regex=_allowed_origin_regex,
     allow_methods=["*"],
     allow_headers=["*"],
 )

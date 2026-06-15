@@ -1,6 +1,6 @@
 # Déco Touché — PRD
 
-**Mise à jour:** 13 Juin 2026
+**Mise à jour:** 15 Juin 2026
 **Stack:** React + FastAPI + MongoDB
 **Marque:** Déco Touché (anciennement CMGeorges)
 
@@ -95,6 +95,7 @@
 ---
 
 ## Historique des sécurisations majeures
+- **15 Juin 2026**: Fix CORS critique — `allow_origins` désormais liste explicite (cmgeorges.ca, www, decotouche.com, localhost, preview) + regex `*.preview.emergentagent.com`. Wildcard `*` rejeté quand `allow_credentials=True`. Restaure le login httpOnly en production.
 - **13 Juin 2026**: httpOnly cookies (dt_access_token + dt_refresh_token), test passwords env vars, hook deps fix (ClientDashboard, AdminLeadDetail)
 - **5 Juin 2026**: 2FA TOTP+Email, Forgot Password, Profile management
 - **2 Juin 2026**: Portfolio multi-carousel, brand centralization, DOMPurify XSS protection
