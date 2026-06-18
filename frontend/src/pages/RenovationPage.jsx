@@ -17,7 +17,7 @@ const services = [
 ];
 
 const pricing = [
-  { service: 'Pose de plancher flottant', price: 'À partir de 3.50$/pi²', note: 'Matériaux en sus' },
+  { service: 'Pose de plancher flottant', price: 'À partir de 3.80$/pi²', note: 'Matériaux en sus' },
   { service: 'Installation de moulures', price: 'À partir de 5$/pi linéaire', note: 'Matériaux inclus' },
   { service: 'Réparation gyproc', price: 'À partir de 150$', note: 'Par ouverture' },
   { service: 'Calfeutrage complet', price: 'À partir de 200$', note: 'Portes et fenêtres' },

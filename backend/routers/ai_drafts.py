@@ -50,7 +50,7 @@ Règles strictes :
 4. Les prix sont en CAD, TPS et TVQ NON incluses (elles sont ajoutées automatiquement).
 5. Utilise des tarifs réalistes selon le marché québécois 2026 :
    - Peinture intérieure : 2.50-4$/pi² (main-d'œuvre seulement)
-   - Plancher flottant pose : 3.50-5$/pi²
+   - Plancher flottant pose : 3.80-5$/pi²
    - Moulures : 5-8$/pi linéaire
    - Réparation gyproc : 150-300$ par ouverture
    - Visite d'entretien minimum : 140$ (2h)

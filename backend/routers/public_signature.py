@@ -10,6 +10,8 @@ import uuid
 import hashlib
 import os
 
+from config.brand import Brand
+
 router = APIRouter(prefix="/public/sign", tags=["Public Signature"])
 
 # Get database from main app
@@ -19,6 +21,18 @@ def get_db():
 
 # Secret for token generation
 SIGNATURE_SECRET = os.environ.get('JWT_SECRET', 'cmgeorges-secret-key-change-in-production')
+
+
+def _company_info() -> dict:
+    """Single source of truth for company info shown on public signature pages."""
+    return {
+        "name": Brand.NAME,
+        "tagline": Brand.TAGLINE,
+        "address": Brand.ADDRESS,
+        "phone": Brand.PHONE_DISPLAY,
+        "email": Brand.EMAIL,
+        "logo": "https://customer-assets.emergentagent.com/job_57c7ca12-f939-4f77-840a-6e3a2010ce9e/artifacts/xu0d6vd3_ChatGPT%20Image%20Mar%2011%2C%202026%2C%2011_52_31%20PM.png",
+    }
 
 
 def generate_signature_token(document_id: str, document_type: str, expires_hours: int = 72) -> str:
