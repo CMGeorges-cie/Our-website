@@ -14,6 +14,7 @@ import EntretienPage from "@/pages/EntretienPage";
 import PaymentPage from "@/pages/PaymentPage";
 import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 import PaymentCancelPage from "@/pages/PaymentCancelPage";
+import PublicInvoicePaymentPage from "@/pages/PublicInvoicePaymentPage";
 import MobilierPage from "@/pages/MobilierPage";
 import DemolitionPage from "@/pages/DemolitionPage";
 import MursAccentPage from "@/pages/MursAccentPage";
@@ -189,6 +190,9 @@ function App() {
             
             {/* Public Signature Page (DocuSign style - no layout) */}
             <Route path="/sign/:type/:token" element={<PublicSignaturePage />} />
+            
+            {/* Public tokenized invoice payment (no login) */}
+            <Route path="/facture/payer/:token" element={<PublicInvoicePaymentPage />} />
             
             {/* Client Portal - No layout */}
             <Route path="/portail-client" element={<ClientPortalPage />} />

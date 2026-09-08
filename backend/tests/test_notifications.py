@@ -40,7 +40,7 @@ class TestNotificationAPI:
         for lead_id in self.created_leads:
             try:
                 self.client.delete(f"{BASE_URL}/api/v1/admin/leads/{lead_id}")
-            except:
+            except Exception:
                 pass
     
     def test_get_unread_count(self):
@@ -241,12 +241,12 @@ class TestProjectStatusNotification:
         for project_id in self.created_projects:
             try:
                 self.client.delete(f"{BASE_URL}/api/v1/admin/projects/{project_id}")
-            except:
+            except Exception:
                 pass
         for client_id in self.created_clients:
             try:
                 self.client.delete(f"{BASE_URL}/api/v1/admin/clients/{client_id}")
-            except:
+            except Exception:
                 pass
     
     def test_project_status_change_triggers_notification(self):

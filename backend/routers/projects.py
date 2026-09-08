@@ -228,6 +228,7 @@ async def create_project(
         {"$inc": {"total_projects": 1}}
     )
     
+    project.pop("_id", None)
     return project
 
 
@@ -242,6 +243,7 @@ async def get_project(
     project = await repo.find_one({"id": project_id})
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+    project.pop("_id", None)
     
     # Enrich with client info
     db = get_database()
@@ -303,6 +305,8 @@ async def update_project(
     
     # Get updated project
     updated_project = await repo.find_one({"id": project_id})
+    if updated_project:
+        updated_project.pop("_id", None)
     
     return updated_project
 
@@ -585,7 +589,7 @@ async def send_message(
     )
     
     # TODO: Add email notification in background_tasks
-    
+    message.pop("_id", None)
     return message
 
 

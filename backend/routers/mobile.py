@@ -209,6 +209,7 @@ async def check_in(
             }
         )
     
+    checkin_record.pop("_id", None)
     return {"message": "Check-in recorded", "record": checkin_record}
 
 
@@ -284,6 +285,7 @@ async def check_out(
         }
     )
     
+    checkout_record.pop("_id", None)
     return {
         "message": "Check-out recorded",
         "record": checkout_record,
@@ -507,6 +509,7 @@ async def log_time_entry(
             {"$set": {"actual_hours": total_hours[0]["total"]}}
         )
     
+    entry.pop("_id", None)
     return {"message": "Time logged", "entry": entry}
 
 

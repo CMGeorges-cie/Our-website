@@ -94,9 +94,11 @@ class ProjectStatus(str, Enum):
 
 class PaymentMethod(str, Enum):
     CASH = "cash"
-    ETRANSFER = "etransfer"
+    ETRANSFER = "etransfer"       # Interac e-Transfer (Canadian)
     CREDIT_CARD = "credit_card"
     CHEQUE = "cheque"
+    STRIPE = "stripe"             # Automated: Stripe checkout (card/Apple Pay/Google Pay)
+    WISE = "wise"                 # International wire via Wise
     OTHER = "other"
 
 
@@ -308,6 +310,8 @@ class Invoice(BaseModel):
     payment_terms: str = "Net 30"
     notes: str = ""
     payments: List[dict] = []
+    payment_link_token: Optional[str] = None
+    payment_link_created_at: Optional[str] = None
 
 
 class InvoiceUpdate(BaseModel):

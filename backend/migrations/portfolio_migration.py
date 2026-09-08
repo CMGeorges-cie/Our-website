@@ -181,20 +181,46 @@ async def run_portfolio_migration(db) -> Optional[dict]:
 
     logger.warning(
         f"portfolio migration: detected broken/outdated state with {len(existing)} items, "
-        f"reconciling with canonical {len(CANONICAL_PORTFOLIO)} items"
+        f"reconciling with canonical {len(CANONICAL_PORTFOLIO)} items (idempotent upsert)"
     )
 
-    # Wipe & rebuild — safe because portfolio is curated content owned by us
-    await db.portfolio_media.delete_many({})
-
+    # Idempotent upsert: never destroy admin-added content.
+    # For each canonical item, upsert by id. Non-canonical items are kept intact
+    # (e.g. admin uploads via /admin/portfolio) — they will simply live alongside
+    # the canonical seed and can be managed manually from the admin UI.
     now = datetime.now(timezone.utc)
-    docs = []
+    canonical_ids = set()
     for p in CANONICAL_PORTFOLIO:
-        doc = {**p, "created_at": now}
-        docs.append(doc)
+        canonical_ids.add(p["id"])
+        doc = {**p, "updated_at": now}
+        result = await db.portfolio_media.update_one(
+            {"id": p["id"]},
+            {
+                "$set": doc,
+                "$setOnInsert": {"created_at": now},
+            },
+            upsert=True,
+        )
+        if result.upserted_id is not None:
+            logger.info(f"portfolio migration: inserted canonical id={p['id']}")
 
-    if docs:
-        await db.portfolio_media.insert_many(docs)
+    # Optionally archive legacy items with broken URLs (preview/localhost) so
+    # they don't clutter the UI. NEVER delete: an admin might have edited them.
+    archived = await db.portfolio_media.update_many(
+        {
+            "id": {"$nin": list(canonical_ids)},
+            "$or": [
+                {"image_url": {"$regex": r"^https?://.*\.preview\.emergentagent\.com/"}},
+                {"image_url": {"$regex": r"^https?://localhost"}},
+                {"image_url": {"$regex": r"^/portfolio/"}},
+            ],
+            "archived": {"$ne": True},
+        },
+        {"$set": {"archived": True, "archived_at": now, "archived_reason": "broken_url_migration"}},
+    )
+    if archived.modified_count:
+        logger.info(f"portfolio migration: archived {archived.modified_count} legacy items with broken URLs")
 
-    logger.info(f"portfolio migration: rebuilt collection with {len(docs)} items")
-    return {"status": "rebuilt", "items": len(docs)}
+    total = await db.portfolio_media.count_documents({})
+    logger.info(f"portfolio migration: reconciled collection ({total} items, canonical={len(canonical_ids)})")
+    return {"status": "reconciled", "canonical": len(canonical_ids), "total": total, "archived": archived.modified_count}

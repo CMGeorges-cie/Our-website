@@ -1,173 +1,108 @@
 {
-  "identity": {
-    "name": "CMGeorges - Multi-Service Ecosystem",
-    "archetype": "The Performance Pro & Jewel Luxury",
-    "vibe": "Trustworthy, Precision-Driven, Premium, Tech-Forward",
-    "emotional_goal": "To convey absolute competence across physical (renovation), logistical (furniture), and digital (tech) domains."
-  },
+  "project_name": "Déco Touché - Montreal Renovation & Handyman Admin SaaS",
+  "archetype": "Organic Craftsmanship & Tactical Precision",
+  "theme_strategy": "Dark mode default with high contrast, tactile textures, rich navy/obsidian background, artisan gold/terracotta accents, and crisp typography for job site mobility.",
   "typography": {
-    "headings": {
-      "family": "Outfit, sans-serif",
-      "weights": ["600", "700"],
-      "usage": "Use for all H1-H6. 'Outfit' bridges the gap between the geometric precision of tech and the sturdy reliability of construction.",
-      "letter_spacing": "-0.02em"
-    },
-    "body": {
-      "family": "Plus Jakarta Sans, sans-serif",
-      "weights": ["400", "500"],
-      "usage": "Primary text. Clean, legible, modern. Avoids the 'default Inter' look.",
-      "line_height": "1.6"
-    },
-    "mono": {
-      "family": "JetBrains Mono, monospace",
-      "usage": "Use strictly for the 'CMGeorges Tech' division (code snippets, terminal views, data)."
-    },
-    "cdn_links": [
-      "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap"
-    ]
+    "heading_font": "Outfit, sans-serif",
+    "body_font": "Plus Jakarta Sans, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "scale": {
+      "h1": "text-2xl md:text-4xl font-bold tracking-tight text-foreground",
+      "h2": "text-xl md:text-2xl font-semibold tracking-tight text-foreground",
+      "h3": "text-lg md:text-xl font-medium text-foreground",
+      "h4": "text-base font-medium text-foreground",
+      "body": "text-sm text-muted-foreground leading-relaxed",
+      "small": "text-xs text-muted-foreground uppercase tracking-wider font-semibold"
+    }
   },
   "colors": {
-    "primary": {
-      "name": "Royal Deep Blue",
-      "hex": "#1a365d",
-      "tw_class": "bg-[#1a365d]",
-      "usage": "Primary brand backgrounds, headers, footer, primary buttons."
+    "light": {
+      "background": "#F8FAFC",
+      "card": "#FFFFFF",
+      "foreground": "#0F172A",
+      "primary": "#1A365D",
+      "primary_hover": "#0F2342",
+      "accent": "#D4AF37",
+      "accent_foreground": "#1A365D",
+      "secondary": "#E07A5F",
+      "border": "#E2E8F0",
+      "muted": "#F1F5F9",
+      "muted_foreground": "#64748B"
     },
-    "accent": {
-      "name": "Prestige Gold",
-      "hex": "#d4af37",
-      "tw_class": "text-[#d4af37] border-[#d4af37]",
-      "usage": "Highlights, icons, active states, 'Premium' badges, thin borders."
-    },
-    "secondary": {
-      "name": "Tech Blue",
-      "hex": "#007AFF",
-      "tw_class": "bg-[#007AFF]",
-      "usage": "Specific to 'CMGeorges Tech' actions and links."
-    },
-    "furniture_accent": {
-      "name": "Terracotta",
-      "hex": "#E07A5F",
-      "tw_class": "bg-[#E07A5F]",
-      "usage": "Specific to 'Furniture Installation' calls to action (warmth)."
-    },
-    "neutral": {
-      "surface": "#F8FAFC",
-      "text_main": "#0F172A",
-      "text_muted": "#64748B",
-      "border": "#E2E8F0"
-    },
-    "dark_mode_tech": {
+    "dark": {
       "background": "#0B1120",
-      "surface": "#1E293B"
+      "card": "#111827",
+      "foreground": "#F8FAFC",
+      "primary": "#D4AF37",
+      "primary_hover": "#B8972E",
+      "accent": "#38BDF8",
+      "accent_foreground": "#0F172A",
+      "secondary": "#E07A5F",
+      "border": "#1E293B",
+      "muted": "#1E293B",
+      "muted_foreground": "#94A3B8"
+    },
+    "payment_pills": {
+      "stripe": "bg-purple-500/10 text-purple-400 border-purple-500/20",
+      "interac": "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      "wise": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      "paid": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+      "pending": "bg-amber-500/15 text-amber-400 border-amber-500/30",
+      "overdue": "bg-rose-500/15 text-rose-400 border-rose-500/30"
     }
   },
-  "layout": {
-    "grid_system": "The Bento Grid",
-    "container": "max-w-7xl mx-auto px-6 md:px-12",
-    "spacing": {
-      "section_gap": "py-24 md:py-32",
-      "element_gap": "gap-6 md:gap-8"
+  "layout_and_navigation": {
+    "desktop": "Sidebar fixed 256px wide, crisp glass border `border-r border-border`, background `bg-card/95 backdrop-blur-xl`. Main content `ml-64 p-6 md:p-8 min-h-screen pb-24 md:pb-8`.",
+    "mobile": "Sticky top bar with Montreal brand badge, notification bell, quick search button, dark toggle, and mobile menu drawer trigger. Fixed bottom navigation bar (`fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-lg border-t border-border flex justify-around items-center h-16 md:hidden`) with icon-driven quick links: Dashboard, Leads, Projects (Kanban), Invoices, and More Menu.",
+    "header": "Top bar header with non-transparent glassmorphism (`bg-card/80 backdrop-blur-md border-b border-border z-40 sticky top-0 px-4 py-3 flex items-center justify-between`). Never use fully transparent backgrounds!"
+  },
+  "key_page_blueprints": {
+    "dashboard": {
+      "kpi_grid": "grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8",
+      "kpi_card": "p-5 rounded-xl bg-card border border-border/60 hover:border-accent/40 transition-all duration-200 shadow-sm relative overflow-hidden group",
+      "sections": "Main revenue & job completion chart (col-span-full md:col-span-8), Recent Activity feed & Urgent job site alerts (col-span-full md:col-span-4)."
     },
-    "strategies": [
-      {
-        "name": "Service Triad",
-        "description": "The 3 divisions must appear as equal pillars. Use a 3-column grid where each card expands on hover.",
-        "classes": "grid grid-cols-1 md:grid-cols-3 gap-8"
-      },
-      {
-        "name": "Asymmetric Trust",
-        "description": "For 'About' and 'Portfolio' sections, use 2/3 text + 1/3 image (or vice versa) to create visual tension. Never 50/50 split."
-      }
+    "leads": {
+      "header_actions": "Search bar with Debounce + Filter dropdown (Status, Handyman Service Type, Date Range) + 'Nouveau Lead' primary CTA.",
+      "detail_view": "2-column split view: Left sidebar with contact metadata & status stepper (Nouveau -> Visite -> Devis -> Accepté); Right panel with tabs (Overview, Line Items Calculator, Site Photos Gallery, Activity Notes)."
+    },
+    "invoices": {
+      "creator_component": "Modular card breakdown instead of monolithic 935-line file: Header metadata -> Client & Job selector -> Itemized pricing table with real-time tax calculator (TPS 5% + TVQ 9.975% Quebec rate) -> Payment method badges (Stripe, Interac e-Transfer, Wise) -> Action Footer (Draft, Save, Export PDF, Send Email, Copy Payment Link).",
+      "payment_links": "Generates direct client portal URL with 1-click Stripe Checkout modal, Interac email instructions box with auto-copy answer/question, or Wise wire transfer details."
+    },
+    "projects_kanban": {
+      "board_layout": "Horizontal scrollable grid `grid grid-cols-1 md:grid-cols-3 gap-6 overflow-x-auto pb-4`.",
+      "columns": ["En Attente (Pending)", "En Cours (In Progress)", "Terminé (Completed)"],
+      "card_style": "p-4 rounded-xl bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing space-y-3",
+      "card_metadata": "Client name, site address badge, task progress bar (`w-full bg-muted h-2 rounded-full overflow-hidden`), assigned handyman avatar, and site photo thumbnail."
+    },
+    "client_crm": {
+      "summary_banner": "High-impact card displaying Lifetime Value (LTV), total paid invoices, active renovation projects, and quick SMS/Email contact trigger.",
+      "tabs": "Projets Associés, Devis & Factures, Historique de Contact, Photos de Chantier."
+    }
+  },
+  "micro_animations_and_interactions": {
+    "hover": "hover:-translate-y-0.5 hover:shadow-md transition-all duration-200",
+    "active_state": "active:scale-[0.98] transition-transform",
+    "status_pills": "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors",
+    "cards": "stagger-children"
+  },
+  "accessibility_and_testing": {
+    "data_testid_rule": "Every button, input, link, tab, card, status badge, and invoice action MUST include a unique kebab-case data-testid attribute.",
+    "examples": [
+      "data-testid=\"admin-sidebar-dashboard-link\"",
+      "data-testid=\"invoice-create-submit-btn\"",
+      "data-testid=\"kanban-card-project-123\"",
+      "data-testid=\"payment-stripe-checkout-btn\"",
+      "data-testid=\"mobile-nav-leads-tab\""
     ]
   },
-  "components": {
-    "buttons": {
-      "primary": "bg-[#1a365d] text-white hover:bg-[#1a365d]/90 rounded-md px-8 py-3 font-semibold transition-all shadow-lg hover:shadow-xl hover:-translate-y-1",
-      "accent": "bg-[#d4af37] text-[#1a365d] hover:bg-[#d4af37]/90 rounded-md px-8 py-3 font-bold transition-all",
-      "outline": "border-2 border-[#1a365d] text-[#1a365d] hover:bg-[#1a365d] hover:text-white rounded-md px-8 py-3 font-medium transition-colors"
-    },
-    "cards": {
-      "service_card": "group relative overflow-hidden rounded-xl border border-border bg-white p-8 transition-all hover:shadow-2xl hover:border-[#d4af37]/50",
-      "tech_card": "bg-slate-900 border-slate-800 text-white hover:border-[#007AFF]/50"
-    },
-    "inputs": {
-      "style": "rounded-md border-border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-    }
-  },
-  "images": {
-    "hero_backgrounds": [
-      {
-        "url": "https://images.unsplash.com/photo-1647082550285-119acfd169f2?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "alt": "Modern renovated living room",
-        "category": "renovation"
-      },
-      {
-        "url": "https://images.unsplash.com/photo-1744868562210-fffb7fa882d9?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "alt": "Tech server room abstract",
-        "category": "tech"
-      }
-    ],
-    "service_cards": [
-      {
-        "division": "Déco Touché",
-        "url": "https://images.unsplash.com/photo-1652766825080-88818e6509b6?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "alt": "Interior painting and renovation"
-      },
-      {
-        "division": "Mobilier",
-        "url": "https://images.unsplash.com/photo-1770657986086-c1f20eef30ff?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "alt": "Furniture assembly tools and precision"
-      },
-      {
-        "division": "CMGeorges Tech",
-        "url": "https://images.unsplash.com/photo-1681583484651-281ae2defb17?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "alt": "Clean devops workspace"
-      }
-    ],
-    "trust_signals": [
-      {
-        "url": "https://images.unsplash.com/photo-1752159400890-d906038f1b35?crop=entropy&cs=srgb&fm=jpg&q=85",
-        "alt": "Professional handshake",
-        "usage": "Contact section or 'About Us' trust marker"
-      }
-    ],
-    "logo": {
-      "url": "https://customer-assets.emergentagent.com/job_cmgeorges-prod/artifacts/3w0w7gaw_logo_cmgeorges.svg",
-      "alt": "CMGeorges Lion Logo"
-    }
-  },
-  "visual_enhancers": {
-    "gradients": {
-      "gold_shimmer": "bg-gradient-to-r from-[#d4af37] via-[#fcd34d] to-[#d4af37]",
-      "tech_glow": "bg-gradient-to-r from-blue-600 to-cyan-500"
-    },
-    "shadows": {
-      "soft_lift": "shadow-[0_4px_20px_-4px_rgba(26,54,93,0.1)]",
-      "gold_glow": "shadow-[0_0_15px_rgba(212,175,55,0.3)]"
-    },
-    "borders": {
-      "subtle": "border border-gray-100",
-      "glass": "border border-white/20"
-    }
-  },
-  "instructions_to_main_agent": [
-    "Install the required icon libraries: `yarn add @phosphor-icons/react react-icons @heroicons/react iconoir-react @radix-ui/react-icons`.",
-    "Ensure 'Outfit' and 'Plus Jakarta Sans' are imported in `index.css` via the Google Fonts link provided.",
-    "Use the existing Shadcn components in `src/components/ui/` for all interactive elements (forms, dialogs, cards).",
-    "For the 'Admin Dashboard', switch to a dense layout protocol: reduced padding, smaller fonts (13px/14px), and high data density.",
-    "The 'Quote Form' must be printable. Ensure a specific print stylesheet or media query (`@media print`) hides navigation/footer and formats the quote cleanly on A4 paper.",
-    "Implement the 'Sticky CTA' for mobile on the homepage: A fixed bottom bar with 'Appeler 514-386-1743' in Gold background with Blue text.",
-    "CRITICAL: Do not use default shades of blue. Always use the brand primary `#1a365d`.",
-    "For the Tech division pages, consider a 'Dark Mode' switch or default to a dark theme to differentiate it from the renovation services.",
-    "Use `lucide-react` icons (already present) as the primary icon set, but use `phosphor-icons` for feature highlights if needed."
-  ],
-  "UNIVERSAL_GUIDELINES": [
-    "You tend to converge toward generic, 'on distribution' outputs. Avoid this.",
-    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
-    "Don't make generic centered layouts. Create depth through layered design elements.",
-    "Use glass-morphism effects with backdrop filters (12-24px blur) for sticky headers.",
-    "Every interaction needs micro-animations - hover states, transitions.",
-    "All interactive and key informational elements MUST include a `data-testid` attribute."
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You tend to converge toward generic outputs. In frontend design, avoid AI slop: build a tactile, artisan-grade Quebec renovation admin dashboard.",
+    "Never center-align main containers (.App { text-align: center }). Keep left aligned human reading flow.",
+    "Never use transparent backgrounds on headers, modals, or dropdown menus. Always use backdrop-blur + semi-opaque bg.",
+    "Add explicit hover text colors whenever changing background color (e.g. hover:bg-slate-800 hover:text-white).",
+    "Use data-testid on every single interactive element.",
+    "Ensure total responsiveness for contractors accessing on job-site mobile phones."
   ]
 }

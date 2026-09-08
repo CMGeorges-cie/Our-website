@@ -96,6 +96,8 @@ export const adminApi = {
   updateInvoice: (id, data) => api.patch(`/admin/invoices/${id}`, data),
   addPayment: (id, data) => api.post(`/admin/invoices/${id}/payments`, data),
   getInvoicePdf: (id) => api.get(`/admin/invoices/${id}/pdf`, { responseType: 'blob' }),
+  generatePaymentLink: (id) => api.post(`/admin/invoices/${id}/payment-link`),
+  revokePaymentLink: (id) => api.delete(`/admin/invoices/${id}/payment-link`),
   
   // Projects
   getProjects: (params = {}) => api.get('/admin/projects', { params }),

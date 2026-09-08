@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, Request, BackgroundTasks, Response, UploadFile, File
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, BackgroundTasks, Response, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import HTMLResponse, StreamingResponse
 from dotenv import load_dotenv
@@ -2175,7 +2175,6 @@ async def send_invoice_signature_link(invoice_id: str, request: Request, user: d
         raise HTTPException(status_code=404, detail="Client non trouvé")
 
     # Generate signature token
-    import hashlib
     timestamp = datetime.now(timezone.utc).isoformat()
     raw = f"{invoice_id}:invoice:{timestamp}:{os.environ.get('JWT_SECRET', 'secret')}"
     token = hashlib.sha256(raw.encode()).hexdigest()[:32]
@@ -2286,7 +2285,6 @@ async def send_quote_signature_link(quote_id: str, request: Request, user: dict 
         raise HTTPException(status_code=400, detail="Email du client non disponible")
 
     # Generate signature token
-    import hashlib
     timestamp = datetime.now(timezone.utc).isoformat()
     raw = f"{quote_id}:quote:{timestamp}:{os.environ.get('JWT_SECRET', 'secret')}"
     token = hashlib.sha256(raw.encode()).hexdigest()[:32]
@@ -2925,7 +2923,7 @@ async def pay_invoice_online(invoice_id: str, data: dict, request: Request, user
     
     checkout_req = CheckoutSessionRequest(
         amount=float(round(balance, 2)),
-        currency="usd",
+        currency="cad",
         success_url=success_url,
         cancel_url=cancel_url,
         metadata={"type": "invoice_payment", "invoice_id": invoice_id, "user_id": user["id"]}
@@ -3402,6 +3400,7 @@ from routers.contact import build_contact_router  # noqa: E402
 from routers.clients import build_clients_router  # noqa: E402
 from routers.quotes import build_quotes_router  # noqa: E402
 from routers.invoices import build_invoices_router  # noqa: E402
+from routers.public_payment import build_public_payment_router  # noqa: E402
 
 _router_deps = dict(
     db=db,
@@ -3450,6 +3449,14 @@ v1_router.include_router(
         get_next_invoice_number=get_next_invoice_number,
         notify_invoice_created=notify_invoice_created,
         notify_payment_received=notify_payment_received,
+    )
+)
+v1_router.include_router(
+    build_public_payment_router(
+        db=db,
+        get_current_user=get_current_user,
+        create_audit_log=create_audit_log,
+        stripe_api_key=STRIPE_API_KEY,
     )
 )
 

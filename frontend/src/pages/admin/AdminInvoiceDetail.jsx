@@ -13,7 +13,8 @@ import { toast } from 'sonner';
 import { 
   ArrowLeft, Download, Printer, Send, User, Calendar, Receipt, 
   CheckCircle, AlertCircle, Clock, CreditCard, DollarSign,
-  Building, Phone, Mail, MapPin, FileText, Plus, Banknote, PenTool
+  Building, Phone, Mail, MapPin, FileText, Plus, Banknote, PenTool,
+  Link2, Copy, Landmark
 } from 'lucide-react';
 import { SignatureDialog, SignatureDisplay } from '@/components/ui/signature-pad';
 
@@ -24,6 +25,8 @@ const paymentMethods = [
   { value: 'cash', label: 'Espèces', icon: Banknote },
   { value: 'etransfer', label: 'Virement Interac', icon: DollarSign },
   { value: 'credit_card', label: 'Carte de crédit', icon: CreditCard },
+  { value: 'stripe', label: 'Stripe (auto)', icon: CreditCard },
+  { value: 'wise', label: 'Wise (international)', icon: Landmark },
   { value: 'cheque', label: 'Chèque', icon: FileText },
 ];
 
@@ -43,11 +46,37 @@ export default function AdminInvoiceDetail() {
     notes: ''
   });
   const [savingPayment, setSavingPayment] = useState(false);
+  const [paymentLink, setPaymentLink] = useState(null);
+  const [generatingLink, setGeneratingLink] = useState(false);
+
+  const generatePaymentLink = async () => {
+    setGeneratingLink(true);
+    try {
+      const { data } = await adminApi.generatePaymentLink(id);
+      setPaymentLink(data);
+      // Auto-copy to clipboard
+      await navigator.clipboard.writeText(data.url);
+      toast.success('Lien de paiement copié dans le presse-papier');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Erreur');
+    } finally {
+      setGeneratingLink(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
       const invoiceRes = await adminApi.getInvoice(id);
       setInvoice(invoiceRes.data);
+      // If a payment link token already exists, hydrate paymentLink state
+      if (invoiceRes.data.payment_link_token) {
+        setPaymentLink({
+          token: invoiceRes.data.payment_link_token,
+          url: `${window.location.origin}/facture/payer/${invoiceRes.data.payment_link_token}`,
+          invoice_number: invoiceRes.data.invoice_number,
+          balance_due: invoiceRes.data.balance_due,
+        });
+      }
       if (invoiceRes.data.client_id) {
         const clientRes = await adminApi.getClient(invoiceRes.data.client_id);
         setClient(clientRes.data);
@@ -150,10 +179,13 @@ export default function AdminInvoiceDetail() {
     }
   };
 
-  const copyPaymentLink = () => {
-    const paymentUrl = `${window.location.origin}/paiement?invoice=${id}`;
-    navigator.clipboard.writeText(paymentUrl);
-    toast.success('Lien de paiement copié dans le presse-papier!');
+  const copyPaymentLink = async () => {
+    if (!paymentLink) {
+      // No link generated yet — trigger generation which auto-copies
+      return generatePaymentLink();
+    }
+    await navigator.clipboard.writeText(paymentLink.url);
+    toast.success('Lien copié');
   };
 
 
@@ -237,6 +269,18 @@ export default function AdminInvoiceDetail() {
             <Send className="h-4 w-4 mr-2" />
             {sending ? 'Envoi...' : 'Envoyer'}
           </Button>
+          {invoice.balance_due > 0 && (
+            <Button
+              variant="outline"
+              onClick={paymentLink ? copyPaymentLink : generatePaymentLink}
+              disabled={generatingLink}
+              className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+              data-testid="generate-payment-link-btn"
+            >
+              {paymentLink ? <Copy className="h-4 w-4 mr-2" /> : <Link2 className="h-4 w-4 mr-2" />}
+              {generatingLink ? 'Génération...' : paymentLink ? 'Copier le lien' : 'Lien de paiement'}
+            </Button>
+          )}
           {invoice.balance_due > 0 && (
             <Button 
               onClick={() => {

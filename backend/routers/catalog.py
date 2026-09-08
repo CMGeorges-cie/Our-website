@@ -151,6 +151,7 @@ async def create_service(
     }
     
     await repo.insert_one(service)
+    service.pop("_id", None)
     return service
 
 
@@ -165,7 +166,7 @@ async def get_service(
     service = await repo.find_one({"id": service_id})
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
-    
+    service.pop("_id", None)
     return service
 
 
@@ -202,7 +203,10 @@ async def update_service(
         {"$set": update_data}
     )
     
-    return await repo.find_one({"id": service_id})
+    updated = await repo.find_one({"id": service_id})
+    if updated:
+        updated.pop("_id", None)
+    return updated
 
 
 @router.delete("/{service_id}")
@@ -272,6 +276,7 @@ async def create_package(
     }
     
     await repo.insert_one(package)
+    package.pop("_id", None)
     return package
 
 

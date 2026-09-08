@@ -98,9 +98,9 @@
 ---
 
 ## Historique des sécurisations majeures
-- **15 Juin 2026 (round 3)**: Refactor `server.py` round 3 — extraction des PDF generators vers `services/pdf.py` (326 lignes) + routers `quotes.py` (220 l) et `invoices.py` (314 l). Modèles Quote/Invoice/Signature déplacés vers `models/__init__.py`. Hardening `/2fa/email/activate` exige `current_password`. Bug pré-existant corrigé : placeholders `{BRAND.EMAIL}` non-interpolés dans les PDFs (affichaient le texte littéral aux clients). `server.py` passé de 4268 → **3544 lignes (-31% au total depuis le début)**. 105/105 tests passent.
-- **15 Juin 2026 (round 2)**: Refactor `server.py` round 2 — extraction de leads/contact/clients (-235 lignes) + modèles partagés Lead/Client/ContactForm vers `models/__init__.py`. Refactor `auth_extensions.py` (556 lignes monolithiques) → 4 sous-modules dans `routers/auth_ext/`. 70/70 tests passent.
-- **15 Juin 2026 (round 1)**: Refactor `server.py` — extraction de 4 routers (blog/policies/pricing/discounts) → 520 lignes en moins. Réactivation reCAPTCHA + Fix CORS critique.
-- **13 Juin 2026**: httpOnly cookies (dt_access_token + dt_refresh_token), test passwords env vars, hook deps fix
+- **8 Sept 2026**: Feature paiement — `routers/public_payment.py` + page publique `/facture/payer/:token` (Stripe Checkout CAD + Interac + Wise). Design blueprint généré par design_agent (Navy/Obsidian + Artisan Gold, mobile-first). Migration `portfolio_migration.py` rendue idempotente (upsert au lieu de `delete_many`). Deployment agent: **PASS ✅** — prêt pour redéploiement.
+- **15 Juin 2026 (round 3)**: Refactor `server.py` round 3 — extraction PDF vers `services/pdf.py` + routers `quotes.py`/`invoices.py`. Modèles Quote/Invoice/Signature déplacés. Hardening `/2fa/email/activate` (current_password requis). Bug PDF `{BRAND.EMAIL}` littéral corrigé. `server.py` : 4268 → 3544 lignes.
+- **15 Juin 2026 (round 2)**: Extraction leads/contact/clients + modèles partagés dans `models/`. Refactor `auth_extensions.py` (556 l) → 4 sous-modules `routers/auth_ext/`.
+- **15 Juin 2026 (round 1)**: Extraction blog/policies/pricing/discounts. Réactivation reCAPTCHA + Fix CORS critique.
+- **13 Juin 2026**: httpOnly cookies + hook deps fix
 - **5 Juin 2026**: 2FA TOTP+Email, Forgot Password, Profile management
-- **2 Juin 2026**: Portfolio multi-carousel, brand centralization, DOMPurify XSS protection
