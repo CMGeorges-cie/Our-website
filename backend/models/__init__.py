@@ -324,3 +324,101 @@ class PaymentCreate(BaseModel):
     amount: float
     method: PaymentMethod
     notes: str = ""
+
+
+# ==================== PROJECT MODELS ====================
+class ProjectCreate(BaseModel):
+    client_id: str
+    quote_id: Optional[str] = None
+    title: str
+    description: str = ""
+    service_type: ServiceType
+    scheduled_date: Optional[str] = None
+    estimated_hours: Optional[float] = None
+
+
+class Project(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_id: str
+    quote_id: Optional[str] = None
+    invoice_id: Optional[str] = None
+    title: str
+    description: str = ""
+    service_type: ServiceType
+    status: ProjectStatus = ProjectStatus.PENDING
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    scheduled_date: Optional[datetime] = None
+    completed_date: Optional[datetime] = None
+    estimated_hours: Optional[float] = None
+    actual_hours: Optional[float] = None
+    total_revenue: float = 0
+    total_cost: float = 0
+    notes: str = ""
+    tasks: list = []
+    photos: list = []
+    timeline: list = []
+    progress: int = 0
+
+
+class ProjectTask(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: str = ""
+    status: str = "pending"
+    assigned_to: Optional[str] = None
+    due_date: Optional[str] = None
+    completed_at: Optional[str] = None
+    order: int = 0
+
+
+class ProjectTaskCreate(BaseModel):
+    title: str
+    description: str = ""
+    assigned_to: Optional[str] = None
+    due_date: Optional[str] = None
+
+
+class ProjectPhoto(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    url: str
+    caption: str = ""
+    uploaded_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    uploaded_by: Optional[str] = None
+
+
+class ProjectTimelineEvent(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    event_type: str
+    description: str
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_by: Optional[str] = None
+    metadata: dict = {}
+
+
+class ProjectUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[ProjectStatus] = None
+    scheduled_date: Optional[str] = None
+    completed_date: Optional[str] = None
+    actual_hours: Optional[float] = None
+    notes: Optional[str] = None
+    address: Optional[str] = None
+
+
+class ProjectMessage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    project_id: str
+    sender_type: str
+    sender_id: str
+    sender_name: str
+    content: str
+    attachments: list = []
+    is_read: bool = False
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+class ProjectMessageCreate(BaseModel):
+    content: str
+    attachments: list = []

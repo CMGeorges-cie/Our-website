@@ -98,7 +98,8 @@
 ---
 
 ## Historique des sécurisations majeures
-- **8 Sept 2026**: Feature paiement — `routers/public_payment.py` + page publique `/facture/payer/:token` (Stripe Checkout CAD + Interac + Wise). Design blueprint généré par design_agent (Navy/Obsidian + Artisan Gold, mobile-first). Migration `portfolio_migration.py` rendue idempotente (upsert au lieu de `delete_many`). Deployment agent: **PASS ✅** — prêt pour redéploiement.
+- **17 Sept 2026**: Extraction Projects router (13 endpoints, 549 lignes) vers `routers/admin_projects.py`. Modèles Project* déplacés dans `models/__init__.py`. Endpoint PDF rapport corrigé (Brand.NAME/Brand.ADDRESS interpolés). `server.py` : 3552 → **3002 lignes (-42% depuis le début: 5137→3002)**.
+- **8 Sept 2026**: Feature paiement — `routers/public_payment.py` + page publique `/facture/payer/:token` (Stripe CAD + Interac + Wise). Migration `portfolio_migration.py` idempotente. Deployment: **PASS ✅**.
 - **15 Juin 2026 (round 3)**: Refactor `server.py` round 3 — extraction PDF vers `services/pdf.py` + routers `quotes.py`/`invoices.py`. Modèles Quote/Invoice/Signature déplacés. Hardening `/2fa/email/activate` (current_password requis). Bug PDF `{BRAND.EMAIL}` littéral corrigé. `server.py` : 4268 → 3544 lignes.
 - **15 Juin 2026 (round 2)**: Extraction leads/contact/clients + modèles partagés dans `models/`. Refactor `auth_extensions.py` (556 l) → 4 sous-modules `routers/auth_ext/`.
 - **15 Juin 2026 (round 1)**: Extraction blog/policies/pricing/discounts. Réactivation reCAPTCHA + Fix CORS critique.
