@@ -933,7 +933,11 @@ const babelMetadataPlugin = ({ types: t }) => {
           if (!localName) return;
 
           // Search for usages of this component
-          importPath.parentPath.parentPath.traverse({
+          // Fix: importPath.parentPath is Program (top-level); .parentPath.parentPath is null.
+          // Use Program (single parentPath) so we can safely traverse the file body.
+          const programPath = importPath.parentPath;
+          if (!programPath || typeof programPath.traverse !== "function") return;
+          programPath.traverse({
             JSXOpeningElement(jsxPath) {
               if (result) return;
 
