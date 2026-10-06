@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { authApi, clientPortalApi } from '@/lib/api';
 import { setAuthData, isAuthenticated, getCurrentUser } from '@/lib/utils';
 import { toast } from 'sonner';
-import { LogIn, Users, Briefcase, ArrowLeft } from 'lucide-react';
+import { LogIn, Users, Briefcase, ArrowLeft, ShieldCheck, Loader2 } from 'lucide-react';
 import { BRAND_LOGO_URL as SERVICEFLOW_LOGO } from '@/config/brand';
 const CMGEORGES_LOGO = SERVICEFLOW_LOGO; // Use same logo for consistency
 
@@ -17,6 +17,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loginType, setLoginType] = useState(null); // 'admin' | 'client' | null
   const [credentials, setCredentials] = useState({ email: '', password: '' });
+  // 2FA state (admin only)
+  const [twoFaChallenge, setTwoFaChallenge] = useState(null); // {challenge_token, method}
+  const [twoFaCode, setTwoFaCode] = useState('');
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -74,12 +77,29 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await authApi.login(credentials.email, credentials.password);
-      const user = response.data.user;
-      setAuthData(response.data.access_token, user);
+      // Always use the 2FA-aware endpoint. It returns either a session OR a challenge.
+      const response = await authApi.loginChallenge(credentials.email, credentials.password);
+      const data = response.data;
+
+      if (data.challenge_required) {
+        // Open the 2FA code dialog (TOTP app or email code depending on `data.method`)
+        setTwoFaChallenge({
+          challenge_token: data.challenge_token,
+          method: data.method,
+        });
+        toast.info(
+          data.method === 'email'
+            ? 'Un code a été envoyé par courriel'
+            : 'Entrez le code de votre application d\'authentification'
+        );
+        setLoading(false);
+        return;
+      }
+
+      // No 2FA → finish login
+      const user = data.user;
+      setAuthData(data.access_token, user);
       toast.success('Connexion réussie!');
-      
-      // Redirect based on role
       if (user.role === 'admin' || user.role === 'staff') {
         navigate('/admin/dashboard');
       } else {
@@ -92,6 +112,34 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTwoFaSubmit = async (e) => {
+    e.preventDefault();
+    if (!twoFaCode || twoFaCode.length < 6) {
+      toast.error('Entrez un code à 6 chiffres');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await authApi.loginVerify2FA(twoFaChallenge.challenge_token, twoFaCode);
+      const data = response.data;
+      setAuthData(data.access_token, data.user);
+      toast.success('Connexion réussie!');
+      const role = data.user.role;
+      navigate(role === 'admin' || role === 'staff' ? '/admin/dashboard' : '/client/dashboard');
+    } catch (error) {
+      toast.error('Code invalide', {
+        description: error.response?.data?.detail || 'Vérifiez le code et réessayez'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelTwoFa = () => {
+    setTwoFaChallenge(null);
+    setTwoFaCode('');
   };
 
   const handleClientLogin = async (e) => {
@@ -213,6 +261,57 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl shadow-2xl p-8">
+          {twoFaChallenge ? (
+            <form onSubmit={handleTwoFaSubmit} className="space-y-5" data-testid="2fa-form">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-[#d4af37]/10 border border-[#d4af37]/30">
+                <ShieldCheck className="h-5 w-5 text-[#d4af37] shrink-0 mt-0.5" />
+                <div className="text-sm text-white/90">
+                  <p className="font-medium">Vérification en deux étapes</p>
+                  <p className="text-white/60 text-xs mt-1">
+                    {twoFaChallenge.method === 'email'
+                      ? `Entrez le code à 6 chiffres envoyé à ${credentials.email}.`
+                      : 'Entrez le code à 6 chiffres de votre application d\'authentification.'}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="2fa-code" className="text-white/70 text-sm mb-2 block">
+                  Code de vérification
+                </Label>
+                <Input
+                  id="2fa-code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]*"
+                  maxLength={8}
+                  placeholder="123456"
+                  autoFocus
+                  value={twoFaCode}
+                  onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 text-center text-2xl tracking-[0.5em] font-mono"
+                  data-testid="2fa-code-input"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={loading || twoFaCode.length < 6}
+                className="w-full bg-[#d4af37] hover:bg-[#c9a333] text-[#1a365d] font-semibold"
+                data-testid="2fa-submit-btn"
+              >
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+                {loading ? 'Vérification...' : 'Vérifier et se connecter'}
+              </Button>
+              <button
+                type="button"
+                onClick={cancelTwoFa}
+                className="w-full text-sm text-white/50 hover:text-white/80 transition-colors"
+                data-testid="2fa-cancel-btn"
+              >
+                ← Changer de compte
+              </button>
+            </form>
+          ) : (
           <form onSubmit={loginType === 'admin' ? handleAdminLogin : handleClientLogin} className="space-y-5">
             <div>
               <Label htmlFor="email" className="text-white/70 text-sm mb-1.5 block">Courriel</Label>
@@ -261,9 +360,10 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+          )}
 
           {/* Client registration link */}
-          {loginType === 'client' && (
+          {!twoFaChallenge && loginType === 'client' && (
             <div className="mt-4 text-center">
               <Link to="/client/register" className="text-[#d4af37]/70 hover:text-[#d4af37] text-sm transition-colors">
                 Pas encore de compte ? S'inscrire
@@ -272,6 +372,7 @@ export default function LoginPage() {
           )}
 
           {/* Back button */}
+          {!twoFaChallenge && (
           <div className="mt-4 text-center">
             <Link
               to={loginType === 'client' ? '/mot-de-passe-oublie?from=client' : '/mot-de-passe-oublie'}
@@ -281,7 +382,9 @@ export default function LoginPage() {
               Mot de passe oublié ?
             </Link>
           </div>
+          )}
 
+          {!twoFaChallenge && (
           <div className="mt-6 pt-5 border-t border-white/10">
             <Button
               variant="ghost"
@@ -296,6 +399,7 @@ export default function LoginPage() {
               Choisir un autre type de connexion
             </Button>
           </div>
+          )}
         </div>
 
         <p className="text-center text-white/20 text-xs mt-6">
