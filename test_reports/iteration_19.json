@@ -1,0 +1,27 @@
+{
+  "summary": "Validated the 2FA login bug fix on /connexion (LoginPage.jsx). Both backend and frontend flows work end-to-end. Backend: 6/6 pytest cases pass (login challenge w/o 2FA → session; wrong password → 401; enable email 2FA → persisted; login challenge w/ 2FA → challenge_token; wrong code → 400 'Code de vérification invalide'; correct code → access_token + cookies). Frontend E2E on preview: /connexion → Admin tile → email+password submit now opens the 2FA panel (ShieldCheck icon + 'code envoyé à admin@cmgeorges.com' message + 6-digit input + 'Vérifier et se connecter' + '← Changer de compte'). Wrong code (000000) stays on 2FA form with toast error. Injected known code → 'Connexion réussie!' toast + redirect to /admin/dashboard. Previous bug (toast error, no 2FA UI) is fully resolved — /connexion now uses authApi.loginChallenge instead of legacy /auth/login.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_login_2fa_flow.py",
+    "/app/test_reports/pytest/iter19_2fa.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "LoginPage.jsx uses authApi.loginChallenge correctly; both branches (challenge_required true/false) handled. State cleanup on 'Changer de compte' is correct.",
+    "Legacy POST /api/v1/auth/login (server.py:888-928) still exists for backward compat; consider deprecating once all clients migrate to /login/challenge to avoid future bugs where callers forget to switch."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_login_2fa_flow.py (new regression suite)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@cmgeorges.com / strongpassword123",
+  "seed_data_creation": "Temporarily enabled email 2FA for admin + injected a known 2FA code (321987) in email_2fa_codes. Teardown executed: two_factor_enabled=false, two_factor_method=null. DB restored.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "2FA login bug on /connexion is confirmed FIXED. Regression suite at backend/tests/test_login_2fa_flow.py can be reused — it auto-resets admin 2FA state in module teardown. Playwright script uses subprocess to venv python with bcrypt/pymongo to inject known 2FA codes."
+}
