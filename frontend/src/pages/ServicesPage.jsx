@@ -68,6 +68,7 @@ const services = [
     image: 'https://images.unsplash.com/photo-1631545806609-35d4ae440431?w=600',
     features: ['Nettoyage complet', 'Entretien saisonnier', 'Installation', 'Diagnostic'],
     categories: ['hvac'],
+    testId: 'service-card-hvac',
   },
   {
     icon: Tv,
@@ -77,6 +78,7 @@ const services = [
     image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600',
     features: ['Support TV mural', 'Câblage dissimulé', 'Barre de son', 'Site web & tech'],
     categories: ['installation', 'tech'],
+    testId: 'service-card-tech',
   },
 ];
 
@@ -100,7 +102,7 @@ export default function ServicesPage() {
         <div className="container-main">
           <div className="grid gap-12">
             {services.map((service, i) => (
-              <Card key={i} className="border-0 shadow-lg overflow-hidden" data-testid={`service-${i}`}>
+              <Card key={i} className="border-0 shadow-lg overflow-hidden" data-testid={service.testId || `service-${i}`}>
                 <div className={`grid md:grid-cols-2 ${i % 2 === 1 ? 'md:flex-row-reverse' : ''}`}>
                   <div className={`relative h-64 md:h-auto ${i % 2 === 1 ? 'md:order-2' : ''}`}>
                     <img src={service.image} alt={service.title} className="w-full h-full object-cover" />

@@ -68,6 +68,18 @@
 - Code : `/app/frontend/src/mobile/` (MobileLayout, pages/, components/)
 - Tests : iteration_20 (backend 9/9, frontend OK) + `tests/test_mobile_pwa_photos.py`
 
+### Sécurité + Fiabilité + Contenu unifié (Oct 2026)
+- SEC-001 corrigé : garde globale `staff_guard` (server.py) → /api/v1/admin/*, /api/v1/ai/*, /api/v2/* réservés admin/staff (client → 403)
+- SEC-002 : route /seed supprimée (+ bouton démo AdminLogin) ; SEC-003 : IA limitée 40/h/utilisateur ; 2FA : 5 essais/15 min + challenge non réutilisable
+- Paramètres du site (`/admin/site-settings`, collection `site_settings`) : modalités de paiement par défaut (30/30/40 + note <500 $) + règles par service (murs d'accent 50/50), avis clients + lien/note Google, confiance (Assuré, nb clients optionnel). Public : GET /api/v1/site-settings
+- Prix publics 100 % catalogue (`/api/v2/catalog/public`) : Services, Peinture, Rénovation, Entretien, Mobilier, Démolition, Murs d'accent ; « Sur devis » si aucun prix. Nouvelles catégories catalogue : accent_walls, demolition, hvac (migration `migrations/data_fixes.py`)
+- Données de test : détection (`services/test_data.py`), exclues des stats et pages publiques ; nettoyage avec aperçu dans Paramètres du site
+- Tableau de bord : revenus = paiements réellement reçus par mois calendaire ; à encaisser inclut overdue
+- Accueil : RBQ retiré, « 100+ » géré par admin, avis depuis paramètres ; Conditions/FAQ/Footer dynamiques
+- Services Climatiseurs & TV/Tech ajoutés (+ options soumission hvac/maintenance/tech)
+- PWA /m : erreur/session expirée explicites, projet terminé = 100 %, coordonnées provisoires désactivées, instructions d'installation inline
+- Tests : iteration_21 (backend 24/24, frontend ~100 %)
+
 ---
 
 ## Intégrations actives
@@ -89,10 +101,15 @@
 ## Backlog
 
 ### P0
+- [ ] Valider la PWA /m sur un vrai iPhone/Android (installation + hors-ligne) après redéploiement
+- [ ] Après redéploiement : lancer « Nettoyer les données de test » en production et saisir les vrais avis Google
 - [ ] App native React Native (`/app/mobile`) publiée App Store / Play Store — après validation de la PWA `/m`
 - [x] Object Storage Cloudflare R2 — DONE (14 Juin 2026)
 
 ### P1
+- [ ] Pages dédiées Climatiseurs et TV/Tech (actuellement cartes → soumission)
+- [ ] Agenda des chantiers + relances ; heures/matériaux/dépenses par projet (marge réelle, remplace coûts estimés 40 %)
+- [ ] Synchro automatique des avis Google (API Places — clé requise)
 - [ ] Isolation multi-tenant complète (`tenantId` scoping)
 - [ ] Refactor `AdminInvoices.jsx` (935 lignes → composants séparés)
 - [ ] Continuer le découpage de `server.py` (~3544 lignes restantes) — **PROJECTS router** (~600 l, 13+ endpoints avec photos/tasks/timeline/messages/reports)
