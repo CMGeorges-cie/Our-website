@@ -34,7 +34,7 @@ export const ProjectForm = ({ open, onOpenChange, project, defaultClient, onSave
           client_id: f.client_id, title: f.title, description: f.description, service_type: f.service_type,
           scheduled_date: scheduled, estimated_hours: f.estimated_hours === '' ? null : parseFloat(f.estimated_hours),
         }), 'Projet créé');
-    if (r) { onSaved(r.data); onOpenChange(false); }
+    if (r) { onOpenChange(false); onSaved(r.data); }
   };
 
   return (

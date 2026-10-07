@@ -1,0 +1,37 @@
+{
+  "summary": "Iteration 20: Mobile PWA (/m) + Project Photos (R2) backend endpoints. Backend: 9/9 pytest pass — PWA assets served (/m-manifest.json w/ start_url=/m, scope=/m, icons 192+512; /m-sw.js; /m-icon-*.png); public pages /mobilier and /murs-accent NOT redirected to /m/login (401 interceptor regression OK); invalid credentials rejected (400/401); POST /api/v1/admin/projects/{id}/photos — unknown project→404, unauth→401/403, upload (multipart files + caption)→200 w/ photos[{id,url,caption,uploaded_at,uploaded_by}], photo persisted on GET, timeline event 'photo' added; DELETE /photos/{photo_id}→200 {success:true}, double-delete→404. Frontend: /m/login→redirect to /m/dashboard works; auth guard on /m redirects unauth to /m/login; all key data-testids present (bottom tabs home/leads/projects/invoices/more, topbar notifications w/ unread badge, dashboard quick actions, leads filters & detail actions call/sms/email/gps, projects list → detail w/ status chips, tasks, photo gallery/camera inputs, timeline, edit, Plus menu w/ clients/quotes/install/logout, Clients add bottom sheet form fields + submit). Client form submit successfully creates and returns to /m/clients list (spec said should navigate to client detail — minor UX deviation).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "MobileLayout.jsx MHead", "issue": "React-Helmet-Async <link rel='manifest' href='/m-manifest.json'> is NOT injected into document.head on /m pages (verified via document.head.innerHTML on /m dashboard and /m/leads after full render + 2s wait). Theme-color meta renders OK, title updates OK, so Helmet is active — but children-tags under <Helmet title={...}>{children}</Helmet> aren't being appended. Known gotcha when mixing title prop with children. Browsers will NOT offer PWA install prompt, and iOS can't recognize it as installable. m-manifest.json file itself is served fine (200). Suggest refactor to pure children form: <Helmet><title>...</title><link rel='manifest' .../></Helmet>.", "selector": "link[rel=manifest]", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Clients create via m-clients-add", "issue": "After submit, UI navigates back to /m/clients list instead of the newly-created client detail page as spec requires. Backend persist works (TEST_Mobile_Client_i20 created).", "affected_selectors": ["m-client-form-submit"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mobile_pwa_photos.py",
+    "/app/test_reports/pytest/iter20_mobile.xml",
+    "/app/test_reports/pytest/iter20_photos.xml"
+  ],
+  "action_items": [
+    "Fix Helmet manifest injection in MobileLayout.jsx MHead: move title into children (<title>…</title>) so <link rel='manifest' href='/m-manifest.json'/> is appended to <head>. Verify by checking document.head.innerHTML on /m after login.",
+    "On successful client create via bottom sheet, navigate to /m/clients/:id (client detail) instead of list, matching spec."
+  ],
+  "critical_code_review_comments": [
+    "admin_projects.py upload_project_photos uses $push with timeline added only once per batch, not per photo — reasonable; keep it.",
+    "upload_project_photos reads whole file into memory before size check (len(content) > 15MB). For 10 files * up to 15MB this can spike memory. Consider streaming or enforce size BEFORE read (via Content-Length) in future.",
+    "delete_project_photo returns 404 only when modified_count==0 — this correctly covers both missing project and missing photo cases.",
+    "MobileLayout.jsx uses react-helmet-async; prefer children-form for <title> to ensure sibling <link> and <meta> tags are injected reliably."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mobile_pwa_photos.py (new)"
+  ],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "~95% (28/29 testid checks + flows OK; 1 PWA manifest head issue, 1 minor nav UX)"},
+  "test_credentials": "admin@cmgeorges.com / strongpassword123",
+  "seed_data_creation": "Created TEST_Mobile_Client_i20 via /m/clients bottom sheet (not auto-deleted — minor). Backend pytest cleans up its own TEST_PhotoClient + TEST_PhotoProject in teardown.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Mobile /m PWA fully wired and auth-guarded. All page data-testids match spec. Remaining actionable: (1) manifest link head injection via Helmet children, (2) post-client-create navigation to detail. Backend photo endpoints 100% functional incl. R2 upload. Public pages regression preserved. If retesting, re-run `REACT_APP_BACKEND_URL=https://serviceflow-preview.preview.emergentagent.com python -m pytest /app/backend/tests/test_mobile_pwa_photos.py -v`."
+}

@@ -35,7 +35,7 @@ export default function MClients() {
         ))}
       </div>
       {formOpen && (
-        <ClientForm open onOpenChange={(o) => !o && setParams({})} onSaved={(c) => navigate(`/m/clients/${c.id}`, { replace: true })} />
+        <ClientForm open onOpenChange={(o) => !o && setParams({}, { replace: true })} onSaved={(c) => navigate(`/m/clients/${c.id}`)} />
       )}
     </div>
   );

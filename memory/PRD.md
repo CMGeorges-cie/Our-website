@@ -58,6 +58,18 @@
 
 ---
 
+
+### Version mobile de gestion — PWA `/m` (Oct 2026)
+- Interface téléphone dédiée `/m` (login 2FA `/m/login`), onglets bas : Accueil, Leads, Projets, Factures, Plus
+- Modules : Dashboard (revenus du mois, stats, actions rapides), Leads (filtres, statut, notes, convertir client), Soumissions (création + brouillon IA Claude, envoi courriel, lien signature, PDF), Clients (CRUD en bottom sheet, solde, accès portail), Projets (CRUD, statut, tâches/progression, journal, rapport PDF), Factures (création + IA, statut, lien de paiement copier/texto/partager, enregistrer paiement, courriel, PDF, signature), Revenus (vue CEO), Notifications, Profil (mot de passe, 2FA TOTP/courriel)
+- Terrain : Appeler / Texto / Courriel / GPS (Google Maps) en un clic ; photos de chantier caméra/galerie → Cloudflare R2
+- Backend : `POST/DELETE /api/v1/admin/projects/{id}/photos[/{photo_id}]` (R2, HEIC→JPEG, événement journal)
+- PWA : `/m-manifest.json` (scope `/m/`), `/m-sw.js` (fallback hors-ligne `/m-offline.html`), icônes `/m-icon-*.png`, bouton « Installer l'application »
+- Code : `/app/frontend/src/mobile/` (MobileLayout, pages/, components/)
+- Tests : iteration_20 (backend 9/9, frontend OK) + `tests/test_mobile_pwa_photos.py`
+
+---
+
 ## Intégrations actives
 - **Stripe LIVE** — paiements & dépôts
 - **Resend** — emails transactionnels
@@ -77,6 +89,7 @@
 ## Backlog
 
 ### P0
+- [ ] App native React Native (`/app/mobile`) publiée App Store / Play Store — après validation de la PWA `/m`
 - [x] Object Storage Cloudflare R2 — DONE (14 Juin 2026)
 
 ### P1

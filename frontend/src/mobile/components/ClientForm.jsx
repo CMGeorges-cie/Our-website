@@ -16,7 +16,7 @@ export const ClientForm = ({ open, onOpenChange, client, onSaved }) => {
     const body = Object.fromEntries(Object.keys(EMPTY).map((k) => [k, f[k] || '']));
     if (!body.company_name) body.company_name = null;
     const r = await run('save', () => (client ? adminApi.updateClient(client.id, body) : adminApi.createClient(body)), client ? 'Client mis à jour' : 'Client créé');
-    if (r) { onSaved(r.data); onOpenChange(false); }
+    if (r) { onOpenChange(false); onSaved(r.data); }
   };
 
   const input = (k, label, props = {}) => (

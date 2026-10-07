@@ -54,7 +54,7 @@ export default function MProjects() {
         ))}
       </div>
       {params.get('new') === '1' && (
-        <ProjectForm open defaultClient={params.get('client')} onOpenChange={(o) => !o && setParams({})} onSaved={(p) => navigate(`/m/projects/${p.id}`, { replace: true })} />
+        <ProjectForm open defaultClient={params.get('client')} onOpenChange={(o) => !o && setParams({}, { replace: true })} onSaved={(p) => navigate(`/m/projects/${p.id}`)} />
       )}
     </div>
   );

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Navigate, NavLink, Outlet, Link, useLocation } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { LayoutDashboard, Inbox, Hammer, Receipt, Menu, Bell } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { isAuthenticated } from '@/lib/utils';
@@ -16,18 +15,35 @@ const TABS = [
   { to: '/m/plus', icon: Menu, label: 'Plus', id: 'more' },
 ];
 
-export const MHead = () => (
-  <Helmet title={`${BRAND.name} — Gestion`}>
-    <link rel="manifest" href="/m-manifest.json" />
-    <link rel="apple-touch-icon" href="/m-apple-touch-icon.png" />
-    <meta name="theme-color" content="#0B1120" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Déco Gestion" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  </Helmet>
-);
+const M_TITLE = `${BRAND.name} — Gestion`;
+const HEAD_TAGS = [
+  ['link', { rel: 'manifest', href: '/m-manifest.json' }],
+  ['link', { rel: 'apple-touch-icon', href: '/m-apple-touch-icon.png' }],
+  ['meta', { name: 'theme-color', content: '#0B1120' }],
+  ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
+  ['meta', { name: 'mobile-web-app-capable', content: 'yes' }],
+  ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }],
+  ['meta', { name: 'apple-mobile-web-app-title', content: 'Déco Gestion' }],
+  ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }],
+];
+
+export const MHead = () => {
+  useEffect(() => {
+    document.title = M_TITLE;
+    const restore = HEAD_TAGS.map(([tag, attrs]) => {
+      const key = attrs.rel ? `rel="${attrs.rel}"` : `name="${attrs.name}"`;
+      let el = document.head.querySelector(`${tag}[${key}]`);
+      const prev = el ? el.outerHTML : null;
+      if (!el) { el = document.createElement(tag); document.head.appendChild(el); }
+      Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      return () => {
+        if (prev) el.outerHTML = prev; else el.remove();
+      };
+    });
+    return () => restore.forEach((fn) => fn());
+  }, []);
+  return null;
+};
 
 const useUnread = (path) => {
   const [count, setCount] = useState(0);
