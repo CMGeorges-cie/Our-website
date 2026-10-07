@@ -20,6 +20,8 @@ class ServiceType(str, Enum):
     TECH = "tech"
     MURS_ACCENT = "murs-accent"
     DEMOLITION = "demolition"
+    HVAC = "hvac"
+    MAINTENANCE = "maintenance"
 
 
 class UrgencyLevel(str, Enum):

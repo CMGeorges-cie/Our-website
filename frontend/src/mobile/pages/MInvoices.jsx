@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { MHeader, MCard, Loading, Empty, Pill, SearchBar, Chips } from '../components/MUi';
+import { MHeader, MCard, Loading, LoadError, Empty, Pill, SearchBar, Chips } from '../components/MUi';
 import { useLoad } from '../components/useLoad';
 import { INVOICE_STATUS, money, shortDate } from '../constants';
 
@@ -12,7 +12,7 @@ export default function MInvoices() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('');
   const [q, setQ] = useState('');
-  const { data, loading } = useLoad(async () => {
+  const { data, loading, error, reload } = useLoad(async () => {
     const [i, c] = await Promise.all([adminApi.getInvoices(status ? { status } : {}), adminApi.getClients()]);
     const names = Object.fromEntries(c.data.map((x) => [x.id, x.full_name]));
     return i.data.map((x) => ({ ...x, client_name: names[x.client_id] || '—' }));
@@ -33,7 +33,7 @@ export default function MInvoices() {
         <Chips options={FILTERS} value={status} onChange={setStatus} testPrefix="m-invoices-filter" />
       </div>
       <div className="px-5 space-y-2 m-stagger">
-        {loading ? <Loading /> : list.length === 0 ? <Empty text="Aucune facture" /> : list.map((x) => (
+        {loading ? <Loading /> : !data ? <LoadError error={error} onRetry={reload} /> : list.length === 0 ? <Empty text="Aucune facture" /> : list.map((x) => (
           <MCard key={x.id} testId={`m-invoice-row-${x.id}`} onClick={() => navigate(`/m/invoices/${x.id}`)}>
             <div className="flex justify-between gap-3">
               <div className="min-w-0">

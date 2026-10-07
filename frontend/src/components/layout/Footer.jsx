@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Shield, Instagram, Facebook } from 'lucide-react';
 import { DECOTOUCHE_LOGO_URL } from '@/lib/utils';
 import { BRAND } from '@/config/brand';
+import { useSiteSettings } from '@/lib/publicData';
 
 export default function Footer() {
+  const trust = useSiteSettings()?.trust;
   return (
     <footer className="bg-[#1a365d] text-white no-print" data-testid="footer">
       <div className="container-main py-16">
@@ -21,13 +23,15 @@ export default function Footer() {
             <p className="text-white/70 text-sm leading-relaxed">
               Peinture intérieure et extérieure, rénovation légère et entretien général. Service professionnel pour Montréal et la Rive-Sud.
             </p>
-            <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
-              <div className="flex items-center gap-2 text-[#d4af37] text-xs font-semibold mb-1">
-                <Shield className="h-3 w-3" /> PROFESSIONNEL & ASSURÉ
+            {trust?.insured && (
+              <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10" data-testid="footer-insurance">
+                <div className="flex items-center gap-2 text-[#d4af37] text-xs font-semibold mb-1">
+                  <Shield className="h-3 w-3" /> PROFESSIONNEL & ASSURÉ
+                </div>
+                {trust.insurance_text && <p className="text-white/60 text-xs">{trust.insurance_text}</p>}
+                <p className="text-white/60 text-xs">Service professionnel garanti</p>
               </div>
-              <p className="text-white/60 text-xs">Assurance responsabilité civile active</p>
-              <p className="text-white/60 text-xs">Service professionnel garanti</p>
-            </div>
+            )}
           </div>
 
           {/* Services */}

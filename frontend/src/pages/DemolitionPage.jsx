@@ -1,3 +1,4 @@
+import { CatalogFromPrice, PaymentTermsNote } from '@/components/public/CatalogPricing';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
@@ -127,10 +128,11 @@ export default function DemolitionPage() {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-[#1a365d] mb-3 font-['Outfit']">Tarification simple et transparente</h2>
             <div className="bg-gradient-to-br from-[#1a365d] to-[#0f2a4d] rounded-2xl p-10 text-white mt-6 shadow-xl">
-              <div className="text-sm uppercase tracking-widest text-[#d4af37] mb-2">À partir de</div>
-              <div className="text-6xl font-black mb-2">200<span className="text-3xl align-top">$</span></div>
+              <div className="text-sm uppercase tracking-widest text-[#d4af37] mb-2">Tarif</div>
+              <div className="text-4xl sm:text-5xl font-black mb-2"><CatalogFromPrice categories={['demolition']} /></div>
               <p className="text-white/80">Estimé gratuit sous 48 heures</p>
               <p className="text-white/60 text-sm mt-2">Évacuation des débris disponible en supplément</p>
+              <PaymentTermsNote service="demolition" className="text-white/60 text-xs mt-4" />
             </div>
           </div>
         </div>

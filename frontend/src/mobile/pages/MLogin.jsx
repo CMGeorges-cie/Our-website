@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ShieldCheck } from 'lucide-react';
 import { authApi } from '@/lib/api';
@@ -12,6 +12,7 @@ import '../mobile.css';
 
 export default function MLogin() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [challenge, setChallenge] = useState(null);
@@ -53,7 +54,12 @@ export default function MLogin() {
         <h1 className="font-heading text-4xl font-bold tracking-tight mt-8">Gestion<br /><span className="text-[#D4AF37]">{BRAND.name}</span></h1>
         <p className="text-sm text-slate-400 mt-3">Votre entreprise dans votre poche — leads, chantiers, factures.</p>
 
-        <form onSubmit={submit} className="mt-10 space-y-4" data-testid="m-login-form">
+        {params.get('expired') && !challenge && (
+          <div className="mt-8 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200" data-testid="m-login-expired">
+            Votre session a expiré. Reconnectez-vous pour continuer.
+          </div>
+        )}
+        <form onSubmit={submit} className="mt-8 space-y-4" data-testid="m-login-form">
           {!challenge ? (
             <>
               <Field label="Courriel">

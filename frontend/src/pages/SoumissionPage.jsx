@@ -19,7 +19,8 @@ import {
   X,
   Loader2,
   Flame,
-  Hammer
+  Hammer,
+  Wrench as WrenchIcon, Snowflake, Tv,
 } from 'lucide-react';
 import { publicApi } from '@/lib/api';
 import { toast } from 'sonner';
@@ -34,6 +35,9 @@ const serviceTypes = [
   { value: 'murs-accent', label: 'Mur Accent — Cheminée & TV', icon: Flame },
   { value: 'furniture', label: 'Installation de mobilier', icon: Sofa },
   { value: 'demolition', label: 'Démolition légère', icon: Hammer },
+  { value: 'maintenance', label: 'Entretien & réparations', icon: WrenchIcon },
+  { value: 'hvac', label: 'Climatiseur & thermopompe', icon: Snowflake },
+  { value: 'tech', label: 'Installation TV & Tech', icon: Tv },
 ];
 
 const itemTypes = [
@@ -238,7 +242,7 @@ export default function SoumissionPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const presetService = params.get('service');
-    if (presetService && ['manual', 'furniture', 'murs-accent', 'demolition'].includes(presetService)) {
+    if (presetService && serviceTypes.some((t) => t.value === presetService)) {
       setFormData(prev => prev.service_type ? prev : { ...prev, service_type: presetService });
     }
   }, []);

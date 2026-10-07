@@ -1,7 +1,9 @@
 import { Helmet } from 'react-helmet-async';
 import { BRAND } from '@/config/brand';
+import { useSiteSettings, paymentTermsFor } from '@/lib/publicData';
 
 export default function FAQPage() {
+  const terms = paymentTermsFor(useSiteSettings(), 'default');
   const faqs = [
     {
       category: "Général",
@@ -84,7 +86,7 @@ export default function FAQPage() {
         },
         {
           q: "Comment fonctionne le paiement?",
-          a: "Typiquement: 30% à la signature, 30% à mi-projet, 40% à la complétion. Pour les petits projets, paiement à la fin des travaux."
+          a: terms ? `Paiement par étapes : ${terms.summary}.${terms.note ? ` ${terms.note}` : ''} Certains services (ex. murs d'accent) ont leurs propres modalités, précisées dans la soumission.` : "Les modalités de paiement sont précisées dans votre soumission."
         },
         {
           q: "Émettez-vous des factures avec TPS/TVQ?",

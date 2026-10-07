@@ -36,6 +36,8 @@ const serviceOptions = [
   { value: 'manual', label: 'Déco Touché' },
   { value: 'furniture', label: 'Mobilier' },
   { value: 'tech', label: 'Tech' },
+  { value: 'maintenance', label: 'Entretien' },
+  { value: 'hvac', label: 'Climatisation' },
 ];
 
 export default function AdminLeads() {

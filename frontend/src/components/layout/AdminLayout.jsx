@@ -22,7 +22,8 @@ import {
   Package,
   ImageIcon,
   Share2,
-  KeyRound
+  KeyRound,
+  Settings2,
 } from 'lucide-react';
 import { authApi } from '@/lib/api';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
@@ -51,6 +52,7 @@ const settingsLinks = [
   { href: '/admin/discounts', label: 'Codes Promo', icon: Tag },
   { href: '/admin/pricing', label: 'Tarification', icon: DollarSign },
   { href: '/admin/policies', label: 'Politiques', icon: Shield },
+  { href: '/admin/site-settings', label: 'Paramètres du site', icon: Settings2 },
 ];
 
 export default function AdminLayout() {

@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { authApi, seedDatabase } from '@/lib/api';
+import { authApi } from '@/lib/api';
 import { setAuthData, isAuthenticated } from '@/lib/utils';
 import { toast } from 'sonner';
 import { LogIn } from 'lucide-react';
@@ -14,7 +14,6 @@ export default function AdminLogin() {
   const vantaRef = useRef(null);
   const vantaEffect = useRef(null);
   const [loading, setLoading] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [credentials, setCredentials] = useState({ email: '', password: '' });
 
   useEffect(() => {
@@ -116,24 +115,6 @@ export default function AdminLogin() {
     }
   };
 
-  const handleSeedDatabase = async () => {
-    setSeeding(true);
-    try {
-      const response = await seedDatabase();
-      toast.success('Base de données initialisée!', {
-        description: `Admin: ${response.data.admin_email} / ${response.data.admin_password}`
-      });
-      setCredentials({ email: response.data.admin_email, password: response.data.admin_password });
-    } catch (error) {
-      if (error.response?.data?.message === 'Database already seeded') {
-        toast.info('Base de données déjà initialisée');
-        // No hardcoded fallback — user must enter their own credentials
-      } else {
-        toast.error('Erreur lors de l\'initialisation');
-      }
-    } finally {
-      setSeeding(false); }
-  };
 
   return (
     <div ref={vantaRef} className="min-h-screen flex items-center justify-center p-4 relative" data-testid="admin-login-page">
@@ -253,17 +234,6 @@ export default function AdminLogin() {
             </Link>
           </div>
 
-          <div className="mt-6 pt-5 border-t border-white/10">
-            <Button
-              variant="ghost"
-              className="w-full text-white/40 hover:text-white/60 hover:bg-white/5 text-xs"
-              onClick={handleSeedDatabase}
-              disabled={seeding}
-              data-testid="seed-database-btn"
-            >
-              {seeding ? 'Initialisation...' : 'Initialiser les données de démo'}
-            </Button>
-          </div>
         </div>
 
         <p className="text-center text-white/20 text-xs mt-6">

@@ -48,6 +48,8 @@ export const SERVICE_TYPES = {
   tech: 'Tech / TV',
   'murs-accent': 'Murs d\'accent',
   demolition: 'Démolition',
+  maintenance: 'Entretien',
+  hvac: 'Climatisation',
 };
 
 export const PAYMENT_METHODS = {
@@ -72,3 +74,5 @@ export const errMsg = (e, fallback = 'Une erreur est survenue') => {
   if (Array.isArray(d)) return d.map((x) => x.msg).join(', ');
   return fallback;
 };
+
+export const progressOf = (p) => (p?.status === 'completed' ? 100 : p?.progress || 0);

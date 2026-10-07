@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { UserPlus, FilePlus2, HardHat, Inbox, TrendingUp, Clock } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { getCurrentUser } from '@/lib/utils';
-import { MCard, ListRow, Loading, Pill, Section } from '../components/MUi';
+import { MCard, ListRow, Loading, LoadError, Pill, Section } from '../components/MUi';
 import { useLoad } from '../components/useLoad';
-import { LEAD_STATUS, PROJECT_STATUS, money, shortDate } from '../constants';
+import { LEAD_STATUS, PROJECT_STATUS, money, shortDate, progressOf } from '../constants';
 
 const Stat = ({ label, value, icon: Icon, accent, testId, onClick }) => (
   <MCard testId={testId} onClick={onClick} className="p-4">
@@ -24,14 +24,15 @@ const Quick = ({ icon: Icon, label, onClick, testId }) => (
 export default function MDashboard() {
   const navigate = useNavigate();
   const user = getCurrentUser();
-  const { data, loading } = useLoad(async () => {
+  const { data, loading, error, reload } = useLoad(async () => {
     const [s, c, l, p] = await Promise.all([
       adminApi.getStats(), adminApi.getCeoDashboard(), adminApi.getLeads({ status: 'new' }), adminApi.getProjects({ status: 'in_progress' }),
     ]);
     return { stats: s.data, ceo: c.data, leads: l.data.slice(0, 4), projects: p.data.slice(0, 4) };
   });
 
-  if (loading || !data) return <Loading />;
+  if (loading) return <Loading />;
+  if (!data) return <LoadError error={error} onRetry={reload} />;
   const { stats, ceo, leads, projects } = data;
   const month = new Intl.DateTimeFormat('fr-CA', { month: 'long' }).format(new Date());
 
@@ -84,7 +85,7 @@ export default function MDashboard() {
           {projects.length === 0 && <p className="text-sm text-slate-500">Aucun chantier en cours.</p>}
           {projects.map((p) => (
             <ListRow key={p.id} testId={`m-dash-project-${p.id}`} title={p.title}
-              subtitle={<span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{p.progress || 0}% complété</span>}
+              subtitle={<span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{progressOf(p)}% complété</span>}
               right={<Pill map={PROJECT_STATUS} value={p.status} />} onClick={() => navigate(`/m/projects/${p.id}`)} />
           ))}
         </div>

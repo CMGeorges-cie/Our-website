@@ -22,6 +22,7 @@ import PortfolioPage from "@/pages/PortfolioPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import AdminProfile from "@/pages/admin/AdminProfile";
+import AdminSiteSettings from "@/pages/admin/AdminSiteSettings";
 // Mobile management PWA
 import MobileLayout from "@/mobile/MobileLayout";
 import MLogin from "@/mobile/pages/MLogin";
@@ -257,6 +258,7 @@ function App() {
               <Route path="/admin/portfolio" element={<AdminPortfolio />} />
               <Route path="/admin/social" element={<AdminSocial />} />
               <Route path="/admin/profile" element={<AdminProfile />} />
+              <Route path="/admin/site-settings" element={<AdminSiteSettings />} />
             </Route>
 
             {/* Mobile management PWA */}

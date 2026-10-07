@@ -158,6 +158,10 @@ def build_admin_projects_router(
                 update_data["completed_date"]
             ).isoformat()
 
+        if update_data.get("status") == "completed":
+            update_data["progress"] = 100
+            update_data.setdefault("completed_date", current.get("completed_date") or datetime.now(timezone.utc).isoformat())
+
         result = await db.projects.update_one({"id": project_id}, {"$set": update_data})
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Project not found")

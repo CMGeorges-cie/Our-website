@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { authApi } from '@/lib/api';
 import { clearAuthData } from '@/lib/utils';
 import { MHeader, Section } from '../components/MUi';
-import { BottomSheet } from '../components/BottomSheet';
 
 const Item = ({ icon: Icon, label, hint, onClick, testId, danger }) => (
   <button data-testid={testId} onClick={onClick} className="w-full flex items-center gap-3.5 px-4 py-3.5 border-b border-[#1E293B] last:border-0 active:bg-white/5 text-left">
@@ -25,6 +24,9 @@ const Group = ({ children }) => <div className="rounded-2xl border border-[#1E29
 export default function MMore() {
   const navigate = useNavigate();
   const [iosHelp, setIosHelp] = useState(false);
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
   const standalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone;
 
   const install = async () => {
@@ -34,7 +36,10 @@ export default function MMore() {
       const r = await p.userChoice;
       if (r.outcome === 'accepted') toast.success('Application installée');
       window.__mInstallPrompt = null;
-    } else setIosHelp(true);
+    } else {
+      setIosHelp(true);
+      setTimeout(() => document.querySelector('[data-testid="m-install-help"]')?.scrollIntoView({ behavior: 'smooth' }), 50);
+    }
   };
   const logout = async () => {
     await authApi.logout().catch(() => {});
@@ -61,13 +66,22 @@ export default function MMore() {
           <Item testId="m-more-logout" icon={LogOut} label="Se déconnecter" onClick={logout} danger />
         </Group>
       </Section>
-      <BottomSheet open={iosHelp} onOpenChange={setIosHelp} title="Installer sur votre téléphone" testId="m-install-help">
-        <ol className="space-y-3 text-sm text-slate-300 list-decimal pl-5">
-          <li><b className="text-white">iPhone (Safari)</b> : touchez le bouton Partager <Share className="inline h-4 w-4 text-[#D4AF37]" />, puis « Sur l'écran d'accueil ».</li>
-          <li><b className="text-white">Android (Chrome)</b> : menu ⋮ puis « Installer l'application ».</li>
-          <li>Ouvrez « Déco Gestion » depuis votre écran d'accueil — plein écran, comme une vraie app.</li>
-        </ol>
-      </BottomSheet>
+      {iosHelp && (
+        <Section title="Installer sur votre téléphone">
+          <div className="rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 p-4 space-y-3 text-sm text-slate-300 m-fade-in" data-testid="m-install-help">
+            <div className={isIOS ? '' : 'opacity-60'}>
+              <p className="font-semibold text-white">iPhone / iPad (Safari)</p>
+              <p className="mt-1">1. Touchez <Share className="inline h-4 w-4 text-[#D4AF37]" /> Partager en bas de l'écran<br />2. Choisissez « Sur l'écran d'accueil »<br />3. Touchez « Ajouter »</p>
+              {isIOS && !isSafari && <p className="text-amber-300 text-xs mt-1">Ouvrez cette page dans Safari : l'installation n'est pas possible depuis un autre navigateur sur iPhone.</p>}
+            </div>
+            <div className={isIOS ? 'opacity-60' : ''}>
+              <p className="font-semibold text-white">Android (Chrome)</p>
+              <p className="mt-1">1. Touchez le menu ⋮ en haut à droite<br />2. Choisissez « Installer l'application » ou « Ajouter à l'écran d'accueil »</p>
+            </div>
+            <p className="text-xs text-slate-500">Ouvrez ensuite « Déco Gestion » depuis votre écran d'accueil : plein écran, comme une vraie app.</p>
+          </div>
+        </Section>
+      )}
     </div>
   );
 }

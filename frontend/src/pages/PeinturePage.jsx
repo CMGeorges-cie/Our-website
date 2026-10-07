@@ -1,3 +1,4 @@
+import { CatalogPriceList } from '@/components/public/CatalogPricing';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,17 +13,11 @@ const services = [
 const process = [
   { step: '1', title: 'Consultation gratuite', desc: 'Visite sur place pour évaluer les travaux et vos besoins.' },
   { step: '2', title: 'Soumission détaillée', desc: 'Devis clair avec prix, délais et choix de couleurs.' },
-  { step: '3', title: 'Dépôt 30-50%', desc: 'Acompte à la signature pour confirmer la réservation.' },
+  { step: '3', title: 'Dépôt à la signature', desc: 'Acompte selon nos modalités de paiement pour confirmer la réservation.' },
   { step: '4', title: 'Réalisation', desc: 'Exécution propre et professionnelle selon l\'échéancier.' },
   { step: '5', title: 'Inspection finale', desc: 'Vérification avec vous et retouches si nécessaire.' },
 ];
 
-const pricing = [
-  { service: 'Peinture intérieure (par pièce)', price: 'À partir de 350$', note: 'Taille standard, 2 couches' },
-  { service: 'Peinture extérieure', price: 'À partir de 1,500$', note: 'Maison de taille moyenne' },
-  { service: 'Retouches & rafraîchissement', price: 'À partir de 150$', note: 'Petites surfaces' },
-  { service: 'Préparation de surfaces', price: 'Inclus', note: 'Sablage, apprêt, protection' },
-];
 
 export default function PeinturePage() {
   return (
@@ -95,18 +90,7 @@ export default function PeinturePage() {
         <div className="container-main">
           <h2 className="text-3xl font-bold text-[#1a365d] text-center mb-4 font-['Outfit']">Tarifs indicatifs</h2>
           <p className="text-gray-500 text-center mb-12 max-w-xl mx-auto text-sm">Chaque projet est unique. Contactez-nous pour une soumission personnalisée et gratuite.</p>
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {pricing.map((p, i) => (
-              <div key={i} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-semibold text-[#1a365d] text-sm">{p.service}</p>
-                  <p className="text-xs text-gray-400">{p.note}</p>
-                </div>
-                <span className="font-bold text-[#d4af37] text-sm">{p.price}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-center text-xs text-gray-400 mt-6">* TPS et TVQ en sus. Acompte de 30 à 50% requis à la signature.</p>
+          <CatalogPriceList categories={['painting']} />
         </div>
       </section>
 

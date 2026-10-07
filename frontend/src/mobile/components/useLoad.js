@@ -5,13 +5,16 @@ import { errMsg } from '../constants';
 export const useLoad = (fn, deps = []) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const reload = useCallback(async () => {
+    setError(null);
     try {
       setData(await fn());
     } catch (e) {
-      toast.error(errMsg(e, 'Chargement impossible'));
+      setError(e);
+      if (e?.response?.status !== 401) toast.error(errMsg(e, 'Chargement impossible'));
     } finally {
       setLoading(false);
     }
@@ -21,7 +24,7 @@ export const useLoad = (fn, deps = []) => {
     reload();
   }, [reload]);
 
-  return { data, setData, loading, reload };
+  return { data, setData, loading, error, reload };
 };
 
 export const useAction = () => {

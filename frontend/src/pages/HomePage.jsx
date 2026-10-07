@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { publicApi } from '@/lib/api';
+import { useSiteSettings, paymentTermsFor } from '@/lib/publicData';
 import { 
   Paintbrush, 
   Wrench, 
@@ -31,7 +32,7 @@ const services = [
     description: 'Transformez votre salon en un weekend. Panneaux rainurés, pierre, béton ciré — cheminée électrique CSA incluse.',
     href: '/murs-accent',
     image: '/portfolio/murs/mod-a-noir-rainure.jpg',
-    features: ['4 modèles', 'Cheminée CSA incluse', 'Support TV mural', 'À partir de 2 800$']
+    features: ['4 modèles', 'Cheminée CSA incluse', 'Support TV mural', 'Forfait tout inclus']
   },
   {
     icon: Paintbrush,
@@ -79,14 +80,9 @@ const whyChoose = [
   { icon: BadgeCheck, title: 'Travail garanti', desc: 'Garantie de satisfaction sur tous nos travaux de peinture et rénovation.' },
   { icon: DollarSign, title: 'Prix transparents', desc: 'Soumission gratuite et détaillée. Aucune surprise, aucun frais caché.' },
   { icon: Clock, title: 'Respect des délais', desc: 'Nous respectons les échéanciers convenus. Votre temps est précieux.' },
-  { icon: Shield, title: 'Assuré & professionnel', desc: 'Assurance responsabilité civile active. Licence RBQ en cours.' },
+  { icon: Shield, title: 'Assuré & professionnel', desc: 'Assurance responsabilité civile active. Travail soigné et encadré.' },
 ];
 
-const testimonials = [
-  { name: 'Marie-Josée L.', city: 'Longueuil', text: 'Excellent travail de peinture dans notre salon et cuisine. L\'équipe est ponctuelle, propre et très professionnelle. Le résultat est magnifique!', rating: 5 },
-  { name: 'Jean-Pierre B.', city: 'Montréal', text: 'Rénovation complète de notre sous-sol. Travail impeccable, respect du budget et des délais. Je recommande sans hésitation.', rating: 5 },
-  { name: 'Sophie D.', city: 'Brossard', text: 'L\'assemblage de nos meubles IKEA a été fait en un temps record. Très satisfaite du service, tout est parfaitement monté!', rating: 5 },
-];
 
 const platformIcons = {
   instagram: '📸', tiktok: '🎵', facebook: '👍', youtube: '▶️'
@@ -131,6 +127,10 @@ function SocialMediaSection() {
 }
 
 export default function HomePage() {
+  const settings = useSiteSettings();
+  const terms = paymentTermsFor(settings, 'default');
+  const reviewCfg = settings?.reviews;
+  const reviews = reviewCfg?.enabled ? reviewCfg.items : [];
   return (
     <div className="min-h-screen" data-testid="home-page">
       {/* Hero Section */}
@@ -169,8 +169,8 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-6 mt-8 text-white/70 text-sm">
               <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-[#d4af37]" /> Soumission gratuite</span>
-              <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-[#d4af37]" /> Assuré</span>
-              <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-[#d4af37]" /> Acompte 30-50%</span>
+              {settings?.trust?.insured && <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-[#d4af37]" /> Assuré</span>}
+              {terms && <span className="flex items-center gap-1" data-testid="hero-deposit"><CheckCircle className="h-4 w-4 text-[#d4af37]" /> Paiement {terms.short}</span>}
             </div>
           </div>
         </div>
@@ -244,17 +244,19 @@ export default function HomePage() {
                 alt="Travail professionnel"
                 className="w-full rounded-2xl shadow-2xl"
               />
+              {settings?.trust?.clients_count && (
               <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-[#d4af37]/10 rounded-full flex items-center justify-center">
                     <Users className="h-6 w-6 text-[#d4af37]" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-[#1a365d]">100+</p>
+                    <p className="text-2xl font-bold text-[#1a365d]" data-testid="clients-count">{settings.trust.clients_count}</p>
                     <p className="text-xs text-gray-500">Clients satisfaits</p>
                   </div>
                 </div>
               </div>
+              )}
             </div>
           </div>
         </div>
@@ -269,8 +271,8 @@ export default function HomePage() {
                 <Receipt className="h-6 w-6 text-[#d4af37]" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg font-['Outfit']">Acompte obligatoire de 30 à 50%</h3>
-                <p className="text-white/70 text-sm">Un dépôt est requis à la signature du contrat pour confirmer votre réservation. Paiement sécurisé en ligne ou par virement Interac.</p>
+                <h3 className="text-white font-bold text-lg font-['Outfit']" data-testid="deposit-title">Paiement par étapes{terms ? ` : ${terms.short}` : ''}</h3>
+                <p className="text-white/70 text-sm" data-testid="deposit-text">{terms ? `${terms.summary[0].toUpperCase()}${terms.summary.slice(1)}.` : ''}{terms?.note ? ` ${terms.note}` : ''} Paiement sécurisé en ligne ou par virement Interac.</p>
               </div>
             </div>
             <Link to="/soumission">
@@ -281,14 +283,21 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
+      {reviews.length > 0 && (
       <section className="section-spacing bg-white" data-testid="testimonials-section">
         <div className="container-main">
           <div className="text-center mb-12">
             <span className="text-[#d4af37] font-semibold text-sm uppercase tracking-wider">Témoignages</span>
             <h2 className="text-3xl md:text-4xl font-bold text-[#1a365d] mt-2 font-['Outfit']">Ce que nos clients disent</h2>
+            {reviewCfg.google_rating && (
+              <p className="mt-3 text-sm text-gray-500 flex items-center justify-center gap-1.5" data-testid="google-rating">
+                <Star className="h-4 w-4 text-[#d4af37] fill-[#d4af37]" />
+                <b className="text-[#1a365d]">{reviewCfg.google_rating.toLocaleString('fr-CA')}/5</b> sur Google{reviewCfg.google_count ? ` · ${reviewCfg.google_count} avis` : ''}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((t, i) => (
+            {reviews.map((t, i) => (
               <Card key={i} className="border-0 shadow-lg" data-testid={`testimonial-${i}`}>
                 <CardContent className="p-6">
                   <div className="flex gap-1 mb-4">
@@ -310,8 +319,18 @@ export default function HomePage() {
               </Card>
             ))}
           </div>
+          {reviewCfg.google_url && (
+            <div className="text-center mt-10">
+              <a href={reviewCfg.google_url} target="_blank" rel="noopener noreferrer" data-testid="google-reviews-link">
+                <Button variant="outline" className="border-[#1a365d] text-[#1a365d] hover:bg-[#1a365d] hover:text-white">
+                  Voir tous nos avis sur Google <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </a>
+            </div>
+          )}
         </div>
       </section>
+      )}
 
       {/* Social Media */}
       <SocialMediaSection />

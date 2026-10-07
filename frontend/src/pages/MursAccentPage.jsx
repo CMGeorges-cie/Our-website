@@ -1,3 +1,5 @@
+import { PaymentTermsNote } from '@/components/public/CatalogPricing';
+import { usePublicCatalog, itemsFor, formatCatalogPrice, fromPriceLabel } from '@/lib/publicData';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -23,7 +25,6 @@ const MODELS = [
     badge: { label: 'Populaire', color: 'bg-[#1B3A8C] text-white' },
     image: '/portfolio/murs/mod-a-noir-rainure.jpg',
     desc: 'Panneaux MDF rainurés noir mat, cheminée électrique encastrée, intégration TV. Impact maximum, exécution nette.',
-    price: 'À partir de 2 800$',
     duration: 'Forfait tout inclus · 1 weekend · taxes en sus',
     solo: 'Faisable en solo',
     accent: 'border-[#1B3A8C]',
@@ -45,7 +46,6 @@ const MODELS = [
     badge: { label: 'Élégant', color: 'bg-[#D4A017] text-[#0A0C14]' },
     image: '/portfolio/murs/mod-b-blanc-classique.jpg',
     desc: 'Mur blanc cassé texturé, tablette de foyer, moulures décoratives. Style cottage chic intemporel.',
-    price: 'À partir de 3 200$',
     duration: 'Forfait tout inclus · 1 à 2 weekends · taxes en sus',
     solo: '1 à 2 weekends',
     accent: 'border-[#D4A017]',
@@ -67,7 +67,6 @@ const MODELS = [
     badge: { label: 'Premium', color: 'bg-[#1B3A8C] text-white' },
     image: '/portfolio/murs/mod-c-beton-industriel.jpg',
     desc: 'Enduit béton ciré, profilés acier brossé, cheminée 60" grand format, ruban LED intégré.',
-    price: 'À partir de 4 800$',
     duration: 'Forfait tout inclus · ≥2 weekends · taxes en sus',
     solo: '2 weekends',
     accent: 'border-[#1B3A8C]',
@@ -90,7 +89,6 @@ const MODELS = [
     badge: { label: 'Nouveau', color: 'bg-[#D4A017] text-[#0A0C14]' },
     image: '/portfolio/murs/mod-d-pierre-naturelle.jpg',
     desc: 'Panneaux Ledgestone empilé ou pierre reconstituée légère. Ambiance chalet luxe ou manoir. Le look le plus haut de gamme.',
-    price: 'À partir de 3 800$',
     duration: 'Forfait tout inclus · 1 à 2 weekends · taxes en sus',
     solo: '1 à 2 weekends',
     accent: 'border-[#D4A017]',
@@ -119,22 +117,31 @@ const FINISHES = [
 const PROCESS = [
   { step: '01', icon: Home, title: 'Consultation gratuite', desc: 'Visite sur place ou vidéo-appel. On mesure, on choisit ensemble le modèle et la finition. 60 minutes max.' },
   { step: '02', icon: FileText, title: 'Soumission claire', desc: 'Un prix forfaitaire tout inclus, par écrit, dans les 24h. Aucune surprise. Valide 30 jours.' },
-  { step: '03', icon: Handshake, title: 'Signature & dépôt', desc: 'Contrat signé, 50% à la commande. On commande les matériaux et on planifie le weekend.' },
+  { step: '03', icon: Handshake, title: 'Signature & dépôt', desc: 'Contrat signé et dépôt selon nos modalités de paiement. On commande les matériaux et on planifie le weekend.' },
   { step: '04', icon: Hammer, title: 'Exécution weekend', desc: 'Pose propre sur 1 à 2 weekends. Photos d\'avancement partagées. Chantier nettoyé chaque soir.' },
-  { step: '05', icon: Truck, title: 'Livraison & solde', desc: 'Inspection avec vous, photos finales, guide d\'entretien remis. Solde de 50% à la livraison.' },
+  { step: '05', icon: Truck, title: 'Livraison & solde', desc: 'Inspection avec vous, photos finales, guide d\'entretien remis. Solde payable à la livraison.' },
 ];
 
 const GUARANTEES = [
   { icon: ShieldCheck, title: 'Garantie main-d\'œuvre 1 an', desc: 'Tout défaut d\'exécution est corrigé gratuitement dans les 12 mois suivant la livraison.' },
   { icon: Flame, title: 'Cheminée certifiée CSA', desc: 'Tous nos appareils sont homologués aux normes canadiennes de sécurité. Garantie fabricant incluse.' },
   { icon: FileCheck, title: 'Contrat écrit', desc: 'Prix fixe, délai fixe, inclusions détaillées. Aucune surprise après la signature.' },
-  { icon: CreditCard, title: 'Paiement en 2 fois', desc: '50% au départ, 50% seulement quand vous êtes satisfait. Vous gardez le contrôle.' },
+  { icon: CreditCard, title: 'Paiement par étapes', desc: 'Paiement échelonné selon les modalités affichées ci-dessus : le solde seulement quand vous êtes satisfait.' },
   { icon: Camera, title: 'Documentation complète', desc: 'Photos avant/pendant/après, guide d\'entretien remis à la livraison.' },
   { icon: Zap, title: 'Électricité conforme', desc: 'Tout câblage est exécuté par un électricien licencié. Conformité au Code du bâtiment du Québec.' },
 ];
 
 export default function MursAccentPage() {
   const [openModel, setOpenModel] = useState(null);
+  const catalog = usePublicCatalog();
+  const priceOf = (m) => {
+    if (catalog === null) return '…';
+    const hit = itemsFor(catalog, ['accent_walls']).find((i) => {
+      const n = i.name.toLowerCase();
+      return n.includes(m.code.toLowerCase()) || n.includes(m.name.toLowerCase());
+    });
+    return hit ? formatCatalogPrice(hit) : fromPriceLabel(catalog, ['accent_walls']);
+  };
   const SITE_URL = 'https://cmgeorges.ca/murs-accent';
 
   return (
@@ -215,7 +222,7 @@ export default function MursAccentPage() {
                   <span className="text-xs font-bold text-[#D4A017] tracking-wider">{m.code}</span>
                   <h3 className="text-xl font-bold text-white mt-1 mb-3 font-['Outfit']">{m.name}</h3>
                   <p className="text-sm text-white/75 mb-4 flex-1">{m.desc}</p>
-                  <div className="text-lg font-bold text-[#F0C040] mb-1">{m.price}</div>
+                  <div className="text-lg font-bold text-[#F0C040] mb-1">{priceOf(m)}</div>
                   <p className="text-xs text-white/60 mb-3">{m.duration}</p>
                   <span className="inline-flex items-center gap-1 text-xs text-white/70 mb-4">
                     <Calendar className="h-3 w-3" /> {m.solo}
@@ -292,6 +299,7 @@ export default function MursAccentPage() {
               );
             })}
           </div>
+          <PaymentTermsNote service="accent_walls" className="text-center text-sm text-gray-500 mt-8" prefix="Taxes en sus." />
         </div>
       </section>
 
@@ -356,7 +364,7 @@ export default function MursAccentPage() {
               {openModel?.name}
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              {openModel?.code} · {openModel?.price}
+              {openModel?.code} · {openModel && priceOf(openModel)}
             </DialogDescription>
           </DialogHeader>
           <ul className="space-y-2 mt-2">

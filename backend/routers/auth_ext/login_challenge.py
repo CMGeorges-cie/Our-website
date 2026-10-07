@@ -1,6 +1,9 @@
 """Login challenge flow (2FA-aware) and verify-2fa routes."""
 from __future__ import annotations
 
+import hashlib
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from .common import (
@@ -13,6 +16,9 @@ from .common import (
     verify_2fa_code_for,
     verify_password,
 )
+
+
+MAX_2FA_FAILS = 5
 
 
 def register_login_challenge_routes(
@@ -71,8 +77,18 @@ def register_login_challenge_routes(
         u = await db.users.find_one({"id": payload["sub"]}, {"_id": 0})
         if not u:
             raise HTTPException(status_code=400, detail="Utilisateur introuvable")
+        since = datetime.now(timezone.utc) - timedelta(minutes=15)
+        token_hash = hashlib.sha256(body.challenge_token.encode()).hexdigest()
+        if await db.used_2fa_challenges.find_one({"token_hash": token_hash}):
+            raise HTTPException(status_code=400, detail="Session de vérification déjà utilisée")
+        fails = await db.twofa_attempts.count_documents({"user_id": u["id"], "at": {"$gte": since.isoformat()}})
+        if fails >= MAX_2FA_FAILS:
+            raise HTTPException(status_code=429, detail="Trop de tentatives. Réessayez dans 15 minutes.")
         if not await verify_2fa_code_for(db, u, body.code):
+            await db.twofa_attempts.insert_one({"user_id": u["id"], "at": datetime.now(timezone.utc).isoformat()})
             raise HTTPException(status_code=400, detail="Code de vérification invalide")
+        await db.twofa_attempts.delete_many({"user_id": u["id"]})
+        await db.used_2fa_challenges.insert_one({"token_hash": token_hash, "at": datetime.now(timezone.utc).isoformat()})
         access = create_access_token(u["id"], u["email"], u["role"])
         refresh = create_refresh_token(u["id"])
         if set_auth_cookies:

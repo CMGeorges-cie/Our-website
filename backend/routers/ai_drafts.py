@@ -18,6 +18,7 @@ import re
 import uuid
 from typing import Optional, List, Literal
 
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
@@ -211,11 +212,24 @@ def _format_quote_context(quote: dict) -> str:
 
 # ---- Router factory ---------------------------------------------------------
 
+AI_HOURLY_LIMIT = 40
+
+
 def build_ai_drafts_router(db, get_current_user) -> APIRouter:
     router = APIRouter(prefix="/ai", tags=["AI Drafts"])
 
+    async def _check_quota(user: dict):
+        now = datetime.now(timezone.utc)
+        used = await db.ai_usage.count_documents(
+            {"user_id": user["id"], "at": {"$gte": (now - timedelta(hours=1)).isoformat()}}
+        )
+        if used >= AI_HOURLY_LIMIT:
+            raise HTTPException(status_code=429, detail="Limite de brouillons IA atteinte (40/heure). Réessayez plus tard.")
+        await db.ai_usage.insert_one({"user_id": user["id"], "at": now.isoformat()})
+
     @router.post("/draft-quote", response_model=AIQuoteDraft)
     async def draft_quote(body: QuoteDraftRequest, user: dict = Depends(get_current_user)):
+        await _check_quota(user)
         # Build context from lead if provided
         context_block = ""
         if body.lead_id:
@@ -243,6 +257,7 @@ def build_ai_drafts_router(db, get_current_user) -> APIRouter:
 
     @router.post("/draft-invoice", response_model=AIInvoiceDraft)
     async def draft_invoice(body: InvoiceDraftRequest, user: dict = Depends(get_current_user)):
+        await _check_quota(user)
         context_block = ""
         if body.quote_id:
             quote = await db.quotes.find_one({"id": body.quote_id}, {"_id": 0})

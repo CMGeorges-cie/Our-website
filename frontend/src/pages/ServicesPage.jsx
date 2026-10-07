@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Trash2, Flame } from 'lucide-react';
+import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Trash2, Flame, Snowflake, Tv } from 'lucide-react';
+import { CatalogFromPrice } from '@/components/public/CatalogPricing';
 
 const services = [
   {
@@ -11,7 +12,7 @@ const services = [
     href: '/murs-accent',
     image: '/portfolio/murs/mod-a-noir-rainure.jpg',
     features: ['Cheminée électrique CSA', 'Support TV mural', 'Panneaux sur mesure', '4 modèles disponibles'],
-    priceFrom: 'À partir de 2 800$',
+    categories: ['accent_walls'],
     highlight: true,
   },
   {
@@ -21,7 +22,7 @@ const services = [
     href: '/services/peinture',
     image: 'https://images.unsplash.com/photo-1768839725085-829e6ac7ac26?w=600',
     features: ['Murs & plafonds', 'Façades extérieures', 'Boiseries & moulures', 'Retouches'],
-    priceFrom: 'À partir de 350$/pièce',
+    categories: ['painting'],
   },
   {
     icon: Hammer,
@@ -30,7 +31,7 @@ const services = [
     href: '/services/renovation',
     image: 'https://images.unsplash.com/photo-1772567733034-f483af656d1a?w=600',
     features: ['Planchers', 'Moulures & plinthes', 'Gyproc', 'Calfeutrage'],
-    priceFrom: 'Sur devis',
+    categories: ['renovation'],
   },
   {
     icon: Wrench,
@@ -39,7 +40,7 @@ const services = [
     href: '/services/entretien',
     image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600',
     features: ['Réparations', 'Joints & scellants', 'Entretien saisonnier', 'Nettoyage'],
-    priceFrom: 'À partir de 120$/visite',
+    categories: ['maintenance'],
   },
   {
     icon: Sofa,
@@ -48,7 +49,7 @@ const services = [
     href: '/services/mobilier',
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
     features: ['Assemblage IKEA', 'Montage mural', 'Déménagement léger', 'Organisation'],
-    priceFrom: 'À partir de 80$/meuble',
+    categories: ['furniture'],
   },
   {
     icon: Trash2,
@@ -57,7 +58,25 @@ const services = [
     href: '/services/demolition',
     image: '/portfolio/demolition_hero.jpg',
     features: ['Cuisine complète', 'Salle de bain', 'Sous-sol & cloisons', 'Évacuation débris'],
-    priceFrom: 'À partir de 200$',
+    categories: ['demolition'],
+  },
+  {
+    icon: Snowflake,
+    title: 'Climatiseurs & thermopompes murales',
+    description: 'Nettoyage, entretien et installation de climatiseurs et thermopompes murales pour un air sain et un rendement optimal.',
+    href: '/soumission?service=hvac',
+    image: 'https://images.unsplash.com/photo-1631545806609-35d4ae440431?w=600',
+    features: ['Nettoyage complet', 'Entretien saisonnier', 'Installation', 'Diagnostic'],
+    categories: ['hvac'],
+  },
+  {
+    icon: Tv,
+    title: 'Installation TV & Tech',
+    description: 'Installation murale de téléviseurs, câblage dissimulé, configuration audio-vidéo et solutions technologiques.',
+    href: '/soumission?service=tech',
+    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600',
+    features: ['Support TV mural', 'Câblage dissimulé', 'Barre de son', 'Site web & tech'],
+    categories: ['installation', 'tech'],
   },
 ];
 
@@ -86,7 +105,7 @@ export default function ServicesPage() {
                   <div className={`relative h-64 md:h-auto ${i % 2 === 1 ? 'md:order-2' : ''}`}>
                     <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
                     <div className="absolute top-4 left-4 bg-white/90 text-[#1a365d] px-3 py-1 rounded-full text-xs font-semibold">
-                      {service.priceFrom}
+                      <CatalogFromPrice categories={service.categories} />
                     </div>
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">

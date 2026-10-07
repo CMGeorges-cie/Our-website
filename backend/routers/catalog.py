@@ -14,6 +14,8 @@ from services.database import get_database, TenantRepository
 from middleware.tenant import TenantContext, get_tenant_context, require_role
 from routers.auth import get_current_user
 
+from services.test_data import exclude_test  # noqa: E402
+
 router = APIRouter(prefix="/catalog", tags=["Service Catalog"])
 
 
@@ -25,6 +27,9 @@ class ServiceCategory(str, Enum):
     TECH = "tech"
     MAINTENANCE = "maintenance"
     INSTALLATION = "installation"
+    ACCENT_WALLS = "accent_walls"
+    DEMOLITION = "demolition"
+    HVAC = "hvac"
     OTHER = "other"
 
 
@@ -109,7 +114,7 @@ async def list_public_services(
     """List services for public display (no auth required)"""
     db = get_database()
     
-    query = {"is_active": True, "tenant_id": "default"}
+    query = {"is_active": True, "tenant_id": "default", **exclude_test("service_catalog")}
     if category:
         query["category"] = category.value
     

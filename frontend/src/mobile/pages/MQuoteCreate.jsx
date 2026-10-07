@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { adminApi, aiApi } from '@/lib/api';
-import { MHeader, Section, MButton, Field, inputCls, Loading } from '../components/MUi';
+import { MHeader, Section, MButton, Field, inputCls, Loading, LoadError } from '../components/MUi';
 import { LinesEditor, cleanLines } from '../components/LinesEditor';
 import { AiDraftBox } from '../components/AiDraftBox';
 import { useLoad, useAction } from '../components/useLoad';
@@ -17,7 +17,7 @@ export default function MQuoteCreate() {
   const [contingency, setContingency] = useState(15);
   const [delivery, setDelivery] = useState(0);
   const [notes, setNotes] = useState('');
-  const { data: lead, loading } = useLoad(async () => (await adminApi.getLead(id)).data, [id]);
+  const { data: lead, loading, error, reload } = useLoad(async () => (await adminApi.getLead(id)).data, [id]);
 
   const draft = async (prompt) => {
     const d = (await aiApi.draftQuote({ lead_id: id, prompt })).data;
@@ -35,7 +35,8 @@ export default function MQuoteCreate() {
     if (r) navigate(`/m/quotes/${r.data.id}`, { replace: true });
   };
 
-  if (loading || !lead) return <Loading />;
+  if (loading) return <Loading />;
+  if (!lead) return <LoadError error={error} onRetry={reload} />;
 
   return (
     <div data-testid="m-quote-create">

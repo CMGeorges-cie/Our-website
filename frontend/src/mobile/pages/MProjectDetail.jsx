@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Pencil, FileDown, FilePlus2, Trash2, Send, User } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { MHeader, MCard, Section, Loading, Pill, MButton, KV, Chips, inputCls } from '../components/MUi';
+import { MHeader, MCard, Section, Loading, LoadError, Pill, MButton, KV, Chips, inputCls } from '../components/MUi';
 import { ContactActions, fullAddress } from '../components/ContactActions';
 import { ProjectForm } from '../components/ProjectForm';
 import { ProjectPhotos } from '../components/ProjectPhotos';
 import { ProjectTasks } from '../components/ProjectTasks';
 import { useLoad, useAction } from '../components/useLoad';
 import { openPdf } from './MQuoteDetail';
-import { PROJECT_STATUS, SERVICE_TYPES, shortDate } from '../constants';
+import { PROJECT_STATUS, SERVICE_TYPES, shortDate, progressOf } from '../constants';
 
 const STATUS_OPTS = Object.entries(PROJECT_STATUS).map(([k, v]) => [k, v.label]);
 
@@ -19,13 +19,14 @@ export default function MProjectDetail() {
   const { busy, run } = useAction();
   const [edit, setEdit] = useState(false);
   const [note, setNote] = useState('');
-  const { data, setData, loading, reload } = useLoad(async () => {
+  const { data, setData, loading, reload, error } = useLoad(async () => {
     const p = (await adminApi.getProject(id)).data;
     const c = p.client_id ? (await adminApi.getClient(p.client_id).catch(() => ({ data: null }))).data : null;
     return { project: p, client: c };
   }, [id]);
 
-  if (loading || !data) return <Loading />;
+  if (loading) return <Loading />;
+  if (!data) return <LoadError error={error} onRetry={reload} />;
   const { project: p, client } = data;
   const setProject = (patch) => setData({ ...data, project: { ...p, ...patch } });
 
@@ -55,9 +56,9 @@ export default function MProjectDetail() {
         <MCard>
           <div className="flex justify-between items-end mb-2">
             <span className="text-xs text-slate-400">Progression</span>
-            <span className="font-heading text-2xl font-bold text-white" data-testid="m-project-progress">{p.progress || 0}%</span>
+            <span className="font-heading text-2xl font-bold text-white" data-testid="m-project-progress">{progressOf(p)}%</span>
           </div>
-          <div className="h-2 rounded-full bg-white/5 overflow-hidden"><div className="h-full bg-[#D4AF37] rounded-full transition-[width] duration-500" style={{ width: `${p.progress || 0}%` }} /></div>
+          <div className="h-2 rounded-full bg-white/5 overflow-hidden"><div className="h-full bg-[#D4AF37] rounded-full transition-[width] duration-500" style={{ width: `${progressOf(p)}%` }} /></div>
           <div className="mt-3">
             <KV k="Date prévue" v={shortDate(p.scheduled_date)} />
             <KV k="Heures estimées / réelles" v={`${p.estimated_hours ?? '—'} / ${p.actual_hours ?? '—'}`} />

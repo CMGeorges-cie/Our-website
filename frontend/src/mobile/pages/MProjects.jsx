@@ -2,10 +2,10 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, CalendarDays } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { MHeader, MCard, Loading, Empty, Pill, SearchBar, Chips } from '../components/MUi';
+import { MHeader, MCard, Loading, LoadError, Empty, Pill, SearchBar, Chips } from '../components/MUi';
 import { ProjectForm } from '../components/ProjectForm';
 import { useLoad } from '../components/useLoad';
-import { PROJECT_STATUS, shortDate } from '../constants';
+import { PROJECT_STATUS, shortDate, progressOf } from '../constants';
 
 const FILTERS = [['', 'Tous'], ...Object.entries(PROJECT_STATUS).map(([k, v]) => [k, v.label])];
 
@@ -14,7 +14,7 @@ export default function MProjects() {
   const [params, setParams] = useSearchParams();
   const [status, setStatus] = useState('');
   const [q, setQ] = useState('');
-  const { data, loading } = useLoad(async () => {
+  const { data, loading, error, reload } = useLoad(async () => {
     const [p, c] = await Promise.all([adminApi.getProjects(status ? { status } : {}), adminApi.getClients()]);
     const names = Object.fromEntries(c.data.map((x) => [x.id, x.full_name]));
     return p.data.map((x) => ({ ...x, client_name: names[x.client_id] || '—' }));
@@ -34,7 +34,7 @@ export default function MProjects() {
         <Chips options={FILTERS} value={status} onChange={setStatus} testPrefix="m-projects-filter" />
       </div>
       <div className="px-5 space-y-2.5 m-stagger">
-        {loading ? <Loading /> : list.length === 0 ? <Empty text="Aucun projet" /> : list.map((p) => (
+        {loading ? <Loading /> : !data ? <LoadError error={error} onRetry={reload} /> : list.length === 0 ? <Empty text="Aucun projet" /> : list.map((p) => (
           <MCard key={p.id} testId={`m-project-row-${p.id}`} onClick={() => navigate(`/m/projects/${p.id}`)}>
             <div className="flex justify-between gap-3">
               <div className="min-w-0">
@@ -44,11 +44,11 @@ export default function MProjects() {
               <Pill map={PROJECT_STATUS} value={p.status} />
             </div>
             <div className="mt-3 h-1.5 rounded-full bg-white/5 overflow-hidden">
-              <div className="h-full bg-[#D4AF37] rounded-full transition-[width] duration-500" style={{ width: `${p.progress || 0}%` }} />
+              <div className="h-full bg-[#D4AF37] rounded-full transition-[width] duration-500" style={{ width: `${progressOf(p)}%` }} />
             </div>
             <div className="flex justify-between mt-2 text-[11px] text-slate-500">
               <span className="inline-flex items-center gap-1"><CalendarDays className="h-3 w-3" />{shortDate(p.scheduled_date)}</span>
-              <span>{p.progress || 0}%</span>
+              <span>{progressOf(p)}%</span>
             </div>
           </MCard>
         ))}

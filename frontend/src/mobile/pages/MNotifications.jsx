@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { CheckCheck, Trash2 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { MHeader, Loading, Empty } from '../components/MUi';
+import { MHeader, Loading, LoadError, Empty } from '../components/MUi';
 import { useLoad, useAction } from '../components/useLoad';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +16,7 @@ const ago = (d) => {
 export default function MNotifications() {
   const navigate = useNavigate();
   const { run } = useAction();
-  const { data, setData, loading } = useLoad(async () => (await adminApi.getNotifications({ limit: 100 })).data);
+  const { data, setData, loading, error, reload } = useLoad(async () => (await adminApi.getNotifications({ limit: 100 })).data);
 
   const open = async (n) => {
     if (!n.is_read) adminApi.markNotificationRead(n.id).catch(() => {});
@@ -37,7 +37,7 @@ export default function MNotifications() {
       <MHeader back title="Notifications" subtitle={data ? `${data.filter((n) => !n.is_read).length} non lue(s)` : ''}
         action={<button data-testid="m-notif-read-all" onClick={readAll} className="h-10 w-10 rounded-full border border-[#1E293B] flex items-center justify-center active:bg-white/10"><CheckCheck className="h-4 w-4 text-[#D4AF37]" /></button>} />
       <div className="px-5 space-y-2 m-stagger">
-        {loading ? <Loading /> : !data?.length ? <Empty text="Aucune notification" /> : data.map((n) => (
+        {loading ? <Loading /> : !data ? <LoadError error={error} onRetry={reload} /> : !data?.length ? <Empty text="Aucune notification" /> : data.map((n) => (
           <div key={n.id} data-testid={`m-notif-${n.id}`} onClick={() => open(n)}
             className={cn('flex gap-3 rounded-2xl border p-4 active:scale-[0.98] transition-transform cursor-pointer', n.is_read ? 'border-[#1E293B] bg-[#111827]/60' : 'border-[#D4AF37]/25 bg-[#111827]')}>
             <span className={cn('mt-1.5 h-2 w-2 rounded-full shrink-0', n.is_read ? 'bg-transparent' : 'bg-[#D4AF37]')} />

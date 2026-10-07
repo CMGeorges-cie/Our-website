@@ -1,3 +1,4 @@
+import { CatalogPriceList } from '@/components/public/CatalogPricing';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Wrench, CheckCircle, ArrowRight, Phone } from 'lucide-react';
@@ -14,13 +15,6 @@ const services = [
   'Petit travaux de jardinage et entretien extérieur',
 ];
 
-const pricing = [
-  { service: 'Visite d\'entretien (2h min)', price: 'À partir de 140$', note: 'Petites réparations' },
-  { service: 'Calfeutrage complet', price: 'À partir de 200$', note: 'Résidentiel' },
-  { service: 'Nettoyage après travaux', price: 'Sur devis', note: 'Selon surface' },
-  { service: 'Forfait entretien — Basique', price: 'À partir de 200$', note: 'Mensuel · 1 visite · réparations mineures incluses' },
-  { service: 'Forfait entretien — Premium', price: 'À partir de 450$', note: 'Mensuel · 2 visites · priorité d\'intervention' },
-];
 
 export default function EntretienPage() {
   return (
@@ -60,18 +54,7 @@ export default function EntretienPage() {
       <section className="section-spacing bg-gray-50">
         <div className="container-main">
           <h2 className="text-3xl font-bold text-[#1a365d] text-center mb-4 font-['Outfit']">Tarifs indicatifs</h2>
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {pricing.map((p, i) => (
-              <div key={i} className="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm">
-                <div>
-                  <p className="font-semibold text-[#1a365d] text-sm">{p.service}</p>
-                  <p className="text-xs text-gray-400">{p.note}</p>
-                </div>
-                <span className="font-bold text-[#d4af37] text-sm">{p.price}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-center text-xs text-gray-400 mt-6">* TPS et TVQ en sus.</p>
+          <CatalogPriceList categories={['maintenance', 'hvac']} service="maintenance" />
         </div>
       </section>
 

@@ -35,7 +35,7 @@ api.interceptors.response.use(
       if (path.startsWith('/admin') && path !== '/admin/login') {
         window.location.href = '/admin/login';
       } else if ((path === '/m' || path.startsWith('/m/')) && path !== '/m/login') {
-        window.location.href = '/m/login';
+        window.location.href = '/m/login?expired=1';
       }
     }
     return Promise.reject(error);
@@ -234,7 +234,6 @@ export const saasApi = {
 };
 
 // Seed API (dev)
-export const seedDatabase = () => axios.post(`${BACKEND_URL}/api/seed`);
 
 // AI drafting (Claude Sonnet 4.5) — admin only
 export const aiApi = {

@@ -368,6 +368,28 @@ async def require_admin(user: dict = Depends(get_current_user)) -> dict:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
+STAFF_ROLES = ("admin", "staff")
+_STAFF_PUBLIC_V2 = ("/api/v2/auth/login", "/api/v2/auth/refresh", "/api/v2/catalog/public")
+
+
+def _is_staff_path(path: str) -> bool:
+    if path.startswith(("/api/v1/admin/", "/api/v1/ai/")):
+        return True
+    return path.startswith("/api/v2/") and not path.startswith(_STAFF_PUBLIC_V2)
+
+
+async def staff_guard(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+):
+    """Global guard: back-office (admin/ai/v2) routes require an admin or staff account."""
+    if not _is_staff_path(request.url.path):
+        return
+    user = await get_current_user(request, credentials)
+    if user.get("role") not in STAFF_ROLES:
+        raise HTTPException(status_code=403, detail="Accès réservé au personnel")
+
+
 async def get_current_client(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
@@ -969,57 +991,89 @@ async def get_me(user: dict = Depends(get_current_user)):
 # (moved to routers/) '# ==================== ADMIN INVOICES ENDPOINTS ===================='
 # (moved to routers/admin_projects.py) '# ==================== ADMIN PROJECTS ENDPOINTS ===================='
 # ==================== ADMIN STATS & DASHBOARD ====================
+from services.test_data import exclude_test, test_client_ids, test_lead_ids  # noqa: E402
+from routers.site_settings import build_site_settings_router  # noqa: E402
+from routers.test_data import build_test_data_router  # noqa: E402
+
+
+async def _real_scope():
+    """Filters excluding test/demo records from business indicators."""
+    test_clients = await test_client_ids(db)
+    test_leads = await test_lead_ids(db)
+    return (
+        {"id": {"$nin": test_leads}},
+        {"id": {"$nin": test_clients}},
+        {"client_id": {"$nin": test_clients}, "status": {"$ne": "cancelled"}},
+    )
+
+
+def _payment_events(invoices: list) -> list:
+    """(iso_date, amount) for every payment received; paid invoices without payment rows count once."""
+    events = []
+    for inv in invoices:
+        payments = inv.get("payments") or []
+        for p in payments:
+            d = p.get("created_at") or p.get("date") or p.get("paid_at")
+            if d and p.get("amount"):
+                events.append((str(d), float(p["amount"])))
+        if not payments and inv.get("status") == "paid":
+            d = inv.get("paid_at") or inv.get("updated_at") or inv.get("created_at")
+            events.append((str(d), float(inv.get("total", 0))))
+    return events
+
+
 @admin_router.get("/stats", response_model=DashboardStats)
 async def get_stats(user: dict = Depends(get_current_user)):
-    """Get dashboard statistics"""
-    total_leads = await db.leads.count_documents({})
-    new_leads = await db.leads.count_documents({"status": "new"})
-    contacted_leads = await db.leads.count_documents({"status": "contacted"})
-    quoted_leads = await db.leads.count_documents({"status": "quoted"})
-    won_leads = await db.leads.count_documents({"status": "won"})
-    lost_leads = await db.leads.count_documents({"status": "lost"})
-    total_quotes = await db.quotes.count_documents({})
-    total_clients = await db.clients.count_documents({})
-    total_invoices = await db.invoices.count_documents({})
-    total_projects = await db.projects.count_documents({})
-    
-    conversion_rate = (won_leads / total_leads * 100) if total_leads > 0 else 0
-    
+    """Get dashboard statistics (test data excluded)"""
+    lead_q, client_q, inv_q = await _real_scope()
+    counts = {}
+    for st in ("new", "contacted", "quoted", "won", "lost"):
+        counts[st] = await db.leads.count_documents({**lead_q, "status": st})
+    total_leads = await db.leads.count_documents(lead_q)
+    conversion_rate = (counts["won"] / total_leads * 100) if total_leads > 0 else 0
     return DashboardStats(
         total_leads=total_leads,
-        new_leads=new_leads,
-        contacted_leads=contacted_leads,
-        quoted_leads=quoted_leads,
-        won_leads=won_leads,
-        lost_leads=lost_leads,
-        total_quotes=total_quotes,
-        total_clients=total_clients,
-        total_invoices=total_invoices,
-        total_projects=total_projects,
+        new_leads=counts["new"],
+        contacted_leads=counts["contacted"],
+        quoted_leads=counts["quoted"],
+        won_leads=counts["won"],
+        lost_leads=counts["lost"],
+        total_quotes=await db.quotes.count_documents({"lead_id": lead_q["id"]}),
+        total_clients=await db.clients.count_documents(client_q),
+        total_invoices=await db.invoices.count_documents(inv_q),
+        total_projects=await db.projects.count_documents({"client_id": inv_q["client_id"], **exclude_test("projects")}),
         conversion_rate=round(conversion_rate, 1)
     )
 
 @admin_router.get("/ceo-dashboard", response_model=CEODashboard)
 async def get_ceo_dashboard(user: dict = Depends(require_admin)):
-    """Get CEO dashboard with business metrics"""
+    """Business metrics based on payments actually received (test data excluded)"""
     now = datetime.now(timezone.utc)
-    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    
-    # Monthly revenue from paid invoices
-    paid_invoices = await db.invoices.find({
-        "status": "paid",
-        "created_at": {"$gte": start_of_month.isoformat()}
-    }, {"_id": 0, "total": 1}).to_list(1000)
-    monthly_revenue = sum(inv.get("total", 0) for inv in paid_invoices)
-    
-    # Pending invoices
-    pending_invoices = await db.invoices.find({
-        "status": {"$in": ["sent", "partial"]}
-    }, {"_id": 0, "balance_due": 1}).to_list(1000)
-    pending_invoices_amount = sum(inv.get("balance_due", 0) for inv in pending_invoices)
-    
+    lead_q, client_q, inv_q = await _real_scope()
+    invoices = await db.invoices.find(inv_q, {"_id": 0, "payments": 1, "status": 1, "total": 1, "balance_due": 1, "paid_at": 1, "updated_at": 1, "created_at": 1}).to_list(5000)
+    events = _payment_events(invoices)
+
+    def month_bounds(offset: int):
+        y, m = now.year, now.month - offset
+        while m <= 0:
+            m += 12
+            y -= 1
+        start = datetime(y, m, 1, tzinfo=timezone.utc)
+        end = datetime(y + (m == 12), m % 12 + 1, 1, tzinfo=timezone.utc)
+        return start, end
+
+    def revenue_between(start, end):
+        return sum(a for d, a in events if start.isoformat() <= d < end.isoformat())
+
+    start_of_month, next_month = month_bounds(0)
+    monthly_revenue = revenue_between(start_of_month, next_month)
+
+    pending_invoices_amount = sum(
+        max(0, inv.get("balance_due", 0) or 0) for inv in invoices if inv.get("status") in ("sent", "partial", "overdue")
+    )
+
     # Projects in progress
-    projects_in_progress = await db.projects.count_documents({"status": "in_progress"})
+    projects_in_progress = await db.projects.count_documents({"status": "in_progress", "client_id": inv_q["client_id"], **exclude_test("projects")})
     
     # Average margins from quotes
     quotes = await db.quotes.find({}, {"_id": 0, "margin_percent": 1, "lead_id": 1}).to_list(1000)
@@ -1044,33 +1098,22 @@ async def get_ceo_dashboard(user: dict = Depends(require_admin)):
     
     # Top services (from leads)
     service_counts = {}
-    leads = await db.leads.find({"status": "won"}, {"_id": 0, "service_type": 1}).to_list(1000)
+    leads = await db.leads.find({**lead_q, "status": "won"}, {"_id": 0, "service_type": 1}).to_list(1000)
     for lead in leads:
         stype = lead.get("service_type", "other")
         service_counts[stype] = service_counts.get(stype, 0) + 1
     
     top_services = [{"service": k, "count": v} for k, v in sorted(service_counts.items(), key=lambda x: x[1], reverse=True)][:5]
     
-    # Revenue by month (last 6 months)
+    # Revenue by month (last 6 months, calendar months)
     revenue_by_month = []
     for i in range(5, -1, -1):
-        month_start = (now.replace(day=1) - timedelta(days=i*30)).replace(day=1)
-        month_end = (month_start + timedelta(days=32)).replace(day=1)
-        
-        month_invoices = await db.invoices.find({
-            "status": "paid",
-            "created_at": {"$gte": month_start.isoformat(), "$lt": month_end.isoformat()}
-        }, {"_id": 0, "total": 1}).to_list(1000)
-        
-        month_revenue = sum(inv.get("total", 0) for inv in month_invoices)
-        revenue_by_month.append({
-            "month": month_start.strftime("%Y-%m"),
-            "revenue": round(month_revenue, 2)
-        })
-    
+        ms, me = month_bounds(i)
+        revenue_by_month.append({"month": ms.strftime("%Y-%m"), "revenue": round(revenue_between(ms, me), 2)})
+
     # Conversion rate
-    total_leads = await db.leads.count_documents({})
-    won_leads = await db.leads.count_documents({"status": "won"})
+    total_leads = await db.leads.count_documents(lead_q)
+    won_leads = await db.leads.count_documents({**lead_q, "status": "won"})
     conversion_rate = (won_leads / total_leads * 100) if total_leads > 0 else 0
     
     return CEODashboard(
@@ -1109,195 +1152,6 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat(), "version": "2.0.0"}
 
-# ==================== SEED DATA ====================
-@api_router.post("/seed")
-async def seed_database():
-    """Seed the database with initial data"""
-    existing_admin = await db.users.find_one({"email": "admin@cmgeorges.com"})
-    if existing_admin:
-        return {"message": "Database already seeded"}
-    
-    # Create admin user
-    admin_user = {
-        "id": str(uuid.uuid4()),
-        "email": "admin@cmgeorges.com",
-        "full_name": "Admin Déco Touché",
-        "role": "admin",
-        "password_hash": hash_password("admin123"),
-        "is_active": True,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.users.insert_one(admin_user)
-    
-    # Create staff user
-    staff_user = {
-        "id": str(uuid.uuid4()),
-        "email": "staff@cmgeorges.com",
-        "full_name": "Staff Member",
-        "role": "staff",
-        "password_hash": hash_password("staff123"),
-        "is_active": True,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.users.insert_one(staff_user)
-    
-    # Create sample leads
-    leads_data = [
-        {
-            "id": str(uuid.uuid4()),
-            "full_name": "Marie Tremblay",
-            "phone": "514-555-1234",
-            "email": "marie.t@example.com",
-            "service_type": "manual",
-            "address": "123 Rue Principale",
-            "city": "Montréal",
-            "urgency_level": "normal",
-            "description": "Peinture salon et cuisine, environ 400 pieds carrés",
-            "status": "new",
-            "source": "google",
-            "items": [],
-            "notes": "",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "full_name": "Jean-Pierre Lavoie",
-            "phone": "450-555-5678",
-            "email": "jp.lavoie@example.com",
-            "service_type": "furniture",
-            "address": "456 Boulevard Test",
-            "city": "Longueuil",
-            "urgency_level": "urgent",
-            "description": "Assemblage meubles IKEA pour nouvelle maison",
-            "status": "contacted",
-            "source": "referral",
-            "items": [
-                {"id": str(uuid.uuid4()), "item_type": "bed", "brand": "ikea", "model": "MALM", "quantity": 2, "wall_anchor_required": False},
-                {"id": str(uuid.uuid4()), "item_type": "wardrobe", "brand": "ikea", "model": "PAX", "quantity": 1, "wall_anchor_required": True},
-                {"id": str(uuid.uuid4()), "item_type": "dresser", "brand": "ikea", "model": "HEMNES", "quantity": 2, "wall_anchor_required": True}
-            ],
-            "notes": "Client pressé, emménagement la semaine prochaine",
-            "created_at": (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "full_name": "Sophie Martin",
-            "phone": "514-555-9012",
-            "email": "sophie.m@example.com",
-            "service_type": "tech",
-            "address": "",
-            "city": "Montréal",
-            "urgency_level": "normal",
-            "description": "Création site web pour mon entreprise de consultation",
-            "status": "quoted",
-            "source": "instagram",
-            "items": [],
-            "notes": "Budget environ 3000-5000$",
-            "created_at": (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()
-        }
-    ]
-    await db.leads.insert_many(leads_data)
-    
-    # Create sample portfolio items
-    portfolio_data = [
-        {
-            "id": str(uuid.uuid4()),
-            "category": "portfolio",
-            "title": "Rénovation Salon Moderne",
-            "description": "Transformation complète d'un salon avec peinture et finitions",
-            "image_url": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800",
-            "before_image_url": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
-            "service_type": "manual",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "category": "portfolio",
-            "title": "Installation Mobilier IKEA",
-            "description": "Assemblage et installation sécuritaire de chambre complète",
-            "image_url": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
-            "before_image_url": None,
-            "service_type": "furniture",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "category": "portfolio",
-            "title": "Site Web E-commerce",
-            "description": "Développement d'une boutique en ligne moderne",
-            "image_url": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
-            "before_image_url": None,
-            "service_type": "tech",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-    ]
-    await db.portfolio_media.insert_many(portfolio_data)
-    
-    # Create sample blog posts
-    blog_posts = [
-        {
-            "id": str(uuid.uuid4()),
-            "title": "5 conseils pour réussir votre projet de peinture",
-            "slug": "conseils-projet-peinture",
-            "excerpt": "Découvrez nos meilleurs conseils pour un résultat professionnel lors de votre prochain projet de peinture.",
-            "content": """
-            <h2>1. Préparation des surfaces</h2>
-            <p>La clé d'une peinture réussie réside dans la préparation. Nettoyez, réparez et poncez toutes les surfaces avant de commencer.</p>
-            
-            <h2>2. Choisir la bonne peinture</h2>
-            <p>Optez pour une peinture de qualité adaptée à votre projet. Pour les pièces humides, privilégiez une peinture anti-moisissure.</p>
-            
-            <h2>3. Protection adéquate</h2>
-            <p>Protégez vos meubles et sols avec des bâches. Le ruban de masquage est essentiel pour des lignes nettes.</p>
-            
-            <h2>4. Technique d'application</h2>
-            <p>Appliquez la peinture en couches fines et régulières. Laissez sécher entre chaque couche.</p>
-            
-            <h2>5. Finition professionnelle</h2>
-            <p>Retirez le ruban avant que la peinture soit complètement sèche pour éviter les arrachements.</p>
-            """,
-            "featured_image": "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=800",
-            "category": "conseils",
-            "tags": ["peinture", "conseils", "DIY"],
-            "status": "published",
-            "author_name": "Déco Touché",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-            "published_at": datetime.now(timezone.utc).isoformat(),
-            "view_count": 0
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Guide complet: Assemblage de meubles IKEA",
-            "slug": "guide-assemblage-ikea",
-            "excerpt": "Tout ce que vous devez savoir pour assembler vos meubles IKEA comme un pro.",
-            "content": """
-            <h2>Avant de commencer</h2>
-            <p>Vérifiez que toutes les pièces sont présentes et lisez les instructions complètement.</p>
-            
-            <h2>Outils nécessaires</h2>
-            <p>Un tournevis, un marteau et un niveau sont généralement suffisants. IKEA fournit souvent une clé Allen.</p>
-            
-            <h2>Conseils de pro</h2>
-            <p>Ne serrez pas complètement les vis avant d'avoir assemblé toutes les pièces.</p>
-            
-            <h2>Ancrage mural</h2>
-            <p>Pour la sécurité des enfants, ancrez toujours les meubles hauts au mur.</p>
-            """,
-            "featured_image": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
-            "category": "guides",
-            "tags": ["IKEA", "assemblage", "mobilier"],
-            "status": "published",
-            "author_name": "Déco Touché",
-            "created_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
-            "updated_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
-            "published_at": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat(),
-            "view_count": 0
-        }
-    ]
-    await db.blog_posts.insert_many(blog_posts)
-    
-    return {"message": "Database seeded successfully", "admin_email": "admin@cmgeorges.com", "admin_password": "admin123"}
 
 # (moved to routers/) — removed block starting with '# ==================== BLOG PUBLIC ENDPOINTS ===================='
 # (moved to services/pdf.py) '# ==================== PDF GENERATION ===================='
@@ -2788,7 +2642,7 @@ async def delete_social_post(post_id: str, request: Request, user: dict = Depend
 @v1_router.get("/social-posts")
 async def get_public_social_posts():
     """Get featured social media posts for public display"""
-    posts = await db.social_posts.find({"is_featured": True}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    posts = await db.social_posts.find({"is_featured": True, **exclude_test("social_posts")}, {"_id": 0}).sort("created_at", -1).to_list(50)
     return posts
 
 
@@ -2911,13 +2765,15 @@ v1_router.include_router(
     )
 )
 
+v1_router.include_router(build_site_settings_router(db, require_admin))
+v1_router.include_router(build_test_data_router(db, require_admin, create_audit_log))
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)
 
 # Public signature routes (under /api prefix for proper routing)
 api_router.include_router(public_signature_router)
 
-app.include_router(api_router)
+app.include_router(api_router, dependencies=[Depends(staff_guard)])
 
 # CORS configuration
 # Note: When allow_credentials=True (required for httpOnly cookie auth),
@@ -2992,6 +2848,12 @@ async def startup_run_migrations():
         logger.info(f"admin_seed result: {result}")
     except Exception as e:
         logger.error(f"admin_seed failed: {e}")
+    try:
+        from migrations.data_fixes import run_data_fixes
+        logger.info(f"data_fixes result: {await run_data_fixes(db)}")
+    except Exception as e:
+        logger.error(f"data_fixes failed: {e}")
+
     # Indexes for auth-extensions collections
     try:
         await db.password_reset_tokens.create_index("expires_at")

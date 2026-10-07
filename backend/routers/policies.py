@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
 
+from services.test_data import exclude_test
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -60,7 +61,7 @@ def build_policies_router(db, get_current_user, require_admin, create_audit_log)
 
     @router.get("/policies-public")
     async def get_public_policies():
-        policies = await db.policies.find({"is_active": True}, {"_id": 0}).to_list(100)
+        policies = await db.policies.find({"is_active": True, **exclude_test("policies")}, {"_id": 0}).to_list(100)
         return {p["policy_type"]: p for p in policies}
 
     @router.get("/admin/policies", response_model=List[Policy])

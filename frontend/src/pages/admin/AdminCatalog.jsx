@@ -44,6 +44,9 @@ const CATEGORIES = {
   maintenance: { label: 'Entretien', icon: Wrench, color: 'bg-green-500' },
   installation: { label: 'Installation', icon: Package, color: 'bg-orange-500' },
   renovation: { label: 'Rénovation', icon: Sparkles, color: 'bg-rose-500' },
+  accent_walls: { label: "Murs d'accent", icon: Sparkles, color: 'bg-yellow-600' },
+  demolition: { label: 'Démolition', icon: Package, color: 'bg-stone-500' },
+  hvac: { label: 'Climatisation', icon: Wrench, color: 'bg-cyan-500' },
   other: { label: 'Autre', icon: Package, color: 'bg-gray-500' },
 };
 

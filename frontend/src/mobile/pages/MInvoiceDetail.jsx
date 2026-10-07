@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Send, Link2, Copy, Share2, MessageSquare, Wallet, FileDown, PenLine, Trash2, User } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { MHeader, MCard, Section, Loading, Pill, MButton, KV, Chips } from '../components/MUi';
+import { MHeader, MCard, Section, Loading, LoadError, Pill, MButton, KV, Chips } from '../components/MUi';
 import { PaymentSheet } from '../components/PaymentSheet';
+import { validPhone } from '../components/ContactActions';
 import { useLoad, useAction } from '../components/useLoad';
 import { openPdf } from './MQuoteDetail';
 import { INVOICE_STATUS, PAYMENT_METHODS, money, shortDate } from '../constants';
@@ -29,7 +30,7 @@ const PayLink = ({ invoice, client }) => {
       <p className="text-xs font-mono text-[#E9C85A] break-all" data-testid="m-invoice-paylink-url">{url}</p>
       <div className="grid grid-cols-3 gap-2">
         <MButton variant="ghost" data-testid="m-invoice-paylink-copy" onClick={copy} className="h-10 text-xs"><Copy className="h-4 w-4" /> Copier</MButton>
-        <a href={sms} data-testid="m-invoice-paylink-sms" className="h-10 rounded-xl bg-white/5 border border-[#1E293B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95"><MessageSquare className="h-4 w-4" /> Texto</a>
+        <a href={validPhone(client?.phone) ? sms : undefined} data-testid="m-invoice-paylink-sms" className={`${validPhone(client?.phone) ? '' : 'pointer-events-none opacity-30 '}h-10 rounded-xl bg-white/5 border border-[#1E293B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95`}><MessageSquare className="h-4 w-4" /> Texto</a>
         {navigator.share
           ? <MButton variant="ghost" data-testid="m-invoice-paylink-share" onClick={share} className="h-10 text-xs"><Share2 className="h-4 w-4" /> Partager</MButton>
           : <a href={url} target="_blank" rel="noopener noreferrer" className="h-10 rounded-xl bg-white/5 border border-[#1E293B] text-white text-xs font-semibold flex items-center justify-center">Ouvrir</a>}
@@ -43,13 +44,14 @@ export default function MInvoiceDetail() {
   const navigate = useNavigate();
   const { busy, run } = useAction();
   const [paySheet, setPaySheet] = useState(false);
-  const { data, setData, loading, reload } = useLoad(async () => {
+  const { data, setData, loading, reload, error } = useLoad(async () => {
     const inv = (await adminApi.getInvoice(id)).data;
     const c = (await adminApi.getClient(inv.client_id).catch(() => ({ data: null }))).data;
     return { inv, client: c };
   }, [id]);
 
-  if (loading || !data) return <Loading />;
+  if (loading) return <Loading />;
+  if (!data) return <LoadError error={error} onRetry={reload} />;
   const { inv, client } = data;
 
   const changeStatus = async (status) => {

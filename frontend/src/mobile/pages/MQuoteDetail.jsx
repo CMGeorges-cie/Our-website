@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Send, PenLine, FileDown, User } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { MHeader, MCard, Section, Loading, Pill, MButton, KV } from '../components/MUi';
+import { MHeader, MCard, Section, Loading, LoadError, Pill, MButton, KV } from '../components/MUi';
 import { useLoad, useAction } from '../components/useLoad';
 import { QUOTE_STATUS, money, shortDate } from '../constants';
 
@@ -15,9 +15,10 @@ export default function MQuoteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { busy, run } = useAction();
-  const { data: q, loading, reload } = useLoad(async () => (await adminApi.getQuote(id)).data, [id]);
+  const { data: q, loading, reload, error } = useLoad(async () => (await adminApi.getQuote(id)).data, [id]);
 
-  if (loading || !q) return <Loading />;
+  if (loading) return <Loading />;
+  if (!q) return <LoadError error={error} onRetry={reload} />;
 
   const send = async () => { if (await run('send', () => adminApi.sendQuoteByEmail(id), 'Soumission envoyée par courriel')) reload(); };
   const sign = () => run('sign', () => adminApi.sendQuoteSignatureLink(id), 'Lien de signature envoyé');

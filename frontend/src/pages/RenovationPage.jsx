@@ -1,3 +1,4 @@
+import { CatalogPriceList } from '@/components/public/CatalogPricing';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,12 +17,6 @@ const services = [
   'Retouches après déménagement',
 ];
 
-const pricing = [
-  { service: 'Pose de plancher flottant', price: 'À partir de 3.80$/pi²', note: 'Matériaux en sus' },
-  { service: 'Installation de moulures', price: 'À partir de 5$/pi linéaire', note: 'Matériaux inclus' },
-  { service: 'Réparation gyproc', price: 'À partir de 150$', note: 'Par ouverture' },
-  { service: 'Calfeutrage complet', price: 'À partir de 200$', note: 'Portes et fenêtres' },
-];
 
 export default function RenovationPage() {
   return (
@@ -62,18 +57,7 @@ export default function RenovationPage() {
         <div className="container-main">
           <h2 className="text-3xl font-bold text-[#1a365d] text-center mb-4 font-['Outfit']">Tarifs indicatifs</h2>
           <p className="text-gray-500 text-center mb-12 text-sm">Contactez-nous pour une évaluation gratuite de votre projet.</p>
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {pricing.map((p, i) => (
-              <div key={i} className="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm">
-                <div>
-                  <p className="font-semibold text-[#1a365d] text-sm">{p.service}</p>
-                  <p className="text-xs text-gray-400">{p.note}</p>
-                </div>
-                <span className="font-bold text-[#d4af37] text-sm">{p.price}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-center text-xs text-gray-400 mt-6">* TPS et TVQ en sus. Acompte de 30 à 50% requis.</p>
+          <CatalogPriceList categories={['renovation']} />
         </div>
       </section>
 

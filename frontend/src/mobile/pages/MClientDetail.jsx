@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Pencil, KeyRound, FilePlus2, HardHat, Trash2 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { MHeader, MCard, Section, Loading, Pill, MButton, KV, ListRow } from '../components/MUi';
+import { MHeader, MCard, Section, Loading, LoadError, Pill, MButton, KV, ListRow } from '../components/MUi';
 import { ContactActions, fullAddress } from '../components/ContactActions';
 import { ClientForm } from '../components/ClientForm';
 import { useLoad, useAction } from '../components/useLoad';
@@ -13,14 +13,15 @@ export default function MClientDetail() {
   const navigate = useNavigate();
   const { busy, run } = useAction();
   const [edit, setEdit] = useState(false);
-  const { data, setData, loading } = useLoad(async () => {
+  const { data, setData, loading, error, reload } = useLoad(async () => {
     const [c, q, i, p] = await Promise.all([
       adminApi.getClient(id), adminApi.getQuotes({ client_id: id }), adminApi.getInvoices({ client_id: id }), adminApi.getProjects({ client_id: id }),
     ]);
     return { client: c.data, quotes: q.data, invoices: i.data, projects: p.data };
   }, [id]);
 
-  if (loading || !data) return <Loading />;
+  if (loading) return <Loading />;
+  if (!data) return <LoadError error={error} onRetry={reload} />;
   const { client, quotes, invoices, projects } = data;
 
   const portal = () => run('portal', () => adminApi.createPortalAccess(id), 'Accès portail client envoyé');

@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
 
+from services.test_data import exclude_test
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -89,7 +90,7 @@ def build_blog_router(db, get_current_user, require_admin, create_audit_log) -> 
         tag: Optional[str] = None,
         limit: int = 10,
     ):
-        query = {"status": "published"}
+        query = {"status": "published", **exclude_test("blog_posts")}
         if category:
             query["category"] = category
         if tag:

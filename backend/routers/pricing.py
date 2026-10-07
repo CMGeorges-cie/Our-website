@@ -16,6 +16,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 
+from services.test_data import exclude_test
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -59,7 +60,7 @@ def build_pricing_router(db, get_current_user, require_admin, create_audit_log) 
 
     @router.get("/pricing-public")
     async def get_public_pricing():
-        items = await db.pricing_items.find({"is_active": True}, {"_id": 0}).to_list(1000)
+        items = await db.pricing_items.find({"is_active": True, **exclude_test("pricing_items")}, {"_id": 0}).to_list(1000)
         grouped: dict = {}
         for item in items:
             service = item.get("service_type", "other")

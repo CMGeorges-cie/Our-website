@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Loader2, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Search, WifiOff, LockKeyhole } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const MHeader = ({ title, subtitle, back, action }) => {
@@ -148,3 +148,28 @@ export const KV = ({ k, v, strong }) => (
     <span className={cn('text-right', strong ? 'text-white font-bold' : 'text-slate-200')}>{v}</span>
   </div>
 );
+
+export const LoadError = ({ error, onRetry }) => {
+  const navigate = useNavigate();
+  const expired = error?.response?.status === 401;
+  const offline = !error?.response;
+  const Icon = expired ? LockKeyhole : WifiOff;
+  return (
+    <div className="mx-5 my-8 rounded-2xl border border-rose-500/30 bg-rose-500/5 p-6 text-center" data-testid="m-load-error">
+      <Icon className="h-7 w-7 text-rose-300 mx-auto" />
+      <p className="text-white font-semibold mt-3" data-testid="m-load-error-title">
+        {expired ? 'Session expirée' : offline ? 'Connexion impossible' : 'Chargement impossible'}
+      </p>
+      <p className="text-xs text-slate-400 mt-1">
+        {expired ? 'Reconnectez-vous pour voir vos données.' : offline ? 'Vérifiez votre réseau puis réessayez.' : 'Une erreur est survenue côté serveur.'}
+      </p>
+      <MButton
+        data-testid="m-load-error-action"
+        className="mt-4 w-full"
+        onClick={() => (expired ? navigate('/m/login?expired=1', { replace: true }) : onRetry?.())}
+      >
+        {expired ? 'Se reconnecter' : 'Réessayer'}
+      </MButton>
+    </div>
+  );
+};

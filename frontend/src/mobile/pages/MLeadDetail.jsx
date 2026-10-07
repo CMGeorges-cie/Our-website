@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FileText, UserCheck, Trash2 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
-import { MHeader, MCard, Section, Loading, Pill, MButton, KV, Chips, ListRow } from '../components/MUi';
+import { MHeader, MCard, Section, Loading, LoadError, Pill, MButton, KV, Chips, ListRow } from '../components/MUi';
 import { ContactActions, fullAddress } from '../components/ContactActions';
 import { useLoad, useAction } from '../components/useLoad';
 import { LEAD_STATUS, QUOTE_STATUS, SERVICE_TYPES, money, shortDate } from '../constants';
@@ -14,12 +14,13 @@ export default function MLeadDetail() {
   const navigate = useNavigate();
   const { busy, run } = useAction();
   const [notes, setNotes] = useState(null);
-  const { data, setData, loading } = useLoad(async () => {
+  const { data, setData, loading, error, reload } = useLoad(async () => {
     const [l, q] = await Promise.all([adminApi.getLead(id), adminApi.getQuotes({ lead_id: id })]);
     return { lead: l.data, quotes: q.data };
   }, [id]);
 
-  if (loading || !data) return <Loading />;
+  if (loading) return <Loading />;
+  if (!data) return <LoadError error={error} onRetry={reload} />;
   const { lead, quotes } = data;
   const setLead = (patch) => setData({ ...data, lead: { ...lead, ...patch } });
 

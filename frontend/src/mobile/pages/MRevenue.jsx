@@ -1,13 +1,14 @@
 import { adminApi } from '@/lib/api';
-import { MHeader, MCard, Section, Loading, KV } from '../components/MUi';
+import { MHeader, MCard, Section, Loading, LoadError, KV } from '../components/MUi';
 import { useLoad } from '../components/useLoad';
 import { money } from '../constants';
 
 const monthLabel = (m) => new Intl.DateTimeFormat('fr-CA', { month: 'short' }).format(new Date(`${m}-15`));
 
 export default function MRevenue() {
-  const { data: d, loading } = useLoad(async () => (await adminApi.getCeoDashboard()).data);
-  if (loading || !d) return <Loading />;
+  const { data: d, loading, error, reload } = useLoad(async () => (await adminApi.getCeoDashboard()).data);
+  if (loading) return <Loading />;
+  if (!d) return <LoadError error={error} onRetry={reload} />;
   const months = d.revenue_by_month || [];
   const max = Math.max(1, ...months.map((m) => m.revenue));
 

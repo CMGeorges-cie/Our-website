@@ -1,7 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import { BRAND } from '@/config/brand';
+import { useSiteSettings, paymentTermsFor, SERVICE_LABELS } from '@/lib/publicData';
 
 export default function TermsPage() {
+  const settings = useSiteSettings();
+  const terms = paymentTermsFor(settings, 'default');
   return (
     <div className="min-h-screen" data-testid="terms-page">
       <Helmet>
@@ -55,10 +58,12 @@ export default function TermsPage() {
             <div>
               <h2 className="text-2xl font-bold text-[#1a365d] mb-4 font-['Outfit']">4. Modalités de Paiement</h2>
               <ul className="list-disc pl-6 text-gray-600 space-y-2">
-                <li>Un dépôt de 30% est requis à la signature du contrat</li>
-                <li>Un paiement de 30% est dû à mi-projet</li>
-                <li>Le solde de 40% est payable à la complétion des travaux</li>
-                <li>Pour les projets de moins de 500$: paiement à la fin des travaux</li>
+                {(terms?.steps || []).map((st, i) => <li key={i} data-testid={`terms-step-${i}`}>{st.percent} % {st.label}</li>)}
+                {terms?.note && <li>{terms.note}</li>}
+                {Object.entries(settings?.payment_terms || {}).filter(([k]) => k !== 'default').map(([k]) => {
+                  const t = paymentTermsFor(settings, k);
+                  return <li key={k}>{SERVICE_LABELS[k] || k} : {t.summary}{t.note ? ` (${t.note})` : ''}</li>;
+                })}
                 <li>Modes acceptés: Interac, carte de crédit, chèque, comptant</li>
                 <li>Les factures impayées portent intérêt à 2% par mois après 30 jours</li>
               </ul>

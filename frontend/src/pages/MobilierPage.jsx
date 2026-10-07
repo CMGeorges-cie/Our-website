@@ -1,3 +1,4 @@
+import { CatalogPriceList } from '@/components/public/CatalogPricing';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,17 +31,6 @@ const steps = [
   }
 ];
 
-const pricing = [
-  { item: 'Lit (simple/double)', price: 'À partir de 75$', time: '1-2h' },
-  { item: 'Lit King/Queen avec tiroirs', price: 'À partir de 95$', time: '2-3h' },
-  { item: 'Commode (3-6 tiroirs)', price: 'À partir de 65$', time: '1h' },
-  { item: 'Garde-robe PAX (1 section)', price: 'À partir de 100$', time: '2h' },
-  { item: 'Garde-robe PAX (2+ sections)', price: 'À partir de 150$', time: '3-5h' },
-  { item: 'Bureau', price: 'À partir de 50$', time: '45min-1h' },
-  { item: 'Table à manger', price: 'À partir de 50$', time: '1h' },
-  { item: 'Étagère KALLAX/BILLY', price: 'À partir de 40$', time: '30-45min' },
-  { item: 'Ancrage mural (par meuble)', price: 'À partir de 25$', time: '15min' },
-];
 
 const faqs = [
   {
@@ -147,36 +137,10 @@ export default function MobilierPage() {
             </p>
           </div>
 
-          <div className="max-w-3xl mx-auto">
-            <Card className="overflow-hidden shadow-xl">
-              <div className="overflow-x-auto">
-                <table className="w-full" data-testid="pricing-table">
-                  <thead>
-                    <tr className="bg-[#1a365d] text-white">
-                      <th className="px-6 py-4 text-left font-semibold">Article</th>
-                      <th className="px-6 py-4 text-center font-semibold">Prix assemblage</th>
-                      <th className="px-6 py-4 text-center font-semibold">Temps estimé</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pricing.map((item, idx) => (
-                      <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-6 py-4 font-medium text-[#1a365d]">{item.item}</td>
-                        <td className="px-6 py-4 text-center text-[#1a365d] font-semibold">{item.price}</td>
-                        <td className="px-6 py-4 text-center text-gray-600">{item.time}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="p-4 bg-[#d4af37]/10 border-t">
-                <p className="text-sm text-center text-gray-600">
-                  <strong>Note:</strong> Livraison incluse à Montréal et Rive-Sud. 
-                  Frais d'urgence (+20%) si service requis en moins de 48h.
-                </p>
-              </div>
-            </Card>
-          </div>
+          <CatalogPriceList categories={['furniture']} />
+          <p className="text-sm text-center text-gray-600 mt-4 max-w-3xl mx-auto">
+            <strong>Note :</strong> Livraison incluse à Montréal et Rive-Sud. Frais d'urgence (+20 %) si service requis en moins de 48 h.
+          </p>
         </div>
       </section>
 
