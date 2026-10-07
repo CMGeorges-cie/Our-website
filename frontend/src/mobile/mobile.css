@@ -1,0 +1,14 @@
+.m-app { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+.m-app ::selection { background: rgba(212, 175, 55, 0.35); }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+@keyframes m-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.m-fade-in { animation: m-fade-up 0.35s ease-out both; }
+.m-stagger > * { animation: m-fade-up 0.4s ease-out both; }
+.m-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.m-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.m-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.m-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.m-stagger > *:nth-child(n+6) { animation-delay: 200ms; }
+.m-grain { position: fixed; inset: 0; pointer-events: none; opacity: 0.035; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }

@@ -27,10 +27,11 @@ from datetime import datetime, timezone
 from io import BytesIO
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import Response
 
 from config.brand import Brand
+from storage import r2 as r2_storage
 from models import (
     Project,
     ProjectCreate,
@@ -191,6 +192,77 @@ def build_admin_projects_router(
             "project_deleted", "project", project_id, user=user, request=request
         )
         return {"message": "Projet supprimé"}
+
+    # ---------- Photos (R2) ----------
+    @router.post("/admin/projects/{project_id}/photos")
+    async def upload_project_photos(
+        project_id: str,
+        files: List[UploadFile] = File(...),
+        caption: str = Form(""),
+        user: dict = Depends(get_current_user),
+    ):
+        if not await db.projects.find_one({"id": project_id}, {"_id": 1}):
+            raise HTTPException(status_code=404, detail="Projet non trouvé")
+        if len(files) > 10:
+            raise HTTPException(status_code=400, detail="Maximum 10 photos à la fois")
+        if not r2_storage.is_configured():
+            raise HTTPException(status_code=503, detail="Stockage R2 non configuré")
+
+        added = []
+        for f in files:
+            content = await f.read()
+            if len(content) > 15 * 1024 * 1024:
+                raise HTTPException(status_code=400, detail=f"{f.filename} trop volumineux (max 15MB)")
+            ctype = f.content_type or "image/jpeg"
+            if not ctype.startswith("image/"):
+                raise HTTPException(status_code=400, detail=f"Type non supporté: {ctype}")
+            ext = (f.filename.rsplit(".", 1)[-1] if f.filename and "." in f.filename else "jpg").lower()
+            if ext in ("heic", "heif"):
+                import pillow_heif
+                from PIL import Image
+                pillow_heif.register_heif_opener()
+                buf = BytesIO()
+                Image.open(BytesIO(content)).convert("RGB").save(buf, "JPEG", quality=85)
+                content, ext, ctype = buf.getvalue(), "jpg", "image/jpeg"
+            url = r2_storage.upload_bytes(
+                content, r2_storage.make_key(f"projects/{project_id}", f"x.{ext}"), content_type=ctype
+            )
+            added.append({
+                "id": str(uuid.uuid4()),
+                "url": url,
+                "caption": caption,
+                "uploaded_at": datetime.now(timezone.utc).isoformat(),
+                "uploaded_by": user.get("full_name", user.get("email")),
+            })
+
+        await db.projects.update_one(
+            {"id": project_id},
+            {
+                "$push": {
+                    "photos": {"$each": added},
+                    "timeline": {
+                        "id": str(uuid.uuid4()),
+                        "event_type": "photo",
+                        "description": f"{len(added)} photo(s) ajoutée(s)",
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "created_by": user.get("full_name", user.get("email")),
+                        "metadata": {},
+                    },
+                }
+            },
+        )
+        return {"photos": added}
+
+    @router.delete("/admin/projects/{project_id}/photos/{photo_id}")
+    async def delete_project_photo(
+        project_id: str, photo_id: str, user: dict = Depends(get_current_user)
+    ):
+        result = await db.projects.update_one(
+            {"id": project_id}, {"$pull": {"photos": {"id": photo_id}}}
+        )
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Photo non trouvée")
+        return {"success": True}
 
     # ---------- Tasks ----------
     @router.post("/admin/projects/{project_id}/tasks")

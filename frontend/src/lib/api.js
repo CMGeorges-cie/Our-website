@@ -31,8 +31,11 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('cmgeorges_token');
       localStorage.removeItem('cmgeorges_user');
-      if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+      const path = window.location.pathname;
+      if (path.startsWith('/admin') && path !== '/admin/login') {
         window.location.href = '/admin/login';
+      } else if ((path === '/m' || path.startsWith('/m/')) && path !== '/m/login') {
+        window.location.href = '/m/login';
       }
     }
     return Promise.reject(error);
@@ -105,6 +108,8 @@ export const adminApi = {
   createProject: (data) => api.post('/admin/projects', data),
   updateProject: (id, data) => api.patch(`/admin/projects/${id}`, data),
   deleteProject: (id) => api.delete(`/admin/projects/${id}`),
+  uploadProjectPhotos: (id, formData) => api.post(`/admin/projects/${id}/photos`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  deleteProjectPhoto: (id, photoId) => api.delete(`/admin/projects/${id}/photos/${photoId}`),
   
   // Project Tasks
   createProjectTask: (projectId, data) => api.post(`/admin/projects/${projectId}/tasks`, data),

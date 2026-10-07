@@ -22,6 +22,26 @@ import PortfolioPage from "@/pages/PortfolioPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import AdminProfile from "@/pages/admin/AdminProfile";
+// Mobile management PWA
+import MobileLayout from "@/mobile/MobileLayout";
+import MLogin from "@/mobile/pages/MLogin";
+import MDashboard from "@/mobile/pages/MDashboard";
+import MLeads from "@/mobile/pages/MLeads";
+import MLeadDetail from "@/mobile/pages/MLeadDetail";
+import MQuoteCreate from "@/mobile/pages/MQuoteCreate";
+import MQuotes from "@/mobile/pages/MQuotes";
+import MQuoteDetail from "@/mobile/pages/MQuoteDetail";
+import MClients from "@/mobile/pages/MClients";
+import MClientDetail from "@/mobile/pages/MClientDetail";
+import MProjects from "@/mobile/pages/MProjects";
+import MProjectDetail from "@/mobile/pages/MProjectDetail";
+import MInvoices from "@/mobile/pages/MInvoices";
+import MInvoiceCreate from "@/mobile/pages/MInvoiceCreate";
+import MInvoiceDetail from "@/mobile/pages/MInvoiceDetail";
+import MRevenue from "@/mobile/pages/MRevenue";
+import MNotifications from "@/mobile/pages/MNotifications";
+import MProfile from "@/mobile/pages/MProfile";
+import MMore from "@/mobile/pages/MMore";
 import SoumissionPage from "@/pages/SoumissionPage";
 import ContactPage from "@/pages/ContactPage";
 import FAQPage from "@/pages/FAQPage";
@@ -237,6 +257,28 @@ function App() {
               <Route path="/admin/portfolio" element={<AdminPortfolio />} />
               <Route path="/admin/social" element={<AdminSocial />} />
               <Route path="/admin/profile" element={<AdminProfile />} />
+            </Route>
+
+            {/* Mobile management PWA */}
+            <Route path="/m/login" element={<MLogin />} />
+            <Route path="/m" element={<MobileLayout />}>
+              <Route index element={<MDashboard />} />
+              <Route path="leads" element={<MLeads />} />
+              <Route path="leads/:id" element={<MLeadDetail />} />
+              <Route path="leads/:id/quote" element={<MQuoteCreate />} />
+              <Route path="quotes" element={<MQuotes />} />
+              <Route path="quotes/:id" element={<MQuoteDetail />} />
+              <Route path="clients" element={<MClients />} />
+              <Route path="clients/:id" element={<MClientDetail />} />
+              <Route path="projects" element={<MProjects />} />
+              <Route path="projects/:id" element={<MProjectDetail />} />
+              <Route path="invoices" element={<MInvoices />} />
+              <Route path="invoices/new" element={<MInvoiceCreate />} />
+              <Route path="invoices/:id" element={<MInvoiceDetail />} />
+              <Route path="revenue" element={<MRevenue />} />
+              <Route path="notifications" element={<MNotifications />} />
+              <Route path="profile" element={<MProfile />} />
+              <Route path="plus" element={<MMore />} />
             </Route>
           </Routes>
         </BrowserRouter>
