@@ -10,6 +10,7 @@ CATEGORY_RULES = [
 
 async def run_data_fixes(db) -> dict:
     done = {}
+    await db.cron_runs.create_index("created", expireAfterSeconds=7 * 24 * 3600)
     r = await db.projects.update_many(
         {"status": "completed", "progress": {"$ne": 100}}, {"$set": {"progress": 100}}
     )

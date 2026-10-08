@@ -1,0 +1,40 @@
+{
+  "summary": "Iter 22 — Agenda (actions + cron reminders), test-data mark-real + activity-aware detection, catalog show_from_price toggle, client contact_channels/preferred_channel/source, new /services/climatiseurs & /services/tv-tech landing pages. Backend 11/11 pytest PASS (new file test_iter22_agenda_channels_pricing.py). Frontend spot checks all PASS: climatiseurs-page + tv-tech-page testids present with hero price (hvac 'Sur devis', tv-tech 'À partir de 120 $'); catalog-item rows render (hvac=1, tv-tech=2 with 'Installation TV murale'=120 $ and 'Site web vitrine'=Sur devis); payment-terms notes present; features (8) + steps (4). /services from-price badges: painting 'Sur devis', maintenance 'À partir de 65 $/h', furniture 'À partir de 240 $', installation-tech 'À partir de 120 $', hvac 'Sur devis', accent_walls 'Sur devis'. /services/peinture 3 rows all 'Sur devis'. /services/murs-accent no hardcoded '2 800'. service-card-hvac + service-card-tech testids now present on /services (addressed iter21 LOW item). Admin /admin/agenda: all testids (mode-week/month, prev/next/today, grid, new-action, open-actions, 7 day cells); new-action dialog contains agenda-action-title/-kind/-due/-target/-notes/-submit. Admin client detail: client-channels-card + all 6 client-channel-* inputs + client-preferred-channel + client-source + client-channels-save present. Mobile /m shows 'Prochaines actions'; /m/agenda has week view (7 m-agenda-day-*), m-agenda-prev/next/today, m-agenda-view-todo, m-agenda-add → opens m-action-form with title/kind/due/client/submit; /m/plus has m-more-agenda link. Backend: PATCH /api/v2/catalog/{id} accepts & persists show_from_price (toggled + restored). GET /api/v1/admin/test-data lists only name-matching clients/leads without projects/invoices/photos; POST /mark-real {collection,id} removes record from list; 400 on unknown collection, 404 on unknown id. POST /purge with empty ids deletes 0; with scoped ids deletes exact match. PATCH /api/v1/admin/clients/{id} with contact_channels/preferred_channel/source persists and GET returns them. Agenda CRUD: POST 400 if no client/lead/project; create+list+patch-done (sets done_at)+patch-due (resets reminded)+GET /admin/agenda {projects,actions} range query works; DELETE 200 then 404. Client token → 403 on /admin/actions & /admin/agenda. Cron POST /api/v1/cron/agenda-reminders: 401 without Bearer; with Bearer + X-Webhook-Id → 200 {status:accepted}; same run_id again → {status:duplicate}.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/v2/catalog", "issue": "ServiceCreate.show_from_price field is accepted by the Pydantic model but not persisted in the inserted document (dict in create_service omits the key). Only PATCH persists it correctly. Low impact since UI uses PATCH after creation, but inconsistent."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "AdminAgenda new-action dialog", "issues": ["Dev console shows hydration warnings about <optgroup>/<option> inside <span> wrappers — caused by Emergent dev inline-editor instrumentation (x-ve-dynamic span injection), not real app code. Does not affect runtime UX. Should disappear in production build."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter22_agenda_channels_pricing.py",
+    "/app/test_reports/pytest/iter22.xml"
+  ],
+  "action_items": [
+    "(LOW) In routers/catalog.py create_service(), add 'show_from_price': data.show_from_price to the inserted document dict so new quote services can be created already-expanded. Currently must PATCH after create."
+  ],
+  "critical_code_review_comments": [
+    "services/test_data.py test_client_ids correctly protects clients with projects/invoices/photos — but does NOT check quotes directly for clients (quotes are tied to lead_id, and leads check their own quotes). This matches current data model, but if the UI ever assigns a quote to a client post-conversion, it won't protect that client. Minor edge case.",
+    "routers/agenda.py cron endpoint uses hmac.compare_digest for secret and inserts run_id into cron_runs collection for idempotency. Background task launched via FastAPI BackgroundTasks — correct pattern for Emergent cron (ack 2xx quickly). ❗ No TTL index on cron_runs so collection grows unbounded; add TTL index at startup (e.g., 7 days).",
+    "routers/agenda.py _iso() rejects naive 'YYYY-MM-DD' without time (fromisoformat accepts it, replace tzinfo=UTC path OK). Verified start/end as full ISO with +00:00 works. Note: query string with '+00:00' must be URL-encoded by callers (frontend axios handles via params).",
+    "routers/test_data.py purge intersection with discovered candidates is a strong safety invariant — body ids act as a confirmation list, not an authority to delete.",
+    "routers/catalog.py: ServiceCreate declares show_from_price but create_service() doesn't persist it (see minor issue). Pydantic model exposes field but endpoint ignores it on create. Should spread data.model_dump() or add the key explicitly.",
+    "components/admin/ClientChannelsCard.jsx + mobile ContactActions.jsx verified wired to PATCH /api/v1/admin/clients/{id} with the right payload shape. All 6 channel keys + preferred + source round-trip."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter22_agenda_channels_pricing.py (new, 11 tests)"
+  ],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "100% on spec items verified"},
+  "test_credentials": "admin@cmgeorges.com / strongpassword123; cron secret read from /app/backend/.env WEBHOOK_CRON_SECRET",
+  "seed_data_creation": "Created several TEST_iter22_<rand>@example.com clients + 1 TEST_followup action during pytest; all removed via DELETE at end of each test. Separately cleaned up 1 leftover action + 9 TEST_ clients via admin API after an aborted test run. Catalog show_from_price toggled on one quote service and restored to original value. No lingering TEST data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iter22 regression suite in /app/backend/tests/test_iter22_agenda_channels_pricing.py (needs REACT_APP_BACKEND_URL env + /app/backend/.env for WEBHOOK_CRON_SECRET). Agenda router new endpoints: GET/POST/PATCH/DELETE /api/v1/admin/actions, GET /api/v1/admin/agenda?start&end, POST /api/v1/cron/agenda-reminders (Bearer secret + X-Webhook-Id idempotency). test_data.py now exposes mark-real + is_real protection and detection is name-only + activity-aware. catalog ServiceUpdate persists show_from_price; ServiceCreate accepts but does not persist (minor bug). All frontend testids match spec (climatiseurs-page, tv-tech-page, service-card-hvac, service-card-tech, agenda-*, m-agenda-*, m-action-form, client-channels-card, client-channel-<k>). Dev-mode console shows harmless hydration warnings from Emergent inspector span wrappers — ignore."
+}

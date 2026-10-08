@@ -80,6 +80,16 @@
 - PWA /m : erreur/session expirée explicites, projet terminé = 100 %, coordonnées provisoires désactivées, instructions d'installation inline
 - Tests : iteration_21 (backend 24/24, frontend ~100 %)
 
+### Agenda + Pages Climatiseurs/TV + Prix « Sur devis » + Protection des dossiers (Oct 2026)
+- Catalogue : case `show_from_price` (« Afficher À partir de publiquement », décochée par défaut). Services « sur devis » = « Sur devis » publiquement sauf si cochée
+- Nettoyage des tests : rien de présélectionné ; clients/leads détectés par le nom seulement (plus par @example.com) ; jamais proposés s'ils ont projet/facture/soumission/photos ; bouton « Réel » (`POST /admin/test-data/mark-real`, champ `is_real`)
+- Moyens de contact clients/leads : `contact_channels` (WhatsApp, Signal, Instagram, Messenger, Snapchat, TikTok), `preferred_channel`, `source` — admin (fiche client) + mobile (formulaire + liens directs)
+- Pages `/services/climatiseurs` et `/services/tv-tech` (composant `ServiceLanding`, prix catalogue, modalités, soumission préremplie)
+- Agenda : `client_actions` (CRUD `/api/v1/admin/actions`), `GET /api/v1/admin/agenda` ; admin `/admin/agenda` (semaine/mois + prochaines actions) ; mobile `/m/agenda` + sections « Prochaines actions » (accueil, client, lead, projet)
+- Rappels : cron plateforme `.emergent/crons.yml` (toutes les 15 min) → `POST /api/v1/cron/agenda-reminders` (Bearer WEBHOOK_CRON_SECRET) → notifications « Rappel » et « Chantier demain »
+- Preview : catalogue importé depuis la production (snapshot `/app/memory/prod_catalog_snapshot.json`)
+- Tests : iteration_22 (backend 11/11, frontend 100 %)
+
 ---
 
 ## Intégrations actives
@@ -107,8 +117,7 @@
 - [x] Object Storage Cloudflare R2 — DONE (14 Juin 2026)
 
 ### P1
-- [ ] Pages dédiées Climatiseurs et TV/Tech (actuellement cartes → soumission)
-- [ ] Agenda des chantiers + relances ; heures/matériaux/dépenses par projet (marge réelle, remplace coûts estimés 40 %)
+- [ ] Heures/matériaux/dépenses par projet (marge réelle, remplace coûts estimés 40 %)
 - [ ] Synchro automatique des avis Google (API Places — clé requise)
 - [ ] Isolation multi-tenant complète (`tenantId` scoping)
 - [ ] Refactor `AdminInvoices.jsx` (935 lignes → composants séparés)

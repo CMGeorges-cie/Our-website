@@ -151,6 +151,7 @@ async def create_service(
         "excludes": data.excludes,
         "is_active": True,
         "is_featured": data.is_featured,
+        "show_from_price": data.show_from_price,
         "sort_order": data.sort_order,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": tenant_ctx.user_id,

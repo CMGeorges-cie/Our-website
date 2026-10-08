@@ -51,6 +51,7 @@ async def test_client_ids(db) -> list[str]:
         return []
     active = set(await db.projects.distinct("client_id", {"client_id": {"$in": ids}}))
     active |= set(await db.invoices.distinct("client_id", {"client_id": {"$in": ids}}))
+    active |= set(await db.quotes.distinct("client_id", {"client_id": {"$in": ids}}))
     active |= set(await db.leads.distinct("client_id", {"client_id": {"$in": ids}, "photos.0": {"$exists": True}}))
     return [i for i in ids if i not in active]
 

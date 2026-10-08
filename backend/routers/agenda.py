@@ -165,7 +165,7 @@ def build_agenda_router(db, get_current_user, create_notification) -> APIRouter:
         if run_id:
             if await db.cron_runs.find_one({"run_id": run_id}):
                 return {"status": "duplicate"}
-            await db.cron_runs.insert_one({"run_id": run_id, "at": datetime.now(timezone.utc).isoformat()})
+            await db.cron_runs.insert_one({"run_id": run_id, "created": datetime.now(timezone.utc)})
         background_tasks.add_task(run_reminders)
         return {"status": "accepted"}
 
