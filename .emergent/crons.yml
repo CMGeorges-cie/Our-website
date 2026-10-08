@@ -1,0 +1,8 @@
+crons:
+  - name: agenda-reminders
+    description: "Every 15 min: notifies admins of due client actions and next-day job sites"
+    cron: "*/15 * * * *"
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    endpoint: "{{BASE_URL}}/api/v1/cron/agenda-reminders"
+    method: POST
+    enabled: true

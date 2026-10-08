@@ -148,10 +148,10 @@ export default function MursAccentPage() {
     <div className="min-h-screen bg-[#0A0C14]" data-testid="murs-accent-page">
       <Helmet>
         <title>Murs Accent Cheminée & Télé sur mesure | Déco Touché — Rive-Sud Montréal</title>
-        <meta name="description" content="Transformez votre salon en un weekend. Murs accent avec cheminée électrique, panneaux rainurés et intégration TV. Déco Touché, Rive-Sud de Montréal. À partir de 2 800$. Forfait tout inclus, garanti 1 an." />
+        <meta name="description" content="Transformez votre salon en un weekend. Murs accent avec cheminée électrique, panneaux rainurés et intégration TV. Déco Touché, Rive-Sud de Montréal. Forfait tout inclus, garanti 1 an." />
         <meta name="keywords" content="mur cheminée électrique Montréal, mur TV salon Rive-Sud, panneaux rainurés installation, déco touché rénovation, homme à tout faire Longueuil, mur accent salon Brossard" />
         <meta property="og:title" content="Murs Accent Cheminée & Télé | Déco Touché" />
-        <meta property="og:description" content="Salon transformé en un weekend. 4 modèles disponibles. À partir de 2 800$. Rive-Sud de Montréal." />
+        <meta property="og:description" content="Salon transformé en un weekend. 4 modèles disponibles. Forfait tout inclus. Rive-Sud de Montréal." />
         <meta property="og:url" content={SITE_URL} />
         <meta property="og:type" content="website" />
         <link rel="canonical" href={SITE_URL} />
@@ -180,7 +180,7 @@ export default function MursAccentPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
               <Stat icon={Home} value="4" label="Familles de modèles" />
               <Stat icon={Calendar} value="1–2" label="Weekends d'exécution" />
-              <Stat icon={DollarSign} value="2 800$" label="À partir de" />
+              <Stat icon={DollarSign} value={fromPriceLabel(catalog, ['accent_walls']).replace('À partir de ', '')} label={fromPriceLabel(catalog, ['accent_walls']).startsWith('À partir') ? 'À partir de' : 'Prix'} />
               <Stat icon={ShieldCheck} value="1 an" label="Garantie main-d'œuvre" />
             </div>
 

@@ -5,6 +5,7 @@ import { adminApi } from '@/lib/api';
 import { MHeader, MCard, Section, Loading, LoadError, Pill, MButton, KV, Chips, ListRow } from '../components/MUi';
 import { ContactActions, fullAddress } from '../components/ContactActions';
 import { useLoad, useAction } from '../components/useLoad';
+import { EntityActions } from '../components/NextActions';
 import { LEAD_STATUS, QUOTE_STATUS, SERVICE_TYPES, money, shortDate } from '../constants';
 
 const STATUS_OPTS = Object.entries(LEAD_STATUS).map(([k, v]) => [k, v.label]);
@@ -44,7 +45,7 @@ export default function MLeadDetail() {
       <MHeader back title={lead.full_name} subtitle={`${SERVICE_TYPES[lead.service_type] || lead.service_type} · reçu le ${shortDate(lead.created_at)}`}
         action={<Pill map={LEAD_STATUS} value={lead.status} testId="m-lead-status-pill" />} />
 
-      <Section><ContactActions phone={lead.phone} email={lead.email} address={fullAddress(lead)} /></Section>
+      <Section><ContactActions phone={lead.phone} email={lead.email} address={fullAddress(lead)} channels={lead.contact_channels} preferred={lead.preferred_channel} /></Section>
 
       <Section title="Statut">
         <Chips options={STATUS_OPTS} value={lead.status} onChange={changeStatus} testPrefix="m-lead-status" />
@@ -70,6 +71,8 @@ export default function MLeadDetail() {
           </div>
         </Section>
       )}
+
+      <Section title="Prochaines actions"><EntityActions link={{ lead_id: id }} /></Section>
 
       <Section title="Notes internes">
         <textarea data-testid="m-lead-notes" rows={3} value={notes ?? lead.notes ?? ''} onChange={(e) => setNotes(e.target.value)} placeholder="Ajouter une note…"

@@ -11,6 +11,8 @@ import ServicesPage from "@/pages/ServicesPage";
 import PeinturePage from "@/pages/PeinturePage";
 import RenovationPage from "@/pages/RenovationPage";
 import EntretienPage from "@/pages/EntretienPage";
+import ClimatiseursPage from "@/pages/ClimatiseursPage";
+import TvTechPage from "@/pages/TvTechPage";
 import PaymentPage from "@/pages/PaymentPage";
 import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 import PaymentCancelPage from "@/pages/PaymentCancelPage";
@@ -43,6 +45,8 @@ import MRevenue from "@/mobile/pages/MRevenue";
 import MNotifications from "@/mobile/pages/MNotifications";
 import MProfile from "@/mobile/pages/MProfile";
 import MMore from "@/mobile/pages/MMore";
+import MAgenda from "@/mobile/pages/MAgenda";
+import AdminAgenda from "@/pages/admin/AdminAgenda";
 import SoumissionPage from "@/pages/SoumissionPage";
 import ContactPage from "@/pages/ContactPage";
 import FAQPage from "@/pages/FAQPage";
@@ -177,6 +181,8 @@ function App() {
               <Route path="/services/peinture" element={<PeinturePage />} />
               <Route path="/services/renovation" element={<RenovationPage />} />
               <Route path="/services/entretien" element={<EntretienPage />} />
+              <Route path="/services/climatiseurs" element={<ClimatiseursPage />} />
+              <Route path="/services/tv-tech" element={<TvTechPage />} />
               <Route path="/services/mobilier" element={<MobilierPage />} />
               <Route path="/mobilier" element={<MobilierPage />} />
               <Route path="/services/demolition" element={<DemolitionPage />} />
@@ -259,6 +265,7 @@ function App() {
               <Route path="/admin/social" element={<AdminSocial />} />
               <Route path="/admin/profile" element={<AdminProfile />} />
               <Route path="/admin/site-settings" element={<AdminSiteSettings />} />
+              <Route path="/admin/agenda" element={<AdminAgenda />} />
             </Route>
 
             {/* Mobile management PWA */}
@@ -281,6 +288,7 @@ function App() {
               <Route path="notifications" element={<MNotifications />} />
               <Route path="profile" element={<MProfile />} />
               <Route path="plus" element={<MMore />} />
+              <Route path="agenda" element={<MAgenda />} />
             </Route>
           </Routes>
         </BrowserRouter>

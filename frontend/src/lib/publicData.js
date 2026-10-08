@@ -32,7 +32,7 @@ export const formatCatalogPrice = (item) => {
   switch (item.pricing_type) {
     case 'hourly': return `${fmt(p)}/h`;
     case 'per_unit': return `${fmt(p)}/${unit || 'unité'}`;
-    case 'quote': return `À partir de ${fmt(p)}`;
+    case 'quote': return item.show_from_price ? `À partir de ${fmt(p)}` : 'Sur devis';
     default: return UNIT_SKIP.includes(unit) ? fmt(p) : `${fmt(p)} / ${unit}`;
   }
 };
@@ -40,7 +40,7 @@ export const formatCatalogPrice = (item) => {
 export const itemsFor = (catalog, categories) => (catalog || []).filter((i) => categories.includes(i.category));
 
 export const fromPriceLabel = (catalog, categories) => {
-  const priced = itemsFor(catalog, categories).filter((i) => Number(i.base_price) > 0);
+  const priced = itemsFor(catalog, categories).filter((i) => Number(i.base_price) > 0 && (i.pricing_type !== 'quote' || i.show_from_price));
   if (!priced.length) return 'Sur devis';
   const min = priced.reduce((a, b) => (Number(a.base_price) <= Number(b.base_price) ? a : b));
   const suffix = min.pricing_type === 'hourly' ? '/h' : min.pricing_type === 'per_unit' ? `/${min.unit}` : '';

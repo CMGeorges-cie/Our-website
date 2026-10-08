@@ -6,6 +6,7 @@ import { MHeader, MCard, Section, Loading, LoadError, Pill, MButton, KV, ListRow
 import { ContactActions, fullAddress } from '../components/ContactActions';
 import { ClientForm } from '../components/ClientForm';
 import { useLoad, useAction } from '../components/useLoad';
+import { EntityActions } from '../components/NextActions';
 import { CLIENT_STATUS, INVOICE_STATUS, PROJECT_STATUS, QUOTE_STATUS, money, shortDate } from '../constants';
 
 export default function MClientDetail() {
@@ -36,7 +37,7 @@ export default function MClientDetail() {
       <MHeader back title={client.full_name} subtitle={client.company_name || client.email}
         action={<button data-testid="m-client-edit" onClick={() => setEdit(true)} className="h-10 w-10 rounded-full border border-[#1E293B] flex items-center justify-center active:bg-white/10"><Pencil className="h-4 w-4 text-[#D4AF37]" /></button>} />
 
-      <Section><ContactActions phone={client.phone} email={client.email} address={fullAddress(client)} /></Section>
+      <Section><ContactActions phone={client.phone} email={client.email} address={fullAddress(client)} channels={client.contact_channels} preferred={client.preferred_channel} /></Section>
 
       <Section>
         <div className="grid grid-cols-2 gap-2.5">
@@ -50,10 +51,13 @@ export default function MClientDetail() {
           <KV k="Téléphone" v={client.phone} />
           <KV k="Courriel" v={<span className="break-all">{client.email}</span>} />
           <KV k="Adresse" v={fullAddress(client) || '—'} />
+          <KV k="Source" v={client.source || '—'} />
           <KV k="Statut" v={<Pill map={CLIENT_STATUS} value={client.status} />} />
           {client.notes && <p className="text-sm text-slate-300 mt-3 pt-3 border-t border-[#1E293B] whitespace-pre-wrap">{client.notes}</p>}
         </MCard>
       </Section>
+
+      <Section title="Prochaines actions"><EntityActions link={{ client_id: id }} /></Section>
 
       <Section title={`Projets (${projects.length})`}>
         <div className="space-y-2">

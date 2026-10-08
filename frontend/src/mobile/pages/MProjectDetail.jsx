@@ -8,6 +8,7 @@ import { ProjectForm } from '../components/ProjectForm';
 import { ProjectPhotos } from '../components/ProjectPhotos';
 import { ProjectTasks } from '../components/ProjectTasks';
 import { useLoad, useAction } from '../components/useLoad';
+import { EntityActions } from '../components/NextActions';
 import { openPdf } from './MQuoteDetail';
 import { PROJECT_STATUS, SERVICE_TYPES, shortDate, progressOf } from '../constants';
 
@@ -67,6 +68,8 @@ export default function MProjectDetail() {
           {p.description && <p className="text-sm text-slate-300 mt-3 pt-3 border-t border-[#1E293B] whitespace-pre-wrap">{p.description}</p>}
         </MCard>
       </Section>
+
+      <Section title="Prochaines actions"><EntityActions link={{ project_id: id, client_id: p.client_id }} /></Section>
 
       <Section title={`Tâches (${(p.tasks || []).length})`}><ProjectTasks projectId={id} tasks={p.tasks || []} onChange={reload} /></Section>
 

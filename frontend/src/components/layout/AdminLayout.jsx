@@ -24,6 +24,7 @@ import {
   Share2,
   KeyRound,
   Settings2,
+  CalendarDays,
 } from 'lucide-react';
 import { authApi } from '@/lib/api';
 import { isAuthenticated, clearAuthData, getCurrentUser } from '@/lib/utils';
@@ -38,6 +39,7 @@ const sidebarLinks = [
   { href: '/admin/leads', label: 'Leads', icon: Users },
   { href: '/admin/clients', label: 'Clients', icon: UserCheck },
   { href: '/admin/projects', label: 'Projets', icon: Briefcase },
+  { href: '/admin/agenda', label: 'Agenda', icon: CalendarDays },
   { href: '/admin/catalog', label: 'Catalogue', icon: Package },
   { href: '/admin/portfolio', label: 'Portfolio', icon: ImageIcon },
   { href: '/admin/social', label: 'Réseaux Sociaux', icon: Share2 },

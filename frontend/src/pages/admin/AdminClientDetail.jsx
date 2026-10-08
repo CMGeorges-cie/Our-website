@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { adminApi } from '@/lib/api';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ClientChannelsCard } from '@/components/admin/ClientChannelsCard';
 import { 
   ArrowLeft, 
   User, 
@@ -204,6 +205,8 @@ export default function AdminClientDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <ClientChannelsCard client={client} onSaved={setClient} />
 
       {/* Quotes Section */}
       <Card className="bg-gray-900 border-gray-800">

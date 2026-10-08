@@ -23,7 +23,7 @@ export const validPhone = (p) => {
 export const validEmail = (e) => !!e && /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(e) && !PLACEHOLDER_TXT.test(e);
 export const validAddress = (a) => !!a && a.replace(/[\s,]/g, '').length > 5 && !PLACEHOLDER_TXT.test(a);
 
-export const ContactActions = ({ phone, email, address }) => {
+export const ContactActions = ({ phone, email, address, channels, preferred }) => {
   const okPhone = validPhone(phone);
   const tel = okPhone ? phone.replace(/[^\d+]/g, '') : '';
   const okEmail = validEmail(email);
@@ -40,8 +40,37 @@ export const ContactActions = ({ phone, email, address }) => {
       <Action href={okEmail && `mailto:${email}`} icon={Mail} label="Courriel" testId="m-action-email" />
       <Action href={maps} icon={Navigation} label="GPS" testId="m-action-gps" external />
     </div>
+    <ChannelLinks channels={channels} preferred={preferred} phone={phone} />
     </>
   );
 };
 
 export const fullAddress = (o) => [o?.address, o?.city, o?.postal_code].filter(Boolean).join(', ');
+
+export const CHANNELS = {
+  whatsapp: { label: 'WhatsApp', hint: 'Numéro', url: (v) => `https://wa.me/${toIntl(v)}` },
+  signal: { label: 'Signal', hint: 'Numéro', url: (v) => `https://signal.me/#p/+${toIntl(v)}` },
+  instagram: { label: 'Instagram', hint: '@utilisateur', url: (v) => `https://instagram.com/${handle(v)}` },
+  messenger: { label: 'Messenger', hint: 'utilisateur', url: (v) => `https://m.me/${handle(v)}` },
+  snapchat: { label: 'Snapchat', hint: '@utilisateur', url: (v) => `https://snapchat.com/add/${handle(v)}` },
+  tiktok: { label: 'TikTok', hint: '@utilisateur', url: (v) => `https://www.tiktok.com/@${handle(v)}` },
+};
+const toIntl = (v) => { const d = (v || '').replace(/\D/g, ''); return d.length === 10 ? `1${d}` : d; };
+const handle = (v) => (v || '').trim().replace(/^@/, '');
+const channelUrl = (k, v) => (/^https?:\/\//.test(v) ? v : CHANNELS[k].url(v));
+
+const ChannelLinks = ({ channels, preferred, phone }) => {
+  const list = Object.entries(channels || {}).filter(([k, v]) => CHANNELS[k] && v?.trim());
+  if (!list.length && !preferred) return null;
+  return (
+    <div className="flex flex-wrap gap-2 mt-2" data-testid="m-channel-links">
+      {preferred && <span className="text-[11px] text-slate-400 self-center" data-testid="m-preferred-channel">Préfère : <b className="text-[#E9C85A]">{CHANNELS[preferred]?.label || { phone: 'Téléphone', sms: 'Texto', email: 'Courriel' }[preferred] || preferred}</b></span>}
+      {list.map(([k, v]) => (
+        <a key={k} href={channelUrl(k, v === 'phone' ? phone : v)} target="_blank" rel="noopener noreferrer" data-testid={`m-channel-${k}`}
+          className={`rounded-full border px-3 py-1.5 text-xs font-semibold active:scale-95 transition-transform ${preferred === k ? 'border-[#D4AF37] bg-[#D4AF37]/15 text-[#E9C85A]' : 'border-[#1E293B] bg-[#111827] text-slate-200'}`}>
+          {CHANNELS[k].label}
+        </a>
+      ))}
+    </div>
+  );
+};

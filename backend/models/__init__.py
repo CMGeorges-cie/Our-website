@@ -8,7 +8,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -145,12 +145,16 @@ class Lead(LeadBase):
     photos: List[str] = []
     notes: str = ""
     client_id: Optional[str] = None
+    contact_channels: Dict[str, str] = {}
+    preferred_channel: str = ""
 
 
 class LeadUpdate(BaseModel):
     status: Optional[LeadStatus] = None
     notes: Optional[str] = None
     client_id: Optional[str] = None
+    contact_channels: Optional[Dict[str, str]] = None
+    preferred_channel: Optional[str] = None
 
 
 # ==================== CLIENT MODELS ====================
@@ -163,6 +167,9 @@ class ClientBase(BaseModel):
     postal_code: str = ""
     company_name: Optional[str] = None
     notes: str = ""
+    contact_channels: Dict[str, str] = {}  # whatsapp, instagram, snapchat, tiktok, signal, messenger
+    preferred_channel: str = ""
+    source: str = ""  # where the client came from
 
 
 class ClientCreate(ClientBase):
@@ -189,6 +196,9 @@ class ClientUpdate(BaseModel):
     company_name: Optional[str] = None
     notes: Optional[str] = None
     status: Optional[ClientStatus] = None
+    contact_channels: Optional[Dict[str, str]] = None
+    preferred_channel: Optional[str] = None
+    source: Optional[str] = None
 
 
 # ==================== CONTACT FORM ====================

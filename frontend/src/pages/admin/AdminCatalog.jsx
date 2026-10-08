@@ -76,6 +76,7 @@ export default function AdminCatalog() {
     includes: '',
     excludes: '',
     is_featured: false,
+    show_from_price: false,
   });
 
   useEffect(() => {
@@ -142,6 +143,7 @@ export default function AdminCatalog() {
       includes: (service.includes || []).join('\n'),
       excludes: (service.excludes || []).join('\n'),
       is_featured: service.is_featured || false,
+      show_from_price: service.show_from_price || false,
     });
     setShowModal(true);
   };
@@ -182,6 +184,7 @@ export default function AdminCatalog() {
       includes: '',
       excludes: '',
       is_featured: false,
+    show_from_price: false,
     });
   };
 
@@ -456,6 +459,20 @@ export default function AdminCatalog() {
               />
               <label className="text-sm">Service en vedette</label>
             </div>
+
+            {formData.pricing_type === 'quote' && (
+              <div className="flex items-start gap-2">
+                <Switch
+                  data-testid="catalog-show-from-price"
+                  checked={formData.show_from_price}
+                  onCheckedChange={(v) => setFormData({ ...formData, show_from_price: v })}
+                />
+                <label className="text-sm">
+                  Afficher « À partir de {formData.base_price || 0} $ » publiquement
+                  <span className="block text-xs text-muted-foreground">Décoché : le site affiche « Sur devis » (le montant reste interne).</span>
+                </label>
+              </div>
+            )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowModal(false)}>

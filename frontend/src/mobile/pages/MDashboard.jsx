@@ -4,6 +4,7 @@ import { adminApi } from '@/lib/api';
 import { getCurrentUser } from '@/lib/utils';
 import { MCard, ListRow, Loading, LoadError, Pill, Section } from '../components/MUi';
 import { useLoad } from '../components/useLoad';
+import { ActionRow } from '../components/NextActions';
 import { LEAD_STATUS, PROJECT_STATUS, money, shortDate, progressOf } from '../constants';
 
 const Stat = ({ label, value, icon: Icon, accent, testId, onClick }) => (
@@ -25,15 +26,15 @@ export default function MDashboard() {
   const navigate = useNavigate();
   const user = getCurrentUser();
   const { data, loading, error, reload } = useLoad(async () => {
-    const [s, c, l, p] = await Promise.all([
-      adminApi.getStats(), adminApi.getCeoDashboard(), adminApi.getLeads({ status: 'new' }), adminApi.getProjects({ status: 'in_progress' }),
+    const [s, c, l, p, a] = await Promise.all([
+      adminApi.getStats(), adminApi.getCeoDashboard(), adminApi.getLeads({ status: 'new' }), adminApi.getProjects({ status: 'in_progress' }), adminApi.getActions({ open_only: true, limit: 4 }),
     ]);
-    return { stats: s.data, ceo: c.data, leads: l.data.slice(0, 4), projects: p.data.slice(0, 4) };
+    return { stats: s.data, ceo: c.data, leads: l.data.slice(0, 4), projects: p.data.slice(0, 4), actions: a.data };
   });
 
   if (loading) return <Loading />;
   if (!data) return <LoadError error={error} onRetry={reload} />;
-  const { stats, ceo, leads, projects } = data;
+  const { stats, ceo, leads, projects, actions } = data;
   const month = new Intl.DateTimeFormat('fr-CA', { month: 'long' }).format(new Date());
 
   return (
@@ -67,6 +68,13 @@ export default function MDashboard() {
           <Quick testId="m-quick-new-client" icon={UserPlus} label="Client" onClick={() => navigate('/m/clients?new=1')} />
           <Quick testId="m-quick-new-project" icon={HardHat} label="Projet" onClick={() => navigate('/m/projects?new=1')} />
           <Quick testId="m-quick-new-invoice" icon={FilePlus2} label="Facture" onClick={() => navigate('/m/invoices/new')} />
+        </div>
+      </Section>
+
+      <Section title="Prochaines actions" action={<button data-testid="m-dash-agenda" onClick={() => navigate('/m/agenda')} className="text-xs text-[#D4AF37] font-semibold">Agenda</button>}>
+        <div className="space-y-2">
+          {actions.length === 0 && <p className="text-sm text-slate-500">Aucune action prévue.</p>}
+          {actions.map((x) => <ActionRow key={x.id} a={x} onChange={reload} />)}
         </div>
       </Section>
 

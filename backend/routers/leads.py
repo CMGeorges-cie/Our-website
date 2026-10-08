@@ -169,6 +169,9 @@ def build_leads_router(
             address=lead.get("address", ""),
             city=lead.get("city", ""),
             lead_id=lead_id,
+            contact_channels=lead.get("contact_channels") or {},
+            preferred_channel=lead.get("preferred_channel", ""),
+            source="site web",
         )
         doc = client.model_dump()
         doc["created_at"] = doc["created_at"].isoformat()

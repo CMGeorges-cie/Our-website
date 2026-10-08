@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, TrendingUp, Bell, UserCircle, Download, Monitor, LogOut, ChevronRight, Share } from 'lucide-react';
+import { CalendarDays, Users, FileText, TrendingUp, Bell, UserCircle, Download, Monitor, LogOut, ChevronRight, Share } from 'lucide-react';
 import { toast } from 'sonner';
 import { authApi } from '@/lib/api';
 import { clearAuthData } from '@/lib/utils';
@@ -52,6 +52,7 @@ export default function MMore() {
       <MHeader title="Plus" subtitle="Tous les outils de gestion" />
       <Section title="Gestion">
         <Group>
+          <Item testId="m-more-agenda" icon={CalendarDays} label="Agenda" hint="Chantiers de la semaine, relances clients" onClick={() => navigate('/m/agenda')} />
           <Item testId="m-more-clients" icon={Users} label="Clients" hint="Fiches, historique, accès portail" onClick={() => navigate('/m/clients')} />
           <Item testId="m-more-quotes" icon={FileText} label="Soumissions" hint="Devis envoyés et acceptés" onClick={() => navigate('/m/quotes')} />
           <Item testId="m-more-revenue" icon={TrendingUp} label="Revenus" hint="Vue CEO, marges, encaissements" onClick={() => navigate('/m/revenue')} />

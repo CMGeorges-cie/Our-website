@@ -994,6 +994,7 @@ async def get_me(user: dict = Depends(get_current_user)):
 from services.test_data import exclude_test, test_client_ids, test_lead_ids  # noqa: E402
 from routers.site_settings import build_site_settings_router  # noqa: E402
 from routers.test_data import build_test_data_router  # noqa: E402
+from routers.agenda import build_agenda_router  # noqa: E402
 
 
 async def _real_scope():
@@ -2767,6 +2768,7 @@ v1_router.include_router(
 
 v1_router.include_router(build_site_settings_router(db, require_admin))
 v1_router.include_router(build_test_data_router(db, require_admin, create_audit_log))
+v1_router.include_router(build_agenda_router(db, get_current_user, create_notification))
 api_router.include_router(v1_router)
 api_router.include_router(v2_router)
 

@@ -108,6 +108,11 @@ export const adminApi = {
   createProject: (data) => api.post('/admin/projects', data),
   updateProject: (id, data) => api.patch(`/admin/projects/${id}`, data),
   deleteProject: (id) => api.delete(`/admin/projects/${id}`),
+  getAgenda: (start, end) => api.get('/admin/agenda', { params: { start, end } }),
+  getActions: (params) => api.get('/admin/actions', { params }),
+  createAction: (data) => api.post('/admin/actions', data),
+  updateAction: (id, data) => api.patch(`/admin/actions/${id}`, data),
+  deleteAction: (id) => api.delete(`/admin/actions/${id}`),
   uploadProjectPhotos: (id, formData) => api.post(`/admin/projects/${id}/photos`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   deleteProjectPhoto: (id, photoId) => api.delete(`/admin/projects/${id}/photos/${photoId}`),
   

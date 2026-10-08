@@ -53,6 +53,7 @@ class ServiceCreate(BaseModel):
     includes: List[str] = []  # Ce qui est inclus
     excludes: List[str] = []  # Ce qui n'est pas inclus
     is_featured: bool = False
+    show_from_price: bool = False
     sort_order: int = 0
 
 
@@ -70,6 +71,7 @@ class ServiceUpdate(BaseModel):
     excludes: Optional[List[str]] = None
     is_active: Optional[bool] = None
     is_featured: Optional[bool] = None
+    show_from_price: Optional[bool] = None
     sort_order: Optional[int] = None
 
 

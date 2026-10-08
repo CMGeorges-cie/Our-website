@@ -1,9 +1,9 @@
 """Admin test-data cleanup: preview then purge test/demo records."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from services.test_data import LABELS, TEST_FIELDS, test_client_ids, test_lead_ids, test_match
@@ -15,8 +15,13 @@ DISPLAY = {
 }
 
 
+class MarkRealRequest(BaseModel):
+    collection: str
+    id: str
+
+
 class PurgeRequest(BaseModel):
-    ids: Optional[Dict[str, List[str]]] = None  # None = everything detected
+    ids: Dict[str, List[str]]
 
 
 def build_test_data_router(db, require_admin, create_audit_log) -> APIRouter:
@@ -24,9 +29,14 @@ def build_test_data_router(db, require_admin, create_audit_log) -> APIRouter:
 
     async def _candidates() -> Dict[str, list]:
         out: Dict[str, list] = {}
-        for coll in TEST_FIELDS:
-            out[coll] = await db[coll].find(test_match(coll), {"_id": 0}).to_list(1000)
         cids, lids = await test_client_ids(db), await test_lead_ids(db)
+        for coll in TEST_FIELDS:
+            q = test_match(coll)
+            if coll == "clients":
+                q = {"id": {"$in": cids}}
+            elif coll == "leads":
+                q = {"id": {"$in": lids}}
+            out[coll] = await db[coll].find(q, {"_id": 0}).to_list(1000)
         out["invoices"] = await db.invoices.find({"client_id": {"$in": cids}}, {"_id": 0}).to_list(1000)
         out["quotes"] = await db.quotes.find({"lead_id": {"$in": lids}}, {"_id": 0}).to_list(1000)
         return out
@@ -43,13 +53,23 @@ def build_test_data_router(db, require_admin, create_audit_log) -> APIRouter:
             for coll, docs in found.items() if docs
         ]
 
+    @router.post("/admin/test-data/mark-real")
+    async def mark_real(body: MarkRealRequest, user: dict = Depends(require_admin)):
+        if body.collection not in TEST_FIELDS:
+            raise HTTPException(status_code=400, detail="Collection non protégeable")
+        r = await db[body.collection].update_one({"id": body.id}, {"$set": {"is_real": True}})
+        if r.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Élément introuvable")
+        await create_audit_log("marked_real", body.collection, body.id, user=user)
+        return {"success": True}
+
     @router.post("/admin/test-data/purge")
     async def purge_test_data(body: PurgeRequest, user: dict = Depends(require_admin)):
         found = await _candidates()
         deleted = {}
         for coll, docs in found.items():
             allowed = {d.get("id") for d in docs}
-            ids = allowed if body.ids is None else allowed & set(body.ids.get(coll, []))
+            ids = allowed & set((body.ids or {}).get(coll, []))
             if ids:
                 r = await db[coll].delete_many({"id": {"$in": list(ids)}})
                 deleted[coll] = r.deleted_count
