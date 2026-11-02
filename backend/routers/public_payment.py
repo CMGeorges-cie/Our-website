@@ -89,7 +89,7 @@ def build_public_payment_router(
         token: str, body: StripeCheckoutRequest, request: Request
     ):
         """Create a Stripe checkout session for the invoice's remaining balance."""
-        from emergentintegrations.payments.stripe.checkout import (
+        from services.stripe_checkout import (
             CheckoutSessionRequest,
             StripeCheckout,
         )
@@ -140,7 +140,7 @@ def build_public_payment_router(
     @router.get("/public/invoice/{token}/status/{session_id}")
     async def check_public_payment_status(token: str, session_id: str, request: Request):
         """Poll after Stripe redirect. Records the payment on first 'paid' detection."""
-        from emergentintegrations.payments.stripe.checkout import StripeCheckout
+        from services.stripe_checkout import StripeCheckout
 
         invoice = await db.invoices.find_one({"payment_link_token": token}, {"_id": 0})
         if not invoice:
