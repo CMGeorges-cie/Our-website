@@ -9,7 +9,6 @@ import {
   Wrench, 
   Hammer,
   Sofa,
-  Trash2,
   ArrowRight, 
   Shield, 
   Clock, 
@@ -65,14 +64,6 @@ const services = [
     href: '/services/mobilier',
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
     features: ['Assemblage IKEA', 'Montage mural', 'Déménagement léger', 'Rangement & organisation']
-  },
-  {
-    icon: Trash2,
-    title: 'Démolition résidentielle & commerciale',
-    description: 'Avant de rénover, on démolit tout — proprement, rapidement, professionnellement. Cuisine, salle de bain, sous-sol, planchers.',
-    href: '/services/demolition',
-    image: '/portfolio/demolition_hero.jpg',
-    features: ['Cuisine complète', 'Salle de bain', 'Sous-sol & cloisons', 'Évacuation débris']
   }
 ];
 

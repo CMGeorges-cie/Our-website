@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Trash2, Flame, Snowflake, Tv, Sparkles } from 'lucide-react';
+import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Flame, Snowflake, Tv, Sparkles } from 'lucide-react';
 import { CatalogFromPrice } from '@/components/public/CatalogPricing';
 
 const services = [
@@ -60,15 +60,6 @@ const services = [
     features: ['Paniers tout inclus dès 429 $', 'Mesure 49 $ déduite', 'Pose au niveau laser', 'Aucune modification au bâtiment'],
     categories: ['decoration'],
     testId: 'service-card-decoration',
-  },
-  {
-    icon: Trash2,
-    title: 'Démolition résidentielle & commerciale',
-    description: 'Avant de rénover, on démolit tout — proprement, rapidement, professionnellement. Cuisine, salle de bain, sous-sol, planchers.',
-    href: '/services/demolition',
-    image: '/portfolio/demolition_hero.jpg',
-    features: ['Cuisine complète', 'Salle de bain', 'Sous-sol & cloisons', 'Évacuation débris'],
-    categories: ['demolition'],
   },
   {
     icon: Snowflake,

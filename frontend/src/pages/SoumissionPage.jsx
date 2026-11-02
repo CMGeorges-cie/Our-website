@@ -34,7 +34,6 @@ const serviceTypes = [
   { value: 'manual', label: 'Peinture & Rénovation', icon: Paintbrush },
   { value: 'murs-accent', label: 'Mur Accent — Cheminée & TV', icon: Flame },
   { value: 'furniture', label: 'Installation de mobilier', icon: Sofa },
-  { value: 'demolition', label: 'Démolition légère', icon: Hammer },
   { value: 'maintenance', label: 'Entretien & réparations', icon: WrenchIcon },
   { value: 'hvac', label: 'Climatiseur & thermopompe', icon: Snowflake },
   { value: 'tech', label: 'Installation TV & Tech', icon: Tv },
