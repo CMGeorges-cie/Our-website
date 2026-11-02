@@ -18,6 +18,7 @@ import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 import PaymentCancelPage from "@/pages/PaymentCancelPage";
 import PublicInvoicePaymentPage from "@/pages/PublicInvoicePaymentPage";
 import MobilierPage from "@/pages/MobilierPage";
+import DecorationPage from "@/pages/DecorationPage";
 import DemolitionPage from "@/pages/DemolitionPage";
 import MursAccentPage from "@/pages/MursAccentPage";
 import PortfolioPage from "@/pages/PortfolioPage";
@@ -185,6 +186,8 @@ function App() {
               <Route path="/services/tv-tech" element={<TvTechPage />} />
               <Route path="/services/mobilier" element={<MobilierPage />} />
               <Route path="/mobilier" element={<MobilierPage />} />
+              <Route path="/services/decoration" element={<DecorationPage />} />
+              <Route path="/decoration" element={<DecorationPage />} />
               <Route path="/services/demolition" element={<DemolitionPage />} />
               <Route path="/demolition" element={<DemolitionPage />} />
               <Route path="/services/murs-accent" element={<MursAccentPage />} />
