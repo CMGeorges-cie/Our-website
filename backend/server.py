@@ -760,7 +760,7 @@ import shutil
 from typing import List as TypingList
 from storage import r2 as r2_storage
 
-UPLOAD_DIR = "/app/frontend/public/uploads"  # legacy fallback only
+UPLOAD_DIR = os.environ.get("UPLOAD_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads"))  # local fallback only; R2 is primary when configured
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @v1_router.post("/upload/photos")
