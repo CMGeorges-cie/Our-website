@@ -1,5 +1,5 @@
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster } from "@/components/ui/sonner";
 import { useEffect } from "react";
@@ -12,7 +12,6 @@ import PeinturePage from "@/pages/PeinturePage";
 import RenovationPage from "@/pages/RenovationPage";
 import EntretienPage from "@/pages/EntretienPage";
 import ClimatiseursPage from "@/pages/ClimatiseursPage";
-import TvTechPage from "@/pages/TvTechPage";
 import PaymentPage from "@/pages/PaymentPage";
 import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 import PaymentCancelPage from "@/pages/PaymentCancelPage";
@@ -182,7 +181,7 @@ function App() {
               <Route path="/services/renovation" element={<RenovationPage />} />
               <Route path="/services/entretien" element={<EntretienPage />} />
               <Route path="/services/climatiseurs" element={<ClimatiseursPage />} />
-              <Route path="/services/tv-tech" element={<TvTechPage />} />
+              <Route path="/services/tv-tech" element={<Navigate to="/services/mobilier" replace />} />
               <Route path="/services/mobilier" element={<MobilierPage />} />
               <Route path="/mobilier" element={<MobilierPage />} />
               <Route path="/services/decoration" element={<DecorationPage />} />
