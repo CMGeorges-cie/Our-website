@@ -1,7 +1,9 @@
 """
 AI-assisted drafting for Quotes and Invoices — Déco Touché.
 
-Uses Claude Sonnet 4.5 via emergentintegrations (Emergent universal LLM key).
+Uses Claude Sonnet 4.5 via a configurable LLM key (LLM_API_KEY). Fonction
+OPTIONNELLE : sans clé configurée, les brouillons IA se désactivent proprement
+(HTTP 503 sur ces deux routes seulement) et le reste du CRM n'est pas affecté.
 Returns JSON-parseable, structured drafts that the admin can review, edit, and persist.
 
 Endpoints (registered under /api/v1):
@@ -24,7 +26,9 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY")
+# Clé LLM optionnelle : LLM_API_KEY est la variable canonique depuis la
+# migration; EMERGENT_LLM_KEY reste lue en repli (ancien environnement Emergent).
+LLM_API_KEY = os.environ.get("LLM_API_KEY") or os.environ.get("EMERGENT_LLM_KEY")
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-sonnet-4-5-20250929")
 
 SYSTEM_PROMPT_QUOTE = """Tu es un assistant expert pour Déco Touché, entreprise québécoise de rénovation, peinture, entretien général, installation de mobilier et démolition légère (région de Montréal et Rive-Sud).
@@ -148,34 +152,24 @@ def _extract_json(text: str) -> dict:
 
 
 async def _call_claude(system_prompt: str, user_text: str) -> dict:
-    """Call Claude via emergentintegrations and parse JSON response."""
-    if not EMERGENT_LLM_KEY:
-        raise HTTPException(status_code=503, detail="LLM non configuré (EMERGENT_LLM_KEY manquant)")
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-    except ImportError as e:
-        logger.error(f"emergentintegrations import failed: {e}")
-        raise HTTPException(status_code=503, detail="Bibliothèque LLM indisponible")
+    """Call the configured LLM and parse the JSON response.
 
-    chat = LlmChat(
-        api_key=EMERGENT_LLM_KEY,
-        session_id=f"ai-draft-{uuid.uuid4()}",
-        system_message=system_prompt,
-    ).with_model("anthropic", CLAUDE_MODEL)
-
-    try:
-        response = await chat.send_message(UserMessage(text=user_text))
-    except Exception as e:
-        logger.error(f"Claude call failed: {e}")
-        raise HTTPException(status_code=502, detail=f"Erreur LLM : {str(e)[:200]}")
-
-    # Response may be a string or an object with a `.content` attr depending on SDK
-    raw = response if isinstance(response, str) else getattr(response, "content", str(response))
-    try:
-        return _extract_json(raw)
-    except json.JSONDecodeError:
-        logger.error(f"Claude returned non-JSON: {raw[:500]}")
-        raise HTTPException(status_code=502, detail="Réponse LLM invalide (JSON attendu)")
+    Le transport précédent passait par le package privé Emergent
+    (``emergentintegrations``), retiré lors de la migration hors Emergent.
+    Aucun fournisseur LLM n'est branché dans la version migrée pour l'instant :
+    la fonction se désactive proprement (HTTP 503) — avec ou sans clé — et le
+    reste du CRM fonctionne normalement. Le point de branchement futur est ici :
+    configurer ``LLM_API_KEY`` puis implémenter l'appel fournisseur choisi.
+    """
+    if not LLM_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="Brouillons IA désactivés (aucune clé LLM configurée : LLM_API_KEY)",
+        )
+    raise HTTPException(
+        status_code=503,
+        detail="Brouillons IA non branchés dans la version migrée (fournisseur LLM à configurer)",
+    )
 
 
 def _format_lead_context(lead: dict) -> str:
