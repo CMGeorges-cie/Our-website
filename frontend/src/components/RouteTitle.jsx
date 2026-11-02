@@ -10,7 +10,6 @@ const TITLE_MAP = [
   { match: (p) => p === '/services/renovation', title: 'Rénovation légère' },
   { match: (p) => p === '/services/entretien', title: 'Entretien général' },
   { match: (p) => p === '/services/climatiseurs', title: 'Climatiseurs & thermopompes' },
-  { match: (p) => p === '/services/tv-tech', title: 'Installation TV & Tech' },
   { match: (p) => p === '/admin/agenda', title: 'Agenda' },
   { match: (p) => p === '/admin/site-settings', title: 'Paramètres du site' },
   { match: (p) => p === '/services/mobilier' || p === '/mobilier', title: 'Installation de mobilier' },
