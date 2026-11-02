@@ -19,7 +19,6 @@ import PaymentCancelPage from "@/pages/PaymentCancelPage";
 import PublicInvoicePaymentPage from "@/pages/PublicInvoicePaymentPage";
 import MobilierPage from "@/pages/MobilierPage";
 import DecorationPage from "@/pages/DecorationPage";
-import DemolitionPage from "@/pages/DemolitionPage";
 import MursAccentPage from "@/pages/MursAccentPage";
 import PortfolioPage from "@/pages/PortfolioPage";
 import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
@@ -188,8 +187,6 @@ function App() {
               <Route path="/mobilier" element={<MobilierPage />} />
               <Route path="/services/decoration" element={<DecorationPage />} />
               <Route path="/decoration" element={<DecorationPage />} />
-              <Route path="/services/demolition" element={<DemolitionPage />} />
-              <Route path="/demolition" element={<DemolitionPage />} />
               <Route path="/services/murs-accent" element={<MursAccentPage />} />
               <Route path="/murs-accent" element={<MursAccentPage />} />
               <Route path="/portfolio" element={<PortfolioPage />} />
