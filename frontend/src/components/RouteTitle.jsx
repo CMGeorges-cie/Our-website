@@ -14,6 +14,7 @@ const TITLE_MAP = [
   { match: (p) => p === '/admin/agenda', title: 'Agenda' },
   { match: (p) => p === '/admin/site-settings', title: 'Paramètres du site' },
   { match: (p) => p === '/services/mobilier' || p === '/mobilier', title: 'Installation de mobilier' },
+  { match: (p) => p === '/services/decoration' || p === '/decoration', title: 'Décoration — Vente + Installation' },
   { match: (p) => p === '/services/demolition' || p === '/demolition', title: 'Démolition résidentielle & commerciale' },
   { match: (p) => p === '/services/murs-accent' || p === '/murs-accent', title: 'Murs Accent · Cheminée & Télé sur mesure' },
   { match: (p) => p === '/portfolio', title: 'Portfolio' },
