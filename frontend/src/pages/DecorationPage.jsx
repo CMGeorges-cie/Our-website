@@ -43,6 +43,8 @@ const steps = [
 const paniers = [
   {
     icon: Bath,
+    image: '/images/deco/salle-de-bain-eclat.jpg',
+    imageAlt: 'Salle de bain avec miroir LED rétroéclairé, meuble-lavabo marine et accents dorés',
     name: 'Salle de bain Éclat',
     price: '429 $',
     tagline: 'Le relooking de salle de bain en une visite, sans plombier ni électricien.',
@@ -55,6 +57,8 @@ const paniers = [
   },
   {
     icon: Frame,
+    image: '/images/deco/mur-galerie-signature.jpg',
+    imageAlt: 'Mur-galerie de six grands cadres dorés au-dessus d\'un divan, coussins marine et dorés',
     name: 'Mur-Galerie Signature',
     price: '549 $',
     tagline: 'Un mur designé, livré fini — pas juste « poser des cadres ».',
@@ -68,6 +72,8 @@ const paniers = [
   },
   {
     icon: Flame,
+    image: '/images/deco/foyer-ambiance.jpg',
+    imageAlt: 'Foyer électrique mural allumé sur un mur à lattes de bois, divan marine en face',
     name: 'Foyer Ambiance 50 po — vendu et installé',
     price: '1 599 $',
     tagline: 'Le look d\'un foyer de magazine, ce soir même.',
@@ -90,6 +96,8 @@ const produits = [
   },
   {
     icon: Layers,
+    image: '/images/deco/panneaux-lattes-tv.jpg',
+    imageAlt: 'Mur de télé en panneaux acoustiques à lattes de chêne clair',
     name: 'Panneaux acoustiques à lattes de bois',
     price: 'Mur de télé (4–5 panneaux) 999–1 499 $ tout inclus',
     why: 'LE mur de télé du moment : coupes à la hauteur du plafond, pose au niveau, ancrage dans les montants. En prime, une vraie absorption acoustique (NRC 0,70). Panneaux vissés en accent, démontables.'
@@ -162,7 +170,7 @@ export default function DecorationPage() {
             backgroundImage: 'url(https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1920)'
           }}
         />
-        <div className="absolute inset-0 bg-[#1a365d]/90" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0d1f38]/95 via-[#1a365d]/85 to-[#1a365d]/55" />
         <div className="container-main relative z-10 py-20">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#E07A5F] text-white text-sm font-semibold rounded-full mb-6">
@@ -277,6 +285,12 @@ export default function DecorationPage() {
               const Icon = panier.icon;
               return (
                 <Card key={idx} className="p-8 hover-lift flex flex-col" data-testid={`panier-${idx}`}>
+                  <img
+                    src={panier.image}
+                    alt={panier.imageAlt}
+                    loading="lazy"
+                    className="w-full h-52 object-cover rounded-xl mb-6 ring-1 ring-[#d4af37]/30"
+                  />
                   <div className="w-14 h-14 rounded-full bg-[#d4af37]/10 flex items-center justify-center mb-6">
                     <Icon className="h-7 w-7 text-[#d4af37]" />
                   </div>
@@ -323,6 +337,14 @@ export default function DecorationPage() {
               const Icon = produit.icon;
               return (
                 <Card key={idx} className="p-8" data-testid={`produit-${idx}`}>
+                  {produit.image && (
+                    <img
+                      src={produit.image}
+                      alt={produit.imageAlt}
+                      loading="lazy"
+                      className="w-full h-56 object-cover rounded-xl mb-6 ring-1 ring-white/15"
+                    />
+                  )}
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-lg bg-[#E07A5F] flex items-center justify-center flex-shrink-0">
                       <Icon className="h-6 w-6 text-white" />
