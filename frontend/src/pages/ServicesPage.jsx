@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Trash2, Flame, Snowflake, Tv } from 'lucide-react';
+import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Trash2, Flame, Snowflake, Tv, Sparkles } from 'lucide-react';
 import { CatalogFromPrice } from '@/components/public/CatalogPricing';
 
 const services = [
@@ -50,6 +50,16 @@ const services = [
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
     features: ['Assemblage IKEA', 'Montage mural', 'Déménagement léger', 'Organisation'],
     categories: ['furniture'],
+  },
+  {
+    icon: Sparkles,
+    title: 'Décoration — Vente + Installation',
+    description: 'Nouveau : on vend ET on installe ta déco. Miroirs LED, murs-galeries, foyers électriques, papier peint, stores sur mesure — chaque prix est expliqué, produit et pose compris.',
+    href: '/services/decoration',
+    image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600',
+    features: ['Paniers tout inclus dès 429 $', 'Mesure 49 $ déduite', 'Pose au niveau laser', 'Aucune modification au bâtiment'],
+    categories: ['decoration'],
+    testId: 'service-card-decoration',
   },
   {
     icon: Trash2,
@@ -115,12 +125,12 @@ export default function ServicesPage() {
                       <div className="w-10 h-10 bg-[#d4af37]/10 rounded-lg flex items-center justify-center">
                         <service.icon className="h-5 w-5 text-[#d4af37]" />
                       </div>
-                      <h3 className="text-xl font-bold text-[#1a365d] font-['Outfit']">{service.title}</h3>
+                      <h3 className="text-xl font-bold text-white font-['Outfit']">{service.title}</h3>
                     </div>
-                    <p className="text-gray-600 mb-6">{service.description}</p>
+                    <p className="text-gray-300 mb-6">{service.description}</p>
                     <ul className="grid grid-cols-2 gap-2 mb-6">
                       {service.features.map((f, j) => (
-                        <li key={j} className="flex items-center gap-2 text-sm text-gray-500">
+                        <li key={j} className="flex items-center gap-2 text-sm text-gray-300">
                           <CheckCircle className="h-4 w-4 text-[#d4af37]" /> {f}
                         </li>
                       ))}
