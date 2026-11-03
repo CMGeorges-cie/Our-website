@@ -10,7 +10,8 @@ import {
   ArrowRight, 
   CheckCircle,
   Clock,
-  DollarSign
+  DollarSign,
+  Tv
 } from 'lucide-react';
 
 const steps = [
@@ -121,6 +122,38 @@ export default function MobilierPage() {
                 </Card>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* TV au mur — même visite, même service */}
+      <section className="section-spacing bg-white" data-testid="tv-section">
+        <div className="container-main">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center max-w-5xl mx-auto">
+            <img
+              src="/portfolio/projet_tv_murale_img_5520.jpg"
+              alt="Téléviseur installé au mur par Déco Touché"
+              loading="lazy"
+              className="w-full h-72 object-cover rounded-2xl shadow-lg"
+            />
+            <div>
+              <div className="w-12 h-12 rounded-lg bg-[#d4af37]/15 flex items-center justify-center mb-4">
+                <Tv className="h-6 w-6 text-[#d4af37]" />
+              </div>
+              <h2 className="text-3xl font-bold text-[#1a365d] mb-4 font-['Outfit']">
+                Ta TV aussi, au mur — dans le même service
+              </h2>
+              <p className="text-gray-600 mb-4">
+                Pas besoin d'un service séparé : poser une TV au mur, c'est de l'installation,
+                comme tes meubles et tes tablettes. On fixe le support dans les montants, on met
+                la TV au niveau, on installe la barre de son — et on branche le tout dans la prise.
+              </p>
+              <ul className="space-y-2 text-gray-600">
+                <li className="flex gap-2"><CheckCircle className="h-5 w-5 text-[#d4af37] flex-shrink-0" /> Support mural : le tien ou fourni par nous</li>
+                <li className="flex gap-2"><CheckCircle className="h-5 w-5 text-[#d4af37] flex-shrink-0" /> Pose au niveau, ancrage dans les montants</li>
+                <li className="flex gap-2"><CheckCircle className="h-5 w-5 text-[#d4af37] flex-shrink-0" /> Combinable avec tes meubles dans la même visite</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
