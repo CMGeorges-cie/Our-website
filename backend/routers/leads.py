@@ -13,8 +13,12 @@ Admin:
 """
 from __future__ import annotations
 
+import asyncio
+import logging
 from datetime import datetime
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
@@ -69,15 +73,27 @@ def build_leads_router(
 
         doc = lead.model_dump()
         doc["created_at"] = doc["created_at"].isoformat()
-        await db.leads.insert_one(doc)
+        # Sauvegarde « au mieux » : si la base de données est injoignable,
+        # la demande ne doit jamais être perdue — les notifications courriel
+        # ci-dessous deviennent la trace, et le client reçoit sa confirmation.
+        try:
+            await asyncio.wait_for(db.leads.insert_one(doc), timeout=6)
+        except Exception as exc:
+            logger.warning("Lead: sauvegarde BD échouée (%s) — notification courriel seule", exc)
 
-        await create_audit_log(
-            "lead_created",
-            "lead",
-            lead.id,
-            details={"source": lead.source, "service_type": lead.service_type},
-            request=request,
-        )
+        try:
+            await asyncio.wait_for(
+                create_audit_log(
+                    "lead_created",
+                    "lead",
+                    lead.id,
+                    details={"source": lead.source, "service_type": lead.service_type},
+                    request=request,
+                ),
+                timeout=4,
+            )
+        except Exception as exc:
+            logger.warning("Lead: journal d'audit échoué (%s)", exc)
 
         lead_dict = {**doc, "id": lead.id}
         await notify_new_lead(lead_dict, background_tasks)
