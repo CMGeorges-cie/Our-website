@@ -21,7 +21,7 @@ export const CatalogPriceList = ({ categories, service, testId = 'catalog-price-
         {catalog !== null && items.length === 0 && (
           <div className="md:col-span-2 flex justify-between items-center p-4 bg-gray-50 rounded-lg">
             <p className="font-semibold text-[#1a365d] text-sm">Tarification personnalisée</p>
-            <span className="font-bold text-[#d4af37] text-sm">Sur devis</span>
+            <span className="font-extrabold text-[#1a365d] text-base">Sur devis</span>
           </div>
         )}
         {items.map((it) => (
@@ -32,7 +32,7 @@ export const CatalogPriceList = ({ categories, service, testId = 'catalog-price-
                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5"><Clock className="h-3 w-3" /> {it.estimated_duration}</p>
               )}
             </div>
-            <span className="font-bold text-[#d4af37] text-sm text-right whitespace-nowrap">{formatCatalogPrice(it)}</span>
+            <span className="font-extrabold text-[#1a365d] text-base text-right whitespace-nowrap">{formatCatalogPrice(it)}</span>
           </div>
         ))}
       </div>

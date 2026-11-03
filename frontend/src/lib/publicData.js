@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { FALLBACK_CATALOG } from './fallbackCatalog';
 
 const BASE = process.env.REACT_APP_BACKEND_URL;
 const cache = {};
+const FALLBACKS = { catalog: FALLBACK_CATALOG };
 
 const load = (key, url) => {
-  if (!cache[key]) cache[key] = axios.get(`${BASE}${url}`).then((r) => r.data).catch(() => { delete cache[key]; return null; });
+  if (!cache[key]) cache[key] = axios.get(`${BASE}${url}`, { timeout: 8000 }).then((r) => r.data).catch(() => {
+    if (FALLBACKS[key]) { cache[key] = Promise.resolve(FALLBACKS[key]); return FALLBACKS[key]; }
+    delete cache[key]; return null;
+  });
   return cache[key];
 };
 
