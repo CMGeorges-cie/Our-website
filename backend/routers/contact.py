@@ -6,12 +6,16 @@ Public:
 """
 from __future__ import annotations
 
+import asyncio
+import logging
 import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 
 from models import ContactForm
+
+logger = logging.getLogger(__name__)
 
 
 def build_contact_router(
@@ -53,7 +57,13 @@ def build_contact_router(
             "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "new",
         }
-        await db.contact_messages.insert_one(contact_doc)
+        # Sauvegarde « au mieux » : si la base de données est injoignable,
+        # le message ne doit jamais être perdu — le courriel ci-dessous
+        # devient la trace, et le visiteur reçoit quand même son succès.
+        try:
+            await asyncio.wait_for(db.contact_messages.insert_one(contact_doc), timeout=6)
+        except Exception as exc:
+            logger.warning("Contact: sauvegarde BD échouée (%s) — courriel seul", exc)
 
         html_content = f"""
         <h2>Nouveau message de contact</h2>
