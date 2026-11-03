@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Flame, Snowflake, Tv, Sparkles } from 'lucide-react';
+import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Flame, Snowflake, Sparkles } from 'lucide-react';
 import { CatalogFromPrice } from '@/components/public/CatalogPricing';
 
 const services = [
@@ -44,11 +44,11 @@ const services = [
   },
   {
     icon: Sofa,
-    title: 'Installation de mobilier',
-    description: 'Assemblage et installation professionnelle de meubles IKEA, Wayfair et plus.',
+    title: 'Mobilier & installation',
+    description: 'Assemblage de meubles IKEA, Wayfair et plus — et tout ce qui s\'installe au mur : TV, tablettes, cadres, tringles.',
     href: '/services/mobilier',
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
-    features: ['Assemblage IKEA', 'Montage mural', 'Déménagement léger', 'Organisation'],
+    features: ['Assemblage IKEA', 'TV murale & barre de son', 'Tablettes & ancrages', 'Déménagement léger'],
     categories: ['furniture'],
   },
   {
@@ -57,7 +57,7 @@ const services = [
     description: 'Nouveau : on vend ET on installe ta déco. Miroirs LED, murs-galeries, foyers électriques, papier peint, stores sur mesure — chaque prix est expliqué, produit et pose compris.',
     href: '/services/decoration',
     image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=600',
-    features: ['Paniers tout inclus dès 429 $', 'Mesure 49 $ déduite', 'Pose au niveau laser', 'Aucune modification au bâtiment'],
+    features: ['Paniers tout inclus dès 429 $', 'Mesure 49 $ déduite', 'Pose au niveau laser', 'Zéro travaux, pose propre'],
     categories: ['decoration'],
     testId: 'service-card-decoration',
   },
@@ -70,16 +70,6 @@ const services = [
     features: ['Nettoyage complet', 'Entretien saisonnier', 'Installation', 'Diagnostic'],
     categories: ['hvac'],
     testId: 'service-card-hvac',
-  },
-  {
-    icon: Tv,
-    title: 'Installation TV & Tech',
-    description: 'Installation murale de téléviseurs, câblage dissimulé, configuration audio-vidéo et solutions technologiques.',
-    href: '/services/tv-tech',
-    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600',
-    features: ['Support TV mural', 'Câblage dissimulé', 'Barre de son', 'Site web & tech'],
-    categories: ['installation', 'tech'],
-    testId: 'service-card-tech',
   },
 ];
 
