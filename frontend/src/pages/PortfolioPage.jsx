@@ -5,6 +5,7 @@ import {
   Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 } from '@/components/ui/carousel';
 import { publicApi } from '@/lib/api';
+import { FALLBACK_PORTFOLIO } from '@/lib/fallbackPortfolio';
 import { getServiceLabel } from '@/lib/utils';
 
 // Normalize an item's images into a list, with legacy fallback
@@ -115,9 +116,11 @@ export default function PortfolioPage() {
     const fetchPortfolio = async () => {
       try {
         const response = await publicApi.getPortfolio();
-        setPortfolio(response.data);
+        const data = Array.isArray(response.data) ? response.data : [];
+        setPortfolio(data.length ? data : FALLBACK_PORTFOLIO);
       } catch (error) {
         console.error('Error fetching portfolio:', error);
+        setPortfolio(FALLBACK_PORTFOLIO);
       } finally {
         setLoading(false);
       }
