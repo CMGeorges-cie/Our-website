@@ -33,10 +33,9 @@ const RECAPTCHA_SITE_KEY = process.env.REACT_APP_RECAPTCHA_SITE_KEY;
 const serviceTypes = [
   { value: 'manual', label: 'Peinture & Rénovation', icon: Paintbrush },
   { value: 'murs-accent', label: 'Mur Accent — Cheminée & TV', icon: Flame },
-  { value: 'furniture', label: 'Installation de mobilier', icon: Sofa },
+  { value: 'furniture', label: 'Mobilier, TV & installation au mur', icon: Sofa },
   { value: 'maintenance', label: 'Entretien & réparations', icon: WrenchIcon },
   { value: 'hvac', label: 'Climatiseur & thermopompe', icon: Snowflake },
-  { value: 'tech', label: 'Installation TV & Tech', icon: Tv },
 ];
 
 const itemTypes = [

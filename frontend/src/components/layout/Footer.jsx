@@ -43,7 +43,6 @@ export default function Footer() {
               <li><Link to="/services/renovation" className="text-white/70 hover:text-white transition-colors">Rénovation légère</Link></li>
               <li><Link to="/services/entretien" className="text-white/70 hover:text-white transition-colors">Entretien général</Link></li>
               <li><Link to="/services/climatiseurs" className="text-white/70 hover:text-white transition-colors">Climatiseurs &amp; thermopompes</Link></li>
-              <li><Link to="/services/tv-tech" className="text-white/70 hover:text-white transition-colors">Installation TV &amp; Tech</Link></li>
               <li><Link to="/services/mobilier" className="text-white/70 hover:text-white transition-colors">Installation de mobilier</Link></li>
               <li><Link to="/services/decoration" className="text-white/70 hover:text-white transition-colors">Décoration — Vente + Installation</Link></li>
             </ul>

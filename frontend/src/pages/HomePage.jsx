@@ -59,11 +59,11 @@ const services = [
   },
   {
     icon: Sofa,
-    title: 'Installation de mobilier',
+    title: 'Mobilier & installation',
     description: 'Assemblage et installation professionnelle de meubles IKEA, Wayfair et autres. Service rapide et soigné.',
     href: '/services/mobilier',
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
-    features: ['Assemblage IKEA', 'Montage mural', 'Déménagement léger', 'Rangement & organisation']
+    features: ['Assemblage IKEA', 'TV murale & barre de son', 'Tablettes & ancrages', 'Déménagement léger']
   }
 ];
 

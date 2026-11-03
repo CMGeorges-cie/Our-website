@@ -36,7 +36,7 @@ const steps = [
   {
     icon: Sparkles,
     title: 'Installation professionnelle',
-    description: 'Pose au niveau laser, ancrages inclus, finition soignée. Produits accrochés ou posés seulement — aucune modification au bâtiment.'
+    description: 'Pose au niveau laser, ancrages inclus, finition soignée. Produits accrochés ou posés seulement — zéro travaux, zéro poussière.'
   }
 ];
 
@@ -80,7 +80,7 @@ const paniers = [
     includes: [
       'Foyer électrique Napoleon Entice 50 po (détail 1 199 $)',
       'Montage mural + finition + mise en service',
-      'Branchable dans une prise — aucune modification électrique',
+      'Se branche dans une prise ordinaire',
       'Environ 1 h 30, une seule visite'
     ],
     why: 'Le foyer seul se vend 1 199 $. Pour 400 $ de plus, tout est fait : livraison, montage mural, finition et mise en service. Aucun travaux, aucune cheminée à construire.'
@@ -142,20 +142,24 @@ const produits = [
 
 const faqs = [
   {
-    q: 'Avez-vous besoin d\'une licence RBQ pour ces travaux?',
-    a: 'Non. Il s\'agit de décoration seulement : des produits accrochés ou posés, sans aucune modification au bâtiment. C\'est pour ça qu\'on peut te servir dès maintenant.'
-  },
-  {
-    q: 'Et si le produit doit être branché dans le mur (câblé)?',
-    a: 'On installe uniquement des produits à fiche (branchables dans une prise) ou sur piles. Si un branchement filaire est requis, il est fait par un électricien licencié, à ta charge — on te le dit avant, jamais de surprise.'
+    q: 'Je peux acheter mes produits moi-même?',
+    a: 'Bien sûr! Apporte ton produit, on vient le poser : 149 $ la visite, 49 $ par item de plus posé le même jour. Et si tu préfères ne pas courir les magasins, on te fournit les produits aux mêmes prix qu\'en magasin — la pose est planifiée dès l\'achat.'
   },
   {
     q: 'La visite de mesure à 49 $, ça fonctionne comment?',
     a: 'Tu paies 49 $ pour la visite de mesure et le choix des produits. Si tu passes la commande, les 49 $ sont déduits à 100 % de ta facture. Zéro risque.'
   },
   {
+    q: 'Comment je paie?',
+    a: 'Un acompte seulement si on commande un produit sur mesure pour toi. Le reste, tu le paies quand le travail est fini et que tu as vu le résultat. Interac ou comptant, comme tu préfères.'
+  },
+  {
+    q: 'Vous vous déplacez où?',
+    a: 'Montréal et la Rive-Sud : Longueuil, Brossard, Saint-Lambert, Laval et les environs. Tu es un peu plus loin? Appelle-nous, on regarde ça ensemble.'
+  },
+  {
     q: 'Quels sont les délais?',
-    a: 'Produits en stock : 3–7 jours. Produits sur mesure (stores, miroirs, murales) : 2–4 semaines selon le fournisseur. L\'installation est garantie 90 jours et les produits vendus sont couverts par la garantie légale du Québec.'
+    a: 'Produits en stock : 3–7 jours. Produits sur mesure (stores, miroirs, murales) : 2–4 semaines selon le fournisseur. Et notre installation est garantie 90 jours.'
   }
 ];
 
@@ -183,8 +187,8 @@ export default function DecorationPage() {
             </h1>
             <p className="text-lg text-white/80 mb-8">
               Tu choisis tes produits, on s'occupe de tout : commande, livraison et
-              installation professionnelle. Travaux de décoration seulement — produits
-              accrochés ou posés, aucune modification au bâtiment.
+              installation professionnelle. Des produits accrochés ou posés, installés
+              proprement — aucun gros travaux, aucune poussière de chantier.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/soumission">
@@ -362,7 +366,7 @@ export default function DecorationPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 text-white">
             {[
-              { icon: Shield, title: 'Décoration seulement', desc: 'Produits accrochés ou posés, démontables. Aucune modification au bâtiment, aucune licence requise pour ce type de travaux.' },
+              { icon: Shield, title: 'Zéro travaux', desc: 'Produits accrochés ou posés, démontables sans traces. Parfait pour les propriétaires comme pour les locataires — et on repart en laissant la place propre.' },
               { icon: Clock, title: 'Délais honnêtes', desc: 'En stock : 3–7 jours. Sur mesure : 2–4 semaines. On te confirme le délai avant que tu paies quoi que ce soit.' },
               { icon: CheckCircle, title: 'Garanties', desc: 'Installation garantie 90 jours. Produits vendus couverts par la garantie légale du Québec.' }
             ].map((item, idx) => {
