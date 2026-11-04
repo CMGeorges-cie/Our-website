@@ -64,10 +64,13 @@ export const authApi = {
 };
 
 // Public API
+// Délai max 8 s sur les lectures publiques : si le serveur de données ne répond pas
+// vite (panne, démarrage lent), l'appel échoue proprement et les pages affichent
+// leurs données de secours au lieu de rester bloquées sur un chargement sans fin.
 export const publicApi = {
-  getServices: () => api.get('/services'),
-  getPortfolio: () => api.get('/portfolio'),
-  getSocialPosts: () => api.get('/social-posts'),
+  getServices: () => api.get('/services', { timeout: 8000 }),
+  getPortfolio: () => api.get('/portfolio', { timeout: 8000 }),
+  getSocialPosts: () => api.get('/social-posts', { timeout: 8000 }),
   createLead: (data) => api.post('/leads', data),
 };
 
