@@ -19,7 +19,11 @@ import {
   Clock,
   ArrowRight,
   CheckCircle,
-  DollarSign
+  DollarSign,
+  KeyRound,
+  Archive,
+  PartyPopper,
+  Briefcase
 } from 'lucide-react';
 
 const steps = [
@@ -84,6 +88,34 @@ const paniers = [
       'Environ 1 h 30, une seule visite'
     ],
     why: 'Le foyer seul se vend 1 199 $. Pour 400 $ de plus, tout est fait : livraison, montage mural, finition et mise en service. Aucun travaux, aucune cheminée à construire.'
+  }
+];
+
+const signatureServices = [
+  {
+    icon: KeyRound,
+    name: 'Home staging',
+    subtitle: 'Valorisation immobilière',
+    price: 'Consultation dès 250 $',
+    description: 'Ta maison prête pour les photos et les visites : désencombrement, dépersonnalisation, réaménagement avec tes meubles et touches déco qui aident à vendre plus vite et plus cher. Consultation, mise en scène partielle ou complète.'
+  },
+  {
+    icon: Archive,
+    name: 'Organisation et rangement haut de gamme',
+    price: 'Sur soumission',
+    description: 'Garde-robes, garde-manger, bureau, garage : on trie, on organise et on installe des systèmes de rangement durables. Une maison claire et fonctionnelle, où chaque chose a sa place.'
+  },
+  {
+    icon: PartyPopper,
+    name: 'Décoration d\'événements',
+    price: 'Sur soumission',
+    description: 'Inaugurations, mariages, réceptions, partys de bureau : on habille ton événement avec notre inventaire déco et on installe tout sur place. Toi, tu profites de ta soirée.'
+  },
+  {
+    icon: Briefcase,
+    name: 'Forfait courtiers immobiliers',
+    price: 'Sur soumission',
+    description: 'Pour les courtiers qui veulent des inscriptions qui se démarquent : staging, touches déco et photos avant/après prêtes à partager. Un partenaire déco pour tes mandats, maison après maison.'
   }
 ];
 
@@ -437,6 +469,60 @@ export default function DecorationPage() {
           <p className="text-sm text-center text-gray-600 mt-8 max-w-3xl mx-auto">
             <strong>Transparence :</strong> prix en $ CAD avant taxes, basés sur les prix de détail publics vérifiés (Home Depot Canada, Wayfair Canada, Bouclair, vitreries locales). Acompte sur les produits avant toute commande sur mesure.
           </p>
+        </div>
+      </section>
+
+      {/* Déco Touché Signature */}
+      <section className="section-spacing bg-[#0a0a0c]" data-testid="signature-section">
+        <div className="container-main">
+          <div className="text-center mb-16">
+            <img
+              src="/images/signature/logo-deco-touche-signature.webp"
+              alt="Logo Déco Touché Signature : lion noir en habit chic, finition or"
+              loading="lazy"
+              className="w-56 h-56 md:w-72 md:h-72 object-cover rounded-full ring-1 ring-[#d4af37]/40 mx-auto mb-8"
+            />
+            <span className="text-[#d4af37] font-semibold text-sm uppercase tracking-wider">La ligne haut de gamme</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mt-2 mb-4 font-['Outfit']">
+              Déco Touché <span className="text-[#d4af37]">Signature</span>
+            </h2>
+            <p className="text-white/70 max-w-2xl mx-auto">
+              Pour les projets qui demandent une touche de plus. Des services haut de gamme,
+              pensés comme une expérience : on s'occupe de tout, du premier coup d'œil à la
+              dernière touche, et chaque prix s'explique avant de commencer.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {signatureServices.map((service, idx) => {
+              const Icon = service.icon;
+              return (
+                <Card key={idx} className="p-8 ring-1 ring-[#d4af37]/25" data-testid={`signature-${idx}`}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-[#d4af37] flex items-center justify-center flex-shrink-0">
+                      <Icon className="h-6 w-6 text-[#1a365d]" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-1 font-['Outfit']">{service.name}</h3>
+                      {service.subtitle && <p className="text-sm font-semibold text-[#d4af37] mb-1">{service.subtitle}</p>}
+                      <p className="text-[#d4af37] font-bold mb-3">{service.price}</p>
+                      <p className="text-gray-300 text-sm">{service.description}</p>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-white/70 mb-6">Un projet Signature en tête? Parlons-en, la première conversation est gratuite.</p>
+            <Link to="/soumission">
+              <Button className="btn-accent" size="lg">
+                Demander une soumission
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
