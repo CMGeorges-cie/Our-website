@@ -145,5 +145,15 @@ export const FALLBACK_CATALOG = [
     "base_price": 99.99,
     "unit": "forfait",
     "estimated_duration": "1 hour"
+  },
+  {
+    "id": "49f19765-5e07-4537-b8e7-be1c7d0ffd45",
+    "name": "Home staging",
+    "category": "staging",
+    "pricing_type": "quote",
+    "base_price": 250.0,
+    "unit": "consultation",
+    "estimated_duration": "Environ 2 heures",
+    "show_from_price": true
   }
 ];

@@ -76,6 +76,7 @@ export const SERVICE_LABELS = {
   maintenance: 'Entretien',
   hvac: 'Climatisation',
   installation: 'Installation TV',
+  staging: 'Home staging',
   tech: 'Tech',
   other: 'Autre',
 };
