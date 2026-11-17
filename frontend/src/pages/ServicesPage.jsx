@@ -66,7 +66,7 @@ const services = [
     title: 'Climatiseurs & thermopompes murales',
     description: 'Nettoyage, entretien et installation de climatiseurs et thermopompes murales pour un air sain et un rendement optimal.',
     href: '/services/climatiseurs',
-    image: 'https://images.unsplash.com/photo-1631545806609-35d4ae440431?w=600',
+    image: 'https://images.unsplash.com/photo-1665522557947-bfcdbe97e567?w=600',
     features: ['Nettoyage complet', 'Entretien saisonnier', 'Installation', 'Diagnostic'],
     categories: ['hvac'],
     testId: 'service-card-hvac',
