@@ -53,7 +53,7 @@ const paniers = [
       'Ensemble d\'accessoires (porte-serviettes, tablette décorative, miroir d\'appoint)',
       'Pose complète incluse'
     ],
-    why: 'Le miroir LED seul vaut environ 165 $ au détail. Ici, le produit, les accessoires ET l\'installation sont compris — un seul prix, une seule visite, zéro casse-tête.'
+    why: 'Le miroir LED seul vaut environ 163 $ au détail. Ici, le produit, les accessoires ET l\'installation sont compris — un seul prix, une seule visite, zéro casse-tête.'
   },
   {
     icon: Frame,
@@ -91,7 +91,7 @@ const produits = [
   {
     icon: Layers,
     name: 'Papier peint autocollant & murales',
-    price: 'Mur accent 549–899 $ · Murale sur mesure 899–1 499 $',
+    price: 'Mur accent dès 549 $ (1 mur ±100 pi²) · Murale sur mesure dès 899 $ (mur type 10 × 10 pi)',
     why: 'Posé par un pro : zéro bulle, raccords de motifs invisibles, coupes parfaites autour des prises. Se retire sans dommage — l\'argument parfait pour les locataires. Motifs fabriqués au Québec disponibles.'
   },
   {
@@ -99,13 +99,13 @@ const produits = [
     image: '/images/deco/panneaux-lattes-tv.jpg',
     imageAlt: 'Mur de télé en panneaux acoustiques à lattes de chêne clair',
     name: 'Panneaux acoustiques à lattes de bois',
-    price: 'Mur de télé (4–5 panneaux) 999–1 499 $ tout inclus',
+    price: 'Mur de télé (environ 8 pi linéaires) dès 999 $ tout inclus',
     why: 'LE mur de télé du moment : coupes à la hauteur du plafond, pose au niveau, ancrage dans les montants. En prime, une vraie absorption acoustique (NRC 0,70). Panneaux vissés en accent, démontables.'
   },
   {
     icon: Leaf,
     name: 'Mur végétal artificiel',
-    price: 'Panneau 349–549 $ · Mur complet 4 × 8 pi 1 299–2 499 $',
+    price: 'Mur complet 4 × 8 pi (32 pi²) dès 1 299 $',
     why: 'L\'effet « resto/boutique » à la maison, zéro entretien. La composition (densité, mélange de feuillages) est un travail d\'artisan, et la fixation d\'un grand panneau doit être solide et parfaitement droite.'
   },
   {
@@ -117,7 +117,7 @@ const produits = [
   {
     icon: AppWindow,
     name: 'Pellicule décorative pour vitres',
-    price: '199–349 $ par surface · 449–799 $ pour 3–4 surfaces',
+    price: '199–349 $ par surface',
     why: 'Intimité de salle de bain, de porte d\'entrée ou de bureau sans changer la fenêtre — et c\'est réversible. Posée à la raclette par un pro, elle a l\'air d\'un verre givré d\'usine, sans bulles.'
   },
   {
@@ -395,47 +395,47 @@ export default function DecorationPage() {
               Aussi à la carte
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Prix des produits seuls — l'installation suit la grille ci-dessus (149 $ la visite + 49 $ par item additionnel).
+              Tu choisis le modèle, on s'occupe de la commande, de la livraison et de la pose. Les prix affichés ici sont des prix installés; les autres modèles sont chiffrés à la visite de mesure.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="p-8">
               <h3 className="text-lg font-semibold text-white mb-4 font-['Outfit']">Miroirs & LED</h3>
               <ul className="space-y-3 text-sm text-gray-200">
-                <li className="flex justify-between gap-4"><span>Miroir LED rond 28 po, anti-buée (à fiche)</span><strong>164 $</strong></li>
-                <li className="flex justify-between gap-4"><span>Miroir LED rectangulaire 32 × 24 po, anti-buée</span><strong>163 $</strong></li>
-                <li className="flex justify-between gap-4"><span>Miroir LED certifié UL 40 × 30 po, garantie 3 ans</span><strong>360 $</strong></li>
-                <li className="flex justify-between gap-4"><span>Miroir LED grand format 60 × 40 po, verre trempé</span><strong>480 $</strong></li>
-                <li className="flex justify-between gap-4"><span>Miroir pleine longueur arqué 71 × 27 po</span><strong>dès 149 $</strong></li>
-                <li className="flex justify-between gap-4"><span>Miroir décoratif feuille d'or, fini main, 39,5 po</span><strong>500 $</strong></li>
+                <li className="flex justify-between gap-4"><span>Miroir LED rond 28 po, anti-buée (à fiche)</span><strong>sur soumission</strong></li>
+                <li className="flex justify-between gap-4"><span>Miroir LED rectangulaire 32 × 24 po, anti-buée</span><strong>sur soumission</strong></li>
+                <li className="flex justify-between gap-4"><span>Miroir LED certifié UL 40 × 30 po, garantie 3 ans</span><strong>sur soumission</strong></li>
+                <li className="flex justify-between gap-4"><span>Miroir LED grand format 60 × 40 po, verre trempé</span><strong>sur soumission</strong></li>
+                <li className="flex justify-between gap-4"><span>Miroir pleine longueur arqué 71 × 27 po</span><strong>449 $ installé</strong></li>
+                <li className="flex justify-between gap-4"><span>Miroir décoratif feuille d'or, fini main, 39,5 po</span><strong>sur soumission</strong></li>
                 <li className="flex justify-between gap-4"><span><strong>Miroir sur mesure</strong> avec moulure (vitrerie locale)</span><strong>450–700 $ installé</strong></li>
               </ul>
-              <p className="text-xs text-gray-400 mt-4">Pourquoi ces prix : ce sont les prix de détail publics des mêmes modèles — chez nous, la pose est planifiée dès l'achat et la mesure est déduite.</p>
+              <p className="text-xs text-gray-400 mt-4">Les prix affichés sont des prix installés, produit et pose compris. Pour les modèles sur soumission, le prix est confirmé à la visite de mesure de 49 $, déduite de ta commande.</p>
             </Card>
             <Card className="p-8">
               <h3 className="text-lg font-semibold text-white mb-4 font-['Outfit']">Stores & rideaux</h3>
               <ul className="space-y-3 text-sm text-gray-200">
-                <li className="flex justify-between gap-4"><span>Store enrouleur prêt-à-poser</span><strong>~72 $/fenêtre</strong></li>
-                <li className="flex justify-between gap-4"><span>Pose de store</span><strong>50–100 $/fenêtre</strong></li>
-                <li className="flex justify-between gap-4"><span>Tringle décorative + 2 panneaux de rideaux</span><strong>100–160 $</strong></li>
-                <li className="flex justify-between gap-4"><span>Stores motorisés sur mesure</span><strong>~380 $/fenêtre installé</strong></li>
-                <li className="flex justify-between gap-4"><span>Persiennes sur mesure</span><strong>~471 $/fenêtre installé</strong></li>
+                <li className="flex justify-between gap-4"><span>Store enrouleur prêt-à-poser</span><strong>sur soumission</strong></li>
+                <li className="flex justify-between gap-4"><span>Pose de store</span><strong>149 $ la visite + 49 $ par item</strong></li>
+                <li className="flex justify-between gap-4"><span>Tringle décorative + 2 panneaux de rideaux</span><strong>sur soumission</strong></li>
+                <li className="flex justify-between gap-4"><span>Stores motorisés sur mesure</span><strong>sur soumission</strong></li>
+                <li className="flex justify-between gap-4"><span>Persiennes sur mesure</span><strong>sur soumission</strong></li>
                 <li className="flex justify-between gap-4"><span><strong>Stores sur mesure</strong> (fabricant québécois)</span><strong>sur soumission</strong></li>
               </ul>
-              <p className="text-xs text-gray-400 mt-4">Un repère : une maison type de 7 fenêtres en sur mesure tourne autour de 2 000 $ (produits + installation), mesure de 49 $ déduite.</p>
+              <p className="text-xs text-gray-400 mt-4">Un repère : une maison type de 7 fenêtres en sur mesure, c'est dès 2 095 $ (produits + installation), mesure de 49 $ déduite.</p>
             </Card>
             <Card className="p-8">
               <h3 className="text-lg font-semibold text-white mb-4 font-['Outfit']">Foyers électriques (à fiche)</h3>
               <ul className="space-y-3 text-sm text-gray-200">
-                <li className="flex justify-between gap-4"><span>Napoleon Entice 50 po</span><strong>1 199 $</strong></li>
-                <li className="flex justify-between gap-4"><span>Dimplex Prism 50 po</span><strong>2 088 $</strong></li>
-                <li className="flex justify-between gap-4"><span>Napoleon Astound / Trivista 50 po</span><strong>2 399 $</strong></li>
+                <li className="flex justify-between gap-4"><span>Napoleon Entice 50 po</span><strong>1 599 $ tout inclus</strong></li>
+                <li className="flex justify-between gap-4"><span>Dimplex Prism 50 po</span><strong>sur soumission</strong></li>
+                <li className="flex justify-between gap-4"><span>Napoleon Astound / Trivista 50 po</span><strong>sur soumission</strong></li>
               </ul>
               <p className="text-xs text-gray-400 mt-4">Modèles muraux ou autoportants branchables seulement — les modèles encastrés (« built-in ») ne font pas partie de l'offre. Voir le panier Foyer Ambiance pour le tout-inclus.</p>
             </Card>
           </div>
           <p className="text-sm text-center text-gray-600 mt-8 max-w-3xl mx-auto">
-            <strong>Transparence :</strong> prix en $ CAD avant taxes, basés sur les prix de détail publics vérifiés (Home Depot Canada, Wayfair Canada, Bouclair, vitreries locales). Acompte sur les produits avant toute commande sur mesure.
+            Nos prix de vente sont des prix installés, produit et pose compris. <strong>Transparence :</strong> prix en $ CAD avant taxes, basés sur les prix de détail publics vérifiés (Home Depot Canada, Wayfair Canada, Bouclair, vitreries locales). Acompte sur les produits avant toute commande sur mesure.
           </p>
         </div>
       </section>

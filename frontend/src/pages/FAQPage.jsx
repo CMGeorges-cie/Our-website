@@ -73,7 +73,7 @@ export default function FAQPage() {
         },
         {
           q: "Combien coûte un site web?",
-          a: "Un site vitrine commence à 1500$, un e-commerce à 3500$. Le prix final dépend de vos besoins spécifiques. Demandez une soumission gratuite!"
+          a: "Le prix dépend de vos besoins spécifiques : ampleur du site, fonctionnalités, contenu à produire. Demandez une soumission gratuite! Le prix final dépend de vos besoins spécifiques. Demandez une soumission gratuite!"
         }
       ]
     },
