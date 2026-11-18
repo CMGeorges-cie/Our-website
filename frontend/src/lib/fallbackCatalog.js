@@ -1,5 +1,7 @@
-// Instantané de secours du catalogue public — copie fidèle des prix réels de Déco Touché
-// récupérés depuis l'API publique du site en ligne le 2026-11-03.
+// Instantané de secours du catalogue public : copie fidèle des prix réels de Déco Touché
+// récupérés depuis l'API publique du site en ligne le 2026-11-03, puis alignée sur
+// l'API actuelle le 2026-11-18 (audit des prix : entrées TEST retirées, thermopompe
+// à 189 $ avec prix « dès » activé, mur accent à 2 800 $ avec prix « dès » activé).
 // Utilisé UNIQUEMENT si le serveur de données ne répond pas : les prix restent
 // toujours affichés sur le site au lieu d'un chargement sans fin.
 // Quand le serveur répond, ses données (à jour) ont toujours priorité.
@@ -59,29 +61,14 @@ export const FALLBACK_CATALOG = [
     "estimated_duration": "Variable"
   },
   {
-    "id": "76775833-ce39-488c-a5bc-ccaac83ea428",
-    "name": "TEST_Service_1774310817",
-    "category": "maintenance",
-    "pricing_type": "fixed",
-    "base_price": 100.0,
-    "unit": "forfait"
-  },
-  {
-    "id": "1c8dad5b-9f43-4649-85be-2a885f338c9a",
-    "name": "Test Service",
-    "category": "maintenance",
-    "pricing_type": "fixed",
-    "base_price": 100.0,
-    "unit": "forfait"
-  },
-  {
     "id": "7216814c-330f-4c0d-b16a-26818bcdfc7e",
     "name": "Nettoyage de climatiseur et thermopompe murale",
-    "category": "maintenance",
+    "category": "hvac",
     "pricing_type": "quote",
-    "base_price": 0.0,
+    "base_price": 189.0,
     "unit": "forfait",
-    "estimated_duration": "Selon le modèle et l’état"
+    "estimated_duration": "Selon le modèle et l’état",
+    "show_from_price": true
   },
   {
     "id": "6dea74f5-2098-4244-8962-3bc8773accfa",
@@ -104,11 +91,12 @@ export const FALLBACK_CATALOG = [
   {
     "id": "9d4667a6-c18a-485f-8102-4e920a6026cb",
     "name": "Mur accent avec cheminée et TV",
-    "category": "renovation",
+    "category": "accent_walls",
     "pricing_type": "quote",
     "base_price": 2800.0,
     "unit": "forfait",
-    "estimated_duration": "Selon le modèle et les dimensions"
+    "estimated_duration": "Selon le modèle et les dimensions",
+    "show_from_price": true
   },
   {
     "id": "03351ffb-7b50-4255-a3d7-bd50f69b7520",
@@ -138,12 +126,13 @@ export const FALLBACK_CATALOG = [
     "estimated_duration": "2-3 semaines"
   },
   {
-    "id": "15a9f1b0-9f9b-4ce8-8fd9-bd1db68e2a5d",
-    "name": "TEST_Service_TEST_3de3a623_1774310881",
-    "category": "maintenance",
-    "pricing_type": "fixed",
-    "base_price": 99.99,
-    "unit": "forfait",
-    "estimated_duration": "1 hour"
+    "id": "49f19765-5e07-4537-b8e7-be1c7d0ffd45",
+    "name": "Home staging",
+    "category": "staging",
+    "pricing_type": "quote",
+    "base_price": 250.0,
+    "unit": "consultation",
+    "estimated_duration": "Environ 2 heures",
+    "show_from_price": true
   }
 ];
