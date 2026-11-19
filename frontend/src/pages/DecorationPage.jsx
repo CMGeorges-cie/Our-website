@@ -91,7 +91,7 @@ const produits = [
   {
     icon: Layers,
     name: 'Papier peint autocollant & murales',
-    price: 'Mur accent dès 549 $ (1 mur ±100 pi²) · Murale sur mesure dès 899 $ (mur type 10 × 10 pi)',
+    price: 'Mur accent dès 599 $ (1 mur ±100 pi²) · Murale sur mesure dès 899 $ (mur type 10 × 10 pi)',
     why: 'Posé par un pro : zéro bulle, raccords de motifs invisibles, coupes parfaites autour des prises. Se retire sans dommage — l\'argument parfait pour les locataires. Motifs fabriqués au Québec disponibles.'
   },
   {
@@ -99,7 +99,7 @@ const produits = [
     image: '/images/deco/panneaux-lattes-tv.jpg',
     imageAlt: 'Mur de télé en panneaux acoustiques à lattes de chêne clair',
     name: 'Panneaux acoustiques à lattes de bois',
-    price: 'Mur de télé (environ 8 pi linéaires) dès 999 $ tout inclus',
+    price: 'Mur de télé (environ 8 pi linéaires) dès 1 199 $ tout inclus',
     why: 'LE mur de télé du moment : coupes à la hauteur du plafond, pose au niveau, ancrage dans les montants. En prime, une vraie absorption acoustique (NRC 0,70). Panneaux vissés en accent, démontables.'
   },
   {
