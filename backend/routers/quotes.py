@@ -7,6 +7,7 @@ Admin:
   GET  /api/v1/admin/quotes/{quote_id}
   POST /api/v1/admin/quotes/{quote_id}/signature
   GET  /api/v1/admin/quotes/{quote_id}/pdf
+  POST /api/v1/admin/quotes/{quote_id}/analyze-photos  (IA vision — à brancher)
 """
 from __future__ import annotations
 
@@ -40,32 +41,69 @@ def build_quotes_router(
         if not lead:
             raise HTTPException(status_code=404, detail="Lead not found")
 
-        contingency = max(10.0, min(20.0, quote_data.contingency_percent))
+        # L'imprévu reste optionnel : 0 % est permis (estimations au prix du
+        # catalogue), le plafond historique de 20 % est conservé.
+        contingency = max(0.0, min(20.0, quote_data.contingency_percent))
+        admin_percent = max(0.0, min(50.0, quote_data.admin_percent or 0.0))
 
         lines = []
         subtotal_material = 0
         subtotal_labor = 0
+        client_material_total = 0
+        unconfirmed_material_total = 0
+        total_hours = 0.0
         market_price_total = 0
         total_cost = 0
 
         for line_data in quote_data.lines:
             line = QuoteLine(**line_data.model_dump())
-            line.line_total = line.quantity * line.unit_price
 
-            cost = line.cost_price or (line.unit_price * 0.4)
-            line.margin_amount = line.line_total - (line.quantity * cost)
-            total_cost += line.quantity * cost
+            if line.line_type == "labor":
+                # Étape de main-d'œuvre : heures × taux si fournis, sinon
+                # le calcul historique quantité × prix unitaire.
+                if line.hours is not None and line.hourly_rate is not None:
+                    line.line_total = round(line.hours * line.hourly_rate * line.quantity, 2)
+                else:
+                    line.line_total = line.quantity * line.unit_price
+                if line.hours is not None:
+                    total_hours += line.hours * line.quantity
+                subtotal_labor += line.line_total
+                included = True
+            elif line.line_type == "material":
+                line.line_total = line.quantity * line.unit_price
+                if line.source_type == "client":
+                    # Acheté par le client : indicatif seulement, hors total.
+                    client_material_total += line.line_total
+                    included = False
+                elif line.price_status == "a_confirmer":
+                    # Prix pas encore connu : affiché, mais jamais totalisé.
+                    unconfirmed_material_total += line.line_total
+                    included = False
+                else:
+                    subtotal_material += line.line_total
+                    if line.market_price:
+                        market_price_total += line.quantity * line.market_price
+                    included = True
+            else:
+                line.line_total = line.quantity * line.unit_price
+                included = True
+
+            if included:
+                cost = line.cost_price or (line.unit_price * 0.4)
+                line.margin_amount = line.line_total - (line.quantity * cost)
+                total_cost += line.quantity * cost
             lines.append(line)
 
-            if line.line_type == "material":
-                subtotal_material += line.line_total
-                if line.market_price:
-                    market_price_total += line.quantity * line.market_price
-            elif line.line_type == "labor":
-                subtotal_labor += line.line_total
+        # Frais d'achat / administration / magasinage : uniquement sur les
+        # matériaux que Déco Touché achète et dont le prix est confirmé.
+        admin_amount = round(subtotal_material * (admin_percent / 100), 2)
 
         subtotal_before_contingency = (
-            subtotal_material + subtotal_labor + quote_data.delivery_fee + quote_data.urgency_fee
+            subtotal_material
+            + subtotal_labor
+            + admin_amount
+            + quote_data.delivery_fee
+            + quote_data.urgency_fee
         )
         contingency_amount = subtotal_before_contingency * (contingency / 100)
         subtotal_before_tax = subtotal_before_contingency + contingency_amount
@@ -96,6 +134,12 @@ def build_quotes_router(
             lines=[l.model_dump() for l in lines],
             subtotal_material=round(subtotal_material, 2),
             subtotal_labor=round(subtotal_labor, 2),
+            admin_percent=admin_percent,
+            admin_amount=admin_amount,
+            client_material_total=round(client_material_total, 2),
+            unconfirmed_material_total=round(unconfirmed_material_total, 2),
+            total_hours=round(total_hours, 2),
+            validity_days=quote_data.validity_days,
             delivery_fee=round(quote_data.delivery_fee, 2),
             urgency_fee=round(quote_data.urgency_fee, 2),
             subtotal_before_contingency=round(subtotal_before_contingency, 2),
@@ -114,6 +158,8 @@ def build_quotes_router(
             milestone_amount=round(milestone_amount, 2),
             final_amount=round(final_amount, 2),
             notes=quote_data.notes,
+            rooms=[r.model_dump() for r in quote_data.rooms],
+            photos=[p.model_dump() for p in quote_data.photos],
         )
 
         doc = quote.model_dump()
@@ -199,6 +245,32 @@ def build_quotes_router(
             request=request,
         )
         return {"message": "Devis signé et accepté", "signed_at": signature_doc["signed_at"]}
+
+    @router.post("/admin/quotes/{quote_id}/analyze-photos")
+    async def analyze_quote_photos(
+        quote_id: str, user: dict = Depends(get_current_user)
+    ):
+        """Analyse IA des photos des lieux → travaux suggérés (SANS prix).
+
+        Emplacement prêt, service NON branché : aucun fournisseur IA avec
+        vision n'est configuré dans la version migrée (voir
+        routers/ai_drafts.py → photo_analysis_status). Tant qu'il n'est pas
+        branché, la route répond 503 avec la raison exacte, et l'admin
+        affiche le bouton désactivé. Contrat futur : 200 avec
+        {"suggestions": [{"description": str, "quantity": float,
+        "room_name": str}]} — travaux et quantités seulement, jamais de prix.
+        """
+        from routers.ai_drafts import photo_analysis_status
+
+        status = photo_analysis_status()
+        if not status["available"]:
+            raise HTTPException(status_code=503, detail=status["reason"])
+        # Branchement futur : charger la soumission, envoyer ses photos au
+        # fournisseur vision et retourner les suggestions structurées.
+        raise HTTPException(
+            status_code=503,
+            detail="Analyse automatique des photos à brancher.",
+        )
 
     @router.get("/admin/quotes/{quote_id}/pdf")
     async def get_quote_pdf(quote_id: str, user: dict = Depends(get_current_user)):

@@ -7,7 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import axios from 'axios';
 import { adminApi, aiApi, apiV2 } from '@/lib/api';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 import InvoiceCatalogDialog from '@/components/admin/invoices/InvoiceCatalogDialog';
 import { 
   formatDate, 
@@ -33,7 +36,9 @@ import {
   Plus,
   Trash2,
   Sparkles,
-  Loader2
+  Loader2,
+  Camera,
+  ImagePlus
 } from 'lucide-react';
 
 const statusOptions = [
@@ -49,7 +54,31 @@ const emptyLine = {
   quantity: 1,
   unit_price: 0,
   market_price: 0,
-  line_type: 'labor'
+  line_type: 'labor',
+  // Outil d'estimations
+  hours: '',
+  hourly_rate: 75,
+  source_type: 'fournisseur',
+  source_name: '',
+  price_status: 'confirme'
+};
+
+// Fournisseurs actifs (comptes trade) proposés pour les lignes de matériaux.
+const ACTIVE_SUPPLIERS = [
+  'Décor Imprimé', 'Renwil', 'Mercana', 'Paris Mirror', 'Amantii',
+  'Décors Véronneau', 'Napoleon', 'Dimplex', 'SMART Technologies',
+  'Randmar', 'Walldi', 'Autre'
+];
+
+// Total d'une ligne : main-d'œuvre en heures × taux si les heures sont
+// saisies, sinon quantité × prix unitaire (comportement historique).
+const lineTotalOf = (line) => {
+  const hours = parseFloat(line.hours);
+  const rate = parseFloat(line.hourly_rate);
+  if (line.line_type === 'labor' && hours > 0 && rate > 0) {
+    return hours * rate;
+  }
+  return (parseFloat(line.quantity) || 0) * (parseFloat(line.unit_price) || 0);
 };
 
 const BASE_PRICES = {
@@ -73,9 +102,15 @@ export default function AdminLeadDetail() {
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [quoteLines, setQuoteLines] = useState([{ ...emptyLine }]);
   const [contingencyPercent, setContingencyPercent] = useState(15);
+  const [adminPercent, setAdminPercent] = useState(15);
+  const [validityDays, setValidityDays] = useState(30);
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [urgencyFee, setUrgencyFee] = useState(0);
   const [quoteNotes, setQuoteNotes] = useState('');
+  // Documentation visuelle : pièces mesurées + photos des lieux + croquis.
+  const [quoteRooms, setQuoteRooms] = useState([]);
+  const [quotePhotos, setQuotePhotos] = useState([]);
+  const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [creatingQuote, setCreatingQuote] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -104,17 +139,19 @@ export default function AdminLeadDetail() {
         // Pre-fill quote lines based on items
         if (leadRes.data.items?.length > 0) {
           const lines = leadRes.data.items.map(item => ({
+            ...emptyLine,
             description: `Assemblage ${getItemTypeLabel(item.item_type)} ${getBrandLabel(item.brand)} ${item.model || ''}`.trim(),
             quantity: item.quantity,
             unit_price: getBasePrice(item.item_type),
             market_price: getBasePrice(item.item_type) * 1.5,
             line_type: 'labor'
           }));
-          
+
           // Add wall anchoring if required
           const anchorsNeeded = leadRes.data.items.filter(i => i.wall_anchor_required).length;
           if (anchorsNeeded > 0) {
             lines.push({
+              ...emptyLine,
               description: 'Kit ancrage mural sécuritaire',
               quantity: anchorsNeeded,
               unit_price: 25,
@@ -170,6 +207,7 @@ export default function AdminLeadDetail() {
     setQuoteLines((prev) => [
       ...prev.filter((l) => l.description),
       {
+        ...emptyLine,
         description: service.name,
         quantity: 1,
         unit_price: service.base_price || 0,
@@ -199,21 +237,36 @@ export default function AdminLeadDetail() {
   const calculateTotals = () => {
     let subtotalMaterial = 0;
     let subtotalLabor = 0;
+    let clientMaterialTotal = 0;
+    let unconfirmedTotal = 0;
+    let totalHours = 0;
     let marketTotal = 0;
 
     quoteLines.forEach(line => {
-      const lineTotal = line.quantity * line.unit_price;
+      const lineTotal = lineTotalOf(line);
       if (line.line_type === 'material') {
-        subtotalMaterial += lineTotal;
+        if (line.source_type === 'client') {
+          // Acheté par le client : indicatif, jamais dans le total.
+          clientMaterialTotal += lineTotal;
+        } else if (line.price_status === 'a_confirmer') {
+          // Prix inconnu : affiché, jamais totalisé.
+          unconfirmedTotal += lineTotal;
+        } else {
+          subtotalMaterial += lineTotal;
+          if (line.market_price) {
+            marketTotal += line.quantity * line.market_price;
+          }
+        }
       } else {
         subtotalLabor += lineTotal;
-      }
-      if (line.market_price) {
-        marketTotal += line.quantity * line.market_price;
+        const h = parseFloat(line.hours);
+        if (h > 0) totalHours += h;
       }
     });
 
-    const subtotalBeforeContingency = subtotalMaterial + subtotalLabor + deliveryFee + urgencyFee;
+    // Frais d'achat / administration / magasinage : matériaux Déco Touché seulement.
+    const adminAmount = subtotalMaterial * (adminPercent / 100);
+    const subtotalBeforeContingency = subtotalMaterial + subtotalLabor + adminAmount + deliveryFee + urgencyFee;
     const contingencyAmount = subtotalBeforeContingency * (contingencyPercent / 100);
     const subtotalBeforeTax = subtotalBeforeContingency + contingencyAmount;
     const tps = subtotalBeforeTax * 0.05;
@@ -224,6 +277,10 @@ export default function AdminLeadDetail() {
     return {
       subtotalMaterial,
       subtotalLabor,
+      clientMaterialTotal,
+      unconfirmedTotal,
+      totalHours,
+      adminAmount,
       deliveryFee,
       urgencyFee,
       subtotalBeforeContingency,
@@ -247,11 +304,17 @@ export default function AdminLeadDetail() {
       const draft = res.data;
       if (draft.lines && draft.lines.length > 0) {
         setQuoteLines(draft.lines.map(l => ({
+          ...emptyLine,
           description: l.description || '',
           quantity: l.quantity || 1,
           unit_price: l.unit_price || 0,
           market_price: 0,
           line_type: l.line_type === 'material' ? 'material' : 'labor',
+          hours: l.hours || '',
+          hourly_rate: l.hourly_rate || 75,
+          source_type: l.source_type === 'client' ? 'client' : 'fournisseur',
+          source_name: l.source_name || '',
+          price_status: l.price_status === 'a_confirmer' ? 'a_confirmer' : 'confirme',
         })));
       }
       if (draft.contingency_percent) {
@@ -269,15 +332,117 @@ export default function AdminLeadDetail() {
     }
   };
 
+  // --- Documentation visuelle : pièces, mesures, photos, croquis ---
+  const addRoom = () => setQuoteRooms(prev => [...prev, { name: '', length_ft: '', width_ft: '', height_ft: '', notes: '' }]);
+  const updateRoom = (idx, field, value) => setQuoteRooms(prev => prev.map((r, i) => i === idx ? { ...r, [field]: value } : r));
+  const removeRoom = (idx) => setQuoteRooms(prev => prev.filter((_, i) => i !== idx));
+
+  const handlePhotoFiles = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const firstRoom = quoteRooms.find(r => r.name.trim())?.name || '';
+    setQuotePhotos(prev => [...prev, ...files.map(f => ({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      file: f,
+      url: '',
+      preview: URL.createObjectURL(f),
+      room_name: firstRoom,
+      caption: '',
+      kind: 'lieux',
+    }))]);
+    e.target.value = '';
+  };
+  const updatePhoto = (idx, field, value) => setQuotePhotos(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
+  const removePhoto = (idx) => setQuotePhotos(prev => prev.filter((_, i) => i !== idx));
+
+  // Envoie les fichiers en attente via le routeur d'upload existant
+  // (POST /api/v1/upload/photos, max 5 fichiers par appel) et retourne la
+  // charge utile « photos » de la soumission. Lève en cas d'échec.
+  const uploadQuotePhotos = async () => {
+    const pending = quotePhotos.filter(p => !p.url && p.file);
+    const urls = [];
+    for (let i = 0; i < pending.length; i += 5) {
+      const formData = new FormData();
+      pending.slice(i, i + 5).forEach(p => formData.append('files', p.file));
+      const res = await axios.post(`${BACKEND_URL}/api/v1/upload/photos`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      urls.push(...(res.data.urls || []));
+    }
+    let u = 0;
+    return quotePhotos.map(p => ({
+      url: p.url || urls[u++],
+      room_name: p.room_name || '',
+      caption: p.caption || '',
+      kind: p.kind === 'croquis' ? 'croquis' : 'lieux',
+    })).filter(p => p.url);
+  };
+
   const handleCreateQuote = async () => {    setCreatingQuote(true);
     try {
+      // Photos d'abord : si l'envoi échoue, on n'enregistre pas une
+      // soumission sans sa documentation visuelle.
+      let photosPayload = [];
+      if (quotePhotos.length > 0) {
+        setUploadingPhotos(true);
+        try {
+          photosPayload = await uploadQuotePhotos();
+        } catch (photoErr) {
+          console.error('Error uploading photos:', photoErr);
+          toast.error("Erreur lors de l'envoi des photos. La soumission n'a pas été créée.");
+          setCreatingQuote(false);
+          return;
+        } finally {
+          setUploadingPhotos(false);
+        }
+      }
+      const roomsPayload = quoteRooms
+        .filter(r => r.name.trim())
+        .map(r => ({
+          name: r.name.trim(),
+          length_ft: parseFloat(r.length_ft) || null,
+          width_ft: parseFloat(r.width_ft) || null,
+          height_ft: parseFloat(r.height_ft) || null,
+          notes: r.notes || '',
+        }));
+      // Normalisation : une étape en heures × taux devient une ligne à
+      // quantité 1 dont le prix unitaire est le taux (le backend recalcule).
+      const normalizedLines = quoteLines.map(line => {
+        const hours = parseFloat(line.hours);
+        const rate = parseFloat(line.hourly_rate);
+        const base = {
+          description: line.description,
+          quantity: parseFloat(line.quantity) || 1,
+          unit_price: parseFloat(line.unit_price) || 0,
+          market_price: parseFloat(line.market_price) || 0,
+          line_type: line.line_type,
+          source_type: line.line_type === 'material' ? (line.source_type || 'fournisseur') : 'fournisseur',
+          source_name: line.line_type === 'material'
+            ? ((line.source_name === 'Autre' && line.source_detail) ? line.source_detail : (line.source_name || null))
+            : null,
+          price_status: line.line_type === 'material' ? (line.price_status || 'confirme') : 'confirme',
+          hours: null,
+          hourly_rate: null,
+        };
+        if (line.line_type === 'labor' && hours > 0 && rate > 0) {
+          base.hours = hours;
+          base.hourly_rate = rate;
+          base.quantity = 1;
+          base.unit_price = rate;
+        }
+        return base;
+      });
       const response = await adminApi.createQuote({
         lead_id: id,
-        lines: quoteLines,
+        lines: normalizedLines,
         contingency_percent: contingencyPercent,
+        admin_percent: adminPercent,
+        validity_days: validityDays,
         delivery_fee: deliveryFee,
         urgency_fee: urgencyFee,
-        notes: quoteNotes
+        notes: quoteNotes,
+        rooms: roomsPayload,
+        photos: photosPayload
       });
       
       toast.success('Soumission créée!');
@@ -579,6 +744,121 @@ export default function AdminLeadDetail() {
                             />
                           </div>
                         </div>
+
+                        {line.line_type === 'labor' && (
+                          <div className="grid grid-cols-12 gap-3 mt-3" data-testid={`quote-line-labor-${idx}`}>
+                            <div className="col-span-4 md:col-span-2">
+                              <Label className="text-xs">Heures estimées</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.25"
+                                value={line.hours}
+                                onChange={(e) => updateQuoteLine(idx, 'hours', e.target.value)}
+                                placeholder="Ex. 2.5"
+                                data-testid={`quote-line-hours-${idx}`}
+                              />
+                            </div>
+                            <div className="col-span-4 md:col-span-2">
+                              <Label className="text-xs">Taux ($/h)</Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={line.hourly_rate}
+                                onChange={(e) => updateQuoteLine(idx, 'hourly_rate', parseFloat(e.target.value) || 0)}
+                                data-testid={`quote-line-rate-${idx}`}
+                              />
+                            </div>
+                            <div className="col-span-4 md:col-span-3 flex items-end pb-2">
+                              <p className="text-xs text-gray-500">
+                                {parseFloat(line.hours) > 0
+                                  ? <>Étape : <span className="font-semibold text-gray-800">{formatCurrency(lineTotalOf(line))}</span> ({line.hours} h × {formatCurrency(parseFloat(line.hourly_rate) || 0)}/h)</>
+                                  : 'Sans heures : le total = quantité × prix unitaire.'}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {line.line_type === 'material' && (
+                          <div className="grid grid-cols-12 gap-3 mt-3" data-testid={`quote-line-material-${idx}`}>
+                            <div className="col-span-6 md:col-span-3">
+                              <Label className="text-xs">Qui achète ?</Label>
+                              <Select
+                                value={line.source_type}
+                                onValueChange={(v) => updateQuoteLine(idx, 'source_type', v)}
+                              >
+                                <SelectTrigger data-testid={`quote-line-source-type-${idx}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="fournisseur">Déco Touché (fournisseur)</SelectItem>
+                                  <SelectItem value="client">Le client lui-même</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="col-span-6 md:col-span-3">
+                              <Label className="text-xs">{line.source_type === 'client' ? 'Magasin (indicatif)' : 'Fournisseur'}</Label>
+                              {line.source_type === 'client' ? (
+                                <Input
+                                  value={line.source_name}
+                                  onChange={(e) => updateQuoteLine(idx, 'source_name', e.target.value)}
+                                  placeholder="Ex. IKEA, RONA, Costco..."
+                                  data-testid={`quote-line-source-name-${idx}`}
+                                />
+                              ) : (
+                                <Select
+                                  value={line.source_name || ''}
+                                  onValueChange={(v) => updateQuoteLine(idx, 'source_name', v)}
+                                >
+                                  <SelectTrigger data-testid={`quote-line-source-name-${idx}`}>
+                                    <SelectValue placeholder="Choisir..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {ACTIVE_SUPPLIERS.map(s => (
+                                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            </div>
+                            {line.source_type === 'fournisseur' && line.source_name === 'Autre' && (
+                              <div className="col-span-6 md:col-span-3">
+                                <Label className="text-xs">Préciser le fournisseur</Label>
+                                <Input
+                                  value={line.source_detail || ''}
+                                  onChange={(e) => updateQuoteLine(idx, 'source_detail', e.target.value)}
+                                  placeholder="Nom du fournisseur"
+                                  data-testid={`quote-line-source-detail-${idx}`}
+                                />
+                              </div>
+                            )}
+                            <div className="col-span-6 md:col-span-3">
+                              <Label className="text-xs">Statut du prix</Label>
+                              <Select
+                                value={line.price_status}
+                                onValueChange={(v) => updateQuoteLine(idx, 'price_status', v)}
+                              >
+                                <SelectTrigger data-testid={`quote-line-price-status-${idx}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="confirme">Prix confirmé</SelectItem>
+                                  <SelectItem value="a_confirmer">Prix à confirmer</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {(line.source_type === 'client' || line.price_status === 'a_confirmer') && (
+                              <div className="col-span-12">
+                                <p className="text-xs text-amber-600">
+                                  {line.source_type === 'client'
+                                    ? 'Achat du client : montré à titre indicatif, jamais inclus dans le total.'
+                                    : 'Prix à confirmer : affiché sur l\'estimation, jamais inclus dans le total.'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                         {quoteLines.length > 1 && (
                           <Button
                             variant="ghost"
@@ -624,11 +904,34 @@ export default function AdminLeadDetail() {
                     <Label>Imprévu (%)</Label>
                     <Input
                       type="number"
-                      min="10"
+                      min="0"
                       max="20"
                       value={contingencyPercent}
-                      onChange={(e) => setContingencyPercent(Math.min(20, Math.max(10, parseFloat(e.target.value) || 15)))}
+                      onChange={(e) => setContingencyPercent(Math.min(20, Math.max(0, parseFloat(e.target.value) || 0)))}
                       data-testid="quote-contingency"
+                    />
+                  </div>
+                  <div>
+                    <Label>Achat / administration / magasinage (%)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={adminPercent}
+                      onChange={(e) => setAdminPercent(Math.min(50, Math.max(0, parseFloat(e.target.value) || 0)))}
+                      data-testid="quote-admin-percent"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Appliqué aux matériaux que Déco Touché achète seulement.</p>
+                  </div>
+                  <div>
+                    <Label>Validité de l'estimation (jours)</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="120"
+                      value={validityDays}
+                      onChange={(e) => setValidityDays(Math.min(120, Math.max(1, parseInt(e.target.value) || 30)))}
+                      data-testid="quote-validity-days"
                     />
                   </div>
                 </div>
@@ -645,6 +948,139 @@ export default function AdminLeadDetail() {
                   />
                 </div>
 
+                {/* Documentation visuelle : pièces mesurées, photos, croquis */}
+                <div className="border rounded-lg p-4 space-y-4" data-testid="quote-visual-doc">
+                  <div>
+                    <h4 className="font-semibold text-[#1a365d] flex items-center gap-2">
+                      <Camera className="h-4 w-4" /> Photos, mesures et croquis
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Les photos prises chez le client, les mesures de chaque pièce et le croquis du projet.
+                      Tout se retrouve dans la soumission et dans le PDF envoyé au client.
+                    </p>
+                  </div>
+
+                  {/* Pièces et mesures */}
+                  <div className="space-y-3">
+                    {quoteRooms.map((room, idx) => {
+                      const L = parseFloat(room.length_ft), W = parseFloat(room.width_ft);
+                      const area = L > 0 && W > 0 ? Math.round(L * W) : null;
+                      return (
+                        <div key={idx} className="bg-gray-50 rounded-lg p-3 space-y-2" data-testid={`quote-room-${idx}`}>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={room.name}
+                              onChange={(e) => updateRoom(idx, 'name', e.target.value)}
+                              placeholder="Nom de la pièce (ex. Salon, Mur télé)"
+                              className="flex-1"
+                              data-testid={`room-name-${idx}`}
+                            />
+                            <Button type="button" variant="ghost" size="icon" onClick={() => removeRoom(idx)} title="Retirer la pièce">
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <Label className="text-xs">Longueur (pi)</Label>
+                              <Input type="number" min="0" step="0.1" value={room.length_ft} onChange={(e) => updateRoom(idx, 'length_ft', e.target.value)} placeholder="16" />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Largeur (pi)</Label>
+                              <Input type="number" min="0" step="0.1" value={room.width_ft} onChange={(e) => updateRoom(idx, 'width_ft', e.target.value)} placeholder="12" />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Hauteur (pi)</Label>
+                              <Input type="number" min="0" step="0.1" value={room.height_ft} onChange={(e) => updateRoom(idx, 'height_ft', e.target.value)} placeholder="8" />
+                            </div>
+                          </div>
+                          {area && (
+                            <p className="text-xs text-gray-600">
+                              Surface au sol ≈ <strong>{area} pi²</strong> — utile pour pré-remplir les quantités (lattes, peinture, plancher…).
+                            </p>
+                          )}
+                          <Input
+                            value={room.notes}
+                            onChange={(e) => updateRoom(idx, 'notes', e.target.value)}
+                            placeholder="Notes sur la pièce (état des murs, accès, prises…)"
+                          />
+                        </div>
+                      );
+                    })}
+                    <Button type="button" variant="outline" size="sm" onClick={addRoom} data-testid="add-room-btn">
+                      <Plus className="mr-1 h-4 w-4" /> Ajouter une pièce
+                    </Button>
+                  </div>
+
+                  <Separator />
+
+                  {/* Photos et croquis */}
+                  <div className="space-y-3">
+                    <Label className="flex items-center gap-2 cursor-pointer w-fit">
+                      <span className="inline-flex items-center gap-1.5 rounded-md bg-[#1a365d] text-white px-3 py-2 text-sm hover:bg-[#1a365d]/90">
+                        <ImagePlus className="h-4 w-4" /> Ajouter des photos (caméra ou galerie)
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={handlePhotoFiles}
+                        data-testid="quote-photo-input"
+                      />
+                    </Label>
+                    {quotePhotos.length === 0 && (
+                      <p className="text-xs text-gray-500">Aucune photo pour le moment. Ajoutez les photos des lieux prises pendant la visite, et le croquis du projet s'il y en a un.</p>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {quotePhotos.map((photo, idx) => (
+                        <div key={photo.id} className="border rounded-lg p-2 space-y-2" data-testid={`quote-photo-${idx}`}>
+                          <div className="relative">
+                            <img src={photo.preview || photo.url} alt={photo.caption || 'Photo du projet'} className="w-full h-36 object-cover rounded" />
+                            <Button type="button" variant="ghost" size="icon" className="absolute top-1 right-1 bg-white/80" onClick={() => removePhoto(idx)} title="Retirer la photo">
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Select value={photo.kind} onValueChange={(v) => updatePhoto(idx, 'kind', v)}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="lieux">Photo des lieux</SelectItem>
+                                <SelectItem value="croquis">Croquis du projet</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Select value={photo.room_name || '__none__'} onValueChange={(v) => updatePhoto(idx, 'room_name', v === '__none__' ? '' : v)}>
+                              <SelectTrigger><SelectValue placeholder="Pièce" /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__none__">Sans pièce précise</SelectItem>
+                                {quoteRooms.filter(r => r.name.trim()).map((r, ri) => (
+                                  <SelectItem key={ri} value={r.name.trim()}>{r.name.trim()}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Input
+                            value={photo.caption}
+                            onChange={(e) => updatePhoto(idx, 'caption', e.target.value)}
+                            placeholder="Légende (ex. Mur télé actuel, vue de l'entrée)"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Analyse IA des photos — emplacement prêt, service à brancher */}
+                    <div>
+                      <Button type="button" variant="outline" className="w-full" disabled data-testid="analyze-photos-btn">
+                        <Sparkles className="mr-2 h-4 w-4" /> Analyser les photos (bientôt)
+                      </Button>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Analyse automatique à brancher : aucun service d'IA avec vision n'est configuré pour le moment.
+                        Quand il le sera, ce bouton proposera les travaux à faire à partir de vos photos, sans jamais inventer de prix.
+                        En attendant, vos photos sont jointes à l'estimation et au PDF.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <Separator />
 
                 {/* Totals Preview */}
@@ -655,10 +1091,34 @@ export default function AdminLeadDetail() {
                       <span>Sous-total main-d'œuvre:</span>
                       <span>{formatCurrency(totals.subtotalLabor)}</span>
                     </div>
+                    {totals.totalHours > 0 && (
+                      <div className="flex justify-between text-gray-500">
+                        <span>Heures estimées (vue interne):</span>
+                        <span>{totals.totalHours} h</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span>Sous-total matériel:</span>
                       <span>{formatCurrency(totals.subtotalMaterial)}</span>
                     </div>
+                    {totals.adminAmount > 0 && (
+                      <div className="flex justify-between">
+                        <span>Achat / admin / magasinage ({adminPercent}%):</span>
+                        <span>{formatCurrency(totals.adminAmount)}</span>
+                      </div>
+                    )}
+                    {totals.unconfirmedTotal > 0 && (
+                      <div className="flex justify-between text-amber-600">
+                        <span>Prix à confirmer (non inclus):</span>
+                        <span>{formatCurrency(totals.unconfirmedTotal)}</span>
+                      </div>
+                    )}
+                    {totals.clientMaterialTotal > 0 && (
+                      <div className="flex justify-between text-gray-500">
+                        <span>Achats par le client (non inclus, indicatif):</span>
+                        <span>{formatCurrency(totals.clientMaterialTotal)}</span>
+                      </div>
+                    )}
                     {deliveryFee > 0 && (
                       <div className="flex justify-between">
                         <span>Livraison:</span>
@@ -704,13 +1164,13 @@ export default function AdminLeadDetail() {
                   </div>
                 </div>
 
-                <Button 
-                  className="btn-accent w-full" 
+                <Button
+                  className="btn-accent w-full"
                   onClick={handleCreateQuote}
-                  disabled={creatingQuote || quoteLines.every(l => !l.description)}
+                  disabled={creatingQuote || uploadingPhotos || quoteLines.every(l => !l.description)}
                   data-testid="create-quote-btn"
                 >
-                  {creatingQuote ? 'Création...' : 'Créer la soumission'}
+                  {uploadingPhotos ? 'Envoi des photos...' : creatingQuote ? 'Création...' : 'Créer la soumission'}
                 </Button>
               </CardContent>
             </Card>

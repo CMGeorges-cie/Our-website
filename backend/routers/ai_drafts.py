@@ -151,6 +151,39 @@ def _extract_json(text: str) -> dict:
     return json.loads(text)
 
 
+def photo_analysis_status() -> dict:
+    """Disponibilité de l'analyse automatique des photos (vision).
+
+    Deux conditions, AUCUNE remplie dans la version migrée :
+    1. une clé LLM configurée (LLM_API_KEY ou EMERGENT_LLM_KEY) — absente
+       des environnements actuels (backend/.env et .env.live vérifiés) ;
+    2. un transport fournisseur AVEC vision implémenté — l'ancien passait
+       par le package privé Emergent, retiré à la migration (voir
+       _call_claude, qui se désactive en 503 même avec une clé).
+
+    Pour brancher : configurer LLM_API_KEY (clé Anthropic directe) puis
+    implémenter l'appel vision (messages avec blocs image) dans
+    _call_claude_vision et retourner {"available": True} ici.
+    """
+    if not LLM_API_KEY:
+        return {
+            "available": False,
+            "reason": (
+                "Analyse automatique des photos non disponible : aucune clé "
+                "LLM configurée (LLM_API_KEY absente) et aucun transport "
+                "vision branché dans la version migrée."
+            ),
+        }
+    return {
+        "available": False,
+        "reason": (
+            "Analyse automatique des photos non branchée : le transport "
+            "vers le fournisseur IA (vision) n'est pas encore implémenté "
+            "dans la version migrée."
+        ),
+    }
+
+
 async def _call_claude(system_prompt: str, user_text: str) -> dict:
     """Call the configured LLM and parse the JSON response.
 
