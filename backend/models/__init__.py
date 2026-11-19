@@ -214,11 +214,24 @@ class ContactForm(BaseModel):
 # ==================== QUOTE MODELS ====================
 class QuoteLineBase(BaseModel):
     description: str
-    quantity: int = 1
+    quantity: float = 1
     unit_price: float
     market_price: Optional[float] = None
     line_type: str = "labor"
     cost_price: Optional[float] = None  # For margin calculation
+    # --- Outil d'estimations ---
+    # Main-d'œuvre : heures estimées de l'étape et taux horaire appliqué.
+    # Si les deux sont fournis, le total de la ligne = heures × taux.
+    hours: Optional[float] = None
+    hourly_rate: Optional[float] = None
+    # Matériaux : qui achète la ligne.
+    #   "fournisseur" = Déco Touché l'achète chez un fournisseur actif
+    #   "client"      = le client l'achète lui-même (indicatif, hors total)
+    source_type: str = "fournisseur"
+    source_name: Optional[str] = None  # Nom du fournisseur ou du magasin
+    # "confirme" = prix connu et inclus au total;
+    # "a_confirmer" = prix pas encore connu, affiché tel quel, hors total.
+    price_status: str = "confirme"
 
 
 class QuoteLine(QuoteLineBase):
@@ -227,14 +240,47 @@ class QuoteLine(QuoteLineBase):
     margin_amount: float = 0
 
 
+class QuoteRoom(BaseModel):
+    """Pièce ou zone visitée chez le client, avec les mesures prises sur
+    place (en pieds). Les mesures sont stockées, affichées dans l'admin et
+    incluses à la section « Documentation visuelle » du PDF."""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str  # Libellé libre : « Salon », « Mur télé », « Cuisine »…
+    length_ft: Optional[float] = None
+    width_ft: Optional[float] = None
+    height_ft: Optional[float] = None
+    notes: str = ""
+
+
+class QuotePhoto(BaseModel):
+    """Photo jointe à l'estimation.
+    kind = "lieux"   : photo des lieux prise lors de la visite;
+    kind = "croquis" : croquis/dessin du projet.
+    room_name rattache la photo à une pièce (libellé libre, même texte que
+    QuoteRoom.name)."""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    url: str
+    room_name: str = ""
+    caption: str = ""
+    kind: str = "lieux"
+
+
 class QuoteCreate(BaseModel):
     lead_id: str
     lines: List[QuoteLineBase]
     contingency_percent: float = 15.0
+    # Pourcentage d'achat / administration / magasinage appliqué aux
+    # matériaux que Déco Touché achète (jamais aux achats du client).
+    # None = non précisé (anciens appels) → 0. L'outil d'estimations
+    # envoie toujours sa valeur (15 % par défaut dans l'interface).
+    admin_percent: Optional[float] = None
     notes: str = ""
     delivery_fee: float = 0
     urgency_fee: float = 0
     validity_days: int = 30
+    # Documentation visuelle : pièces mesurées et photos/croquis de la visite.
+    rooms: List[QuoteRoom] = []
+    photos: List[QuotePhoto] = []
 
 
 class Quote(BaseModel):
@@ -249,6 +295,17 @@ class Quote(BaseModel):
     lines: List[QuoteLine] = []
     subtotal_material: float = 0
     subtotal_labor: float = 0
+    # Outil d'estimations : frais d'achat/admin/magasinage, achats du client
+    # (indicatif, hors total), prix à confirmer (hors total), heures totales.
+    admin_percent: float = 0
+    admin_amount: float = 0
+    client_material_total: float = 0
+    unconfirmed_material_total: float = 0
+    total_hours: float = 0
+    validity_days: int = 30
+    # Documentation visuelle (vide pour les anciennes soumissions).
+    rooms: List[QuoteRoom] = []
+    photos: List[QuotePhoto] = []
     delivery_fee: float = 0
     urgency_fee: float = 0
     subtotal_before_contingency: float = 0
