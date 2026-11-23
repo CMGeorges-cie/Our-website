@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Flame, Snowflake, Sparkles } from 'lucide-react';
+import { Paintbrush, Hammer, Wrench, Sofa, ArrowRight, CheckCircle, Flame, Snowflake, Sparkles, KeyRound } from 'lucide-react';
 import { CatalogFromPrice } from '@/components/public/CatalogPricing';
 
 const services = [
@@ -62,11 +62,23 @@ const services = [
     testId: 'service-card-decoration',
   },
   {
+    icon: KeyRound,
+    title: 'Home staging',
+    subtitle: 'Valorisation immobilière',
+    description: 'On prépare ta maison ou ton condo pour la vente : désencombrement, dépersonnalisation, réaménagement avec tes meubles et touches déco qui donnent le coup de cœur aux acheteurs. Consultation, mise en scène partielle ou complète, à Longueuil, Brossard, Montréal et sur la Rive-Sud.',
+    href: '/services/decoration',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600',
+    features: ['Désencombrement', 'Dépersonnalisation', 'Réaménagement avec tes meubles', 'Touches déco qui font vendre'],
+    categories: ['staging'],
+    priceLabel: 'Consultation dès 250 $',
+    testId: 'service-card-staging',
+  },
+  {
     icon: Snowflake,
     title: 'Climatiseurs & thermopompes murales',
     description: 'Nettoyage, entretien et installation de climatiseurs et thermopompes murales pour un air sain et un rendement optimal.',
     href: '/services/climatiseurs',
-    image: 'https://images.unsplash.com/photo-1665522557947-bfcdbe97e567?w=600',
+    image: 'https://images.unsplash.com/photo-1631545806609-35d4ae440431?w=600',
     features: ['Nettoyage complet', 'Entretien saisonnier', 'Installation', 'Diagnostic'],
     categories: ['hvac'],
     testId: 'service-card-hvac',
@@ -83,8 +95,9 @@ export default function ServicesPage() {
             Services professionnels <span className="text-[#d4af37]">Déco Touché</span>
           </h1>
           <p className="text-white/70 max-w-2xl mx-auto">
-            Peinture, rénovation, entretien et installation de mobilier. 
+            Peinture, rénovation, entretien et installation de mobilier.
             Des résultats impeccables pour votre propriété à Montréal et la Rive-Sud.
+            Des options pour tous les budgets : assemblage dès 65 $, nettoyage de thermopompe à 189 $ l'unité, paniers déco tout inclus dès 429 $.
           </p>
         </div>
       </section>
@@ -98,7 +111,7 @@ export default function ServicesPage() {
                   <div className={`relative h-64 md:h-auto ${i % 2 === 1 ? 'md:order-2' : ''}`}>
                     <img src={service.image} alt={service.title} className="w-full h-full object-cover" />
                     <div className="absolute top-4 left-4 bg-white/90 text-[#1a365d] px-3 py-1 rounded-full text-xs font-semibold">
-                      <CatalogFromPrice categories={service.categories} />
+                      {service.priceLabel ? service.priceLabel : <CatalogFromPrice categories={service.categories} />}
                     </div>
                   </div>
                   <CardContent className="p-8 flex flex-col justify-center">
@@ -106,7 +119,10 @@ export default function ServicesPage() {
                       <div className="w-10 h-10 bg-[#d4af37]/10 rounded-lg flex items-center justify-center">
                         <service.icon className="h-5 w-5 text-[#d4af37]" />
                       </div>
-                      <h3 className="text-xl font-bold text-white font-['Outfit']">{service.title}</h3>
+                      <div>
+                        <h3 className="text-xl font-bold text-white font-['Outfit']">{service.title}</h3>
+                        {service.subtitle && <p className="text-sm font-semibold text-[#d4af37]">{service.subtitle}</p>}
+                      </div>
                     </div>
                     <p className="text-gray-300 mb-6">{service.description}</p>
                     <ul className="grid grid-cols-2 gap-2 mb-6">
