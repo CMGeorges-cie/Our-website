@@ -19,7 +19,11 @@ import {
   Clock,
   ArrowRight,
   CheckCircle,
-  DollarSign
+  DollarSign,
+  KeyRound,
+  Archive,
+  PartyPopper,
+  Briefcase
 } from 'lucide-react';
 
 const steps = [
@@ -87,12 +91,64 @@ const paniers = [
   }
 ];
 
+const signatureServices = [
+  {
+    icon: KeyRound,
+    name: 'Home staging',
+    subtitle: 'Valorisation immobilière',
+    price: 'Consultation dès 250 $',
+    description: 'Ta maison prête pour les photos et les visites : désencombrement, dépersonnalisation, réaménagement avec tes meubles et touches déco qui aident à vendre plus vite et plus cher. Consultation, mise en scène partielle ou complète.'
+  },
+  {
+    icon: Archive,
+    name: 'Organisation et rangement haut de gamme',
+    price: 'Sur soumission',
+    description: 'Garde-robes, garde-manger, bureau, garage : on trie, on organise et on installe des systèmes de rangement durables. Une maison claire et fonctionnelle, où chaque chose a sa place.'
+  },
+  {
+    icon: PartyPopper,
+    name: 'Décoration d\'événements',
+    price: 'Sur soumission',
+    description: 'Inaugurations, mariages, réceptions, partys de bureau : on habille ton événement avec notre inventaire déco et on installe tout sur place. Toi, tu profites de ta soirée.'
+  },
+  {
+    icon: Briefcase,
+    name: 'Forfait courtiers immobiliers',
+    price: 'Sur soumission',
+    description: 'Pour les courtiers qui veulent des inscriptions qui se démarquent : staging, touches déco et photos avant/après prêtes à partager. Un partenaire déco pour tes mandats, maison après maison.'
+  }
+];
+
 const produits = [
+  {
+    icon: AppWindow,
+    name: 'Pellicule décorative pour vitres',
+    price: '199–349 $ par surface',
+    why: 'Intimité de salle de bain, de porte d\'entrée ou de bureau sans changer la fenêtre — et c\'est réversible. Posée à la raclette par un pro, elle a l\'air d\'un verre givré d\'usine, sans bulles.'
+  },
+  {
+    icon: Wrench,
+    name: 'Relook quincaillerie coordonnée',
+    price: 'Forfait 12–20 poignées + crochets 299–499 $',
+    why: 'Changer toutes les poignées d\'une cuisine transforme le look pour une fraction d\'une rénovation. Alignement parfait au gabarit de perçage, un seul fini coordonné partout, en une visite.'
+  },
+  {
+    icon: Lightbulb,
+    name: 'Appliques murales sans fil',
+    price: 'Paire posée 349–549 $',
+    why: 'Le look « appliques d\'hôtel » de chaque côté du lit ou du miroir — sans électricien, car les modèles sont rechargeables. Tu paies la symétrie parfaite au niveau laser et l\'appairage de la télécommande.'
+  },
   {
     icon: Layers,
     name: 'Papier peint autocollant & murales',
     price: 'Mur accent dès 599 $ (1 mur ±100 pi²) · Murale sur mesure dès 899 $ (mur type 10 × 10 pi)',
     why: 'Posé par un pro : zéro bulle, raccords de motifs invisibles, coupes parfaites autour des prises. Se retire sans dommage — l\'argument parfait pour les locataires. Motifs fabriqués au Québec disponibles.'
+  },
+  {
+    icon: ImageIcon,
+    name: 'Art grand format & toiles sur mesure',
+    price: '599–999 $ livré + accroché',
+    why: 'Une toile de 60 po et plus coûte cher, se transporte mal et exige un ancrage calculé selon le poids et les montants. On la livre et on l\'accroche droite et solide — pas dans trois mois, cette semaine.'
   },
   {
     icon: Layers,
@@ -109,35 +165,11 @@ const produits = [
     why: 'L\'effet « resto/boutique » à la maison, zéro entretien. La composition (densité, mélange de feuillages) est un travail d\'artisan, et la fixation d\'un grand panneau doit être solide et parfaitement droite.'
   },
   {
-    icon: Lightbulb,
-    name: 'Appliques murales sans fil',
-    price: 'Paire posée 349–549 $',
-    why: 'Le look « appliques d\'hôtel » de chaque côté du lit ou du miroir — sans électricien, car les modèles sont rechargeables. Tu paies la symétrie parfaite au niveau laser et l\'appairage de la télécommande.'
-  },
-  {
-    icon: AppWindow,
-    name: 'Pellicule décorative pour vitres',
-    price: '199–349 $ par surface',
-    why: 'Intimité de salle de bain, de porte d\'entrée ou de bureau sans changer la fenêtre — et c\'est réversible. Posée à la raclette par un pro, elle a l\'air d\'un verre givré d\'usine, sans bulles.'
-  },
-  {
     icon: DoorOpen,
     name: 'Garde-robe vendue + assemblée + ancrée',
     price: '1 499–2 999 $ selon configuration (systèmes IKEA PAX)',
     why: 'On fait déjà l\'assemblage — maintenant on vend le système complet : mesures, planification, commande, livraison, assemblage, ancrage anti-basculement et ajustement des portes. À Montréal, l\'assemblage seul d\'un PAX vaut déjà 350–900 $.'
   },
-  {
-    icon: Wrench,
-    name: 'Relook quincaillerie coordonnée',
-    price: 'Forfait 12–20 poignées + crochets 299–499 $',
-    why: 'Changer toutes les poignées d\'une cuisine transforme le look pour une fraction d\'une rénovation. Alignement parfait au gabarit de perçage, un seul fini coordonné partout, en une visite.'
-  },
-  {
-    icon: ImageIcon,
-    name: 'Art grand format & toiles sur mesure',
-    price: '599–999 $ livré + accroché',
-    why: 'Une toile de 60 po et plus coûte cher, se transporte mal et exige un ancrage calculé selon le poids et les montants. On la livre et on l\'accroche droite et solide — pas dans trois mois, cette semaine.'
-  }
 ];
 
 const faqs = [
@@ -188,7 +220,10 @@ export default function DecorationPage() {
             <p className="text-lg text-white/80 mb-8">
               Tu choisis tes produits, on s'occupe de tout : commande, livraison et
               installation professionnelle. Des produits accrochés ou posés, installés
-              proprement — aucun gros travaux, aucune poussière de chantier.
+              proprement, aucun gros travaux, aucune poussière de chantier.
+              Des options pour tous les budgets : ça commence à 199 $ pour une
+              pellicule décorative posée, et chaque prix s'explique, produit et
+              pose compris.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/soumission">
@@ -435,8 +470,62 @@ export default function DecorationPage() {
             </Card>
           </div>
           <p className="text-sm text-center text-gray-600 mt-8 max-w-3xl mx-auto">
-            Nos prix de vente sont des prix installés, produit et pose compris. <strong>Transparence :</strong> prix en $ CAD avant taxes, basés sur les prix de détail publics vérifiés (Home Depot Canada, Wayfair Canada, Bouclair, vitreries locales). Acompte sur les produits avant toute commande sur mesure.
+            <strong>Transparence :</strong> prix en $ CAD avant taxes. Nos prix de vente sont des prix installés, produit et pose compris. Les valeurs au détail citées dans les paniers sont des repères publics vérifiés (Home Depot Canada, Wayfair Canada, Bouclair, vitreries locales). Acompte sur les produits avant toute commande sur mesure.
           </p>
+        </div>
+      </section>
+
+      {/* Déco Touché Signature */}
+      <section className="section-spacing bg-[#0a0a0c]" data-testid="signature-section">
+        <div className="container-main">
+          <div className="text-center mb-16">
+            <img
+              src="/images/signature/logo-deco-touche-signature.webp"
+              alt="Logo Déco Touché Signature : lion noir en habit chic, finition or"
+              loading="lazy"
+              className="w-56 h-56 md:w-72 md:h-72 object-cover rounded-full ring-1 ring-[#d4af37]/40 mx-auto mb-8"
+            />
+            <span className="text-[#d4af37] font-semibold text-sm uppercase tracking-wider">La ligne haut de gamme</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mt-2 mb-4 font-['Outfit']">
+              Déco Touché <span className="text-[#d4af37]">Signature</span>
+            </h2>
+            <p className="text-white/70 max-w-2xl mx-auto">
+              Pour les projets qui demandent une touche de plus. Des services haut de gamme,
+              pensés comme une expérience : on s'occupe de tout, du premier coup d'œil à la
+              dernière touche, et chaque prix s'explique avant de commencer.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {signatureServices.map((service, idx) => {
+              const Icon = service.icon;
+              return (
+                <Card key={idx} className="p-8 ring-1 ring-[#d4af37]/25" data-testid={`signature-${idx}`}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-[#d4af37] flex items-center justify-center flex-shrink-0">
+                      <Icon className="h-6 w-6 text-[#1a365d]" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-1 font-['Outfit']">{service.name}</h3>
+                      {service.subtitle && <p className="text-sm font-semibold text-[#d4af37] mb-1">{service.subtitle}</p>}
+                      <p className="text-[#d4af37] font-bold mb-3">{service.price}</p>
+                      <p className="text-gray-300 text-sm">{service.description}</p>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-white/70 mb-6">Un projet Signature en tête? Parlons-en, la première conversation est gratuite.</p>
+            <Link to="/soumission">
+              <Button className="btn-accent" size="lg">
+                Demander une soumission
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
