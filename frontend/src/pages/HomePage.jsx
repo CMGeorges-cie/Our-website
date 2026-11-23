@@ -26,14 +26,6 @@ import { CMGEORGES_PHONE, CMGEORGES_PHONE_LINK } from '@/lib/utils';
 
 const services = [
   {
-    icon: Flame,
-    title: 'Murs Accent — Cheminée & TV',
-    description: 'Transformez votre salon en un weekend. Panneaux rainurés, pierre, béton ciré — cheminée électrique CSA incluse.',
-    href: '/murs-accent',
-    image: '/portfolio/murs/mod-a-noir-rainure.jpg',
-    features: ['4 modèles', 'Cheminée CSA incluse', 'Support TV mural', 'Forfait tout inclus']
-  },
-  {
     icon: Paintbrush,
     title: 'Peinture intérieure & extérieure',
     description: 'Transformation complète de vos espaces avec des finitions impeccables. Peinture résidentielle et commerciale.',
@@ -64,12 +56,20 @@ const services = [
     href: '/services/mobilier',
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600',
     features: ['Assemblage IKEA', 'TV murale & barre de son', 'Tablettes & ancrages', 'Déménagement léger']
+  },
+  {
+    icon: Flame,
+    title: 'Murs Accent — Cheminée & TV',
+    description: 'Transformez votre salon en un weekend. Panneaux rainurés, pierre, béton ciré — cheminée électrique CSA incluse.',
+    href: '/murs-accent',
+    image: '/portfolio/murs/mod-a-noir-rainure.jpg',
+    features: ['4 modèles', 'Cheminée CSA incluse', 'Support TV mural', 'Forfait tout inclus']
   }
 ];
 
 const whyChoose = [
   { icon: BadgeCheck, title: 'Travail garanti', desc: 'Garantie de satisfaction sur tous nos travaux de peinture et rénovation.' },
-  { icon: DollarSign, title: 'Prix transparents', desc: 'Soumission gratuite et détaillée. Aucune surprise, aucun frais caché.' },
+  { icon: DollarSign, title: 'Prix transparents', desc: 'Soumission gratuite et détaillée. Des options pour tous les budgets, du petit entretien dès 65 $ aux projets Signature. Aucune surprise, aucun frais caché.' },
   { icon: Clock, title: 'Respect des délais', desc: 'Nous respectons les échéanciers convenus. Votre temps est précieux.' },
   { icon: Shield, title: 'Assuré & professionnel', desc: 'Assurance responsabilité civile active. Travail soigné et encadré.' },
 ];
