@@ -125,10 +125,6 @@ export default function Footer() {
               <Link to="/conditions" className="hover:text-white transition-colors">Conditions</Link>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-6 text-xs text-white/40 text-center" data-testid="footer-tax-numbers">
-            <span>TPS&nbsp;: {BRAND.taxes.gst}</span>
-            <span>TVQ&nbsp;: {BRAND.taxes.qst}</span>
-          </div>
         </div>
       </div>
     </footer>
