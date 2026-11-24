@@ -7,7 +7,7 @@ export default function ClimatiseursPage() {
       testId="climatiseurs-page"
       seo={{
         title: 'Climatiseurs & thermopompes murales — Nettoyage et entretien | Déco Touché',
-        description: 'Nettoyage, entretien et installation de climatiseurs et thermopompes murales à Montréal et sur la Rive-Sud. Prix selon notre catalogue.',
+        description: 'Nettoyage, entretien et installation de climatiseurs et thermopompes murales à Montréal et sur la Rive-Sud. Nettoyage complet à 189 $ l\'unité.',
       }}
       hero={{
         icon: Snowflake,
@@ -33,7 +33,7 @@ export default function ClimatiseursPage() {
       soumission="/soumission?service=hvac"
       steps={[
         { title: 'Demande', desc: 'Décrivez vos appareils (nombre, type, étage) dans le formulaire.' },
-        { title: 'Prix confirmé', desc: 'Nous confirmons le prix selon notre catalogue et le nombre d\'unités.' },
+        { title: 'Prix confirmé', desc: 'Le prix est simple et connu d\'avance : 189 $ par unité pour le nettoyage complet. On confirme le nombre d\'unités avec toi avant la visite.' },
         { title: 'Intervention', desc: 'Nettoyage en profondeur, sans dégât, avec protection des lieux.' },
         { title: 'Suivi', desc: 'Rappel pour le prochain entretien saisonnier.' },
       ]}
