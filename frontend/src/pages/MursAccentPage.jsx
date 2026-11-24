@@ -303,6 +303,20 @@ export default function MursAccentPage() {
         </div>
       </section>
 
+      {/* PORTE DE SORTIE BUDGET */}
+      <section className="py-10 bg-white">
+        <div className="container-main text-center">
+          <p className="text-gray-700 max-w-2xl mx-auto">
+            Un budget plus serré? Nos murs d&apos;accent en papier peint, panneaux et lattes
+            commencent dès 599 $, produit et pose compris.{' '}
+            <Link to="/decoration" className="font-semibold text-[#1B3A8C] hover:text-[#D4A017] underline">
+              Voir la page Décoration
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
       {/* GARANTIES */}
       <section id="garanties" className="py-20 bg-[#f7f5f0]">
         <div className="container-main">
@@ -350,7 +364,7 @@ export default function MursAccentPage() {
               </a>
             </div>
             <p className="text-white/50 text-xs mt-8">
-              Déco Touché · CMGeorges &middot; Rive-Sud de Montréal · NEQ 2280425325 · TPS 71476 7027 RT0001 · TVQ 4023795081 TQ0001
+              Déco Touché · CMGeorges &middot; Rive-Sud de Montréal
             </p>
           </div>
         </div>
